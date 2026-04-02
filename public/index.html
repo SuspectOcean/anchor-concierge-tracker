@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anchor Concierge &amp; Super Yacht Services â Service Tracker</title>
+<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -43,7 +43,6 @@
     line-height: 1.5;
     min-height: 100vh;
   }
-  /* Header */
   .app-header {
     background: linear-gradient(135deg, var(--navy), var(--navy-light));
     color: var(--white);
@@ -67,11 +66,7 @@
   }
   .nav-btn:hover { background: rgba(255,255,255,0.22); }
   .nav-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
-
-  /* Main */
   .app-main { max-width: 800px; margin: 0 auto; padding: 20px 16px 80px; }
-
-  /* Tabs */
   .tab-bar {
     display: flex; gap: 4px; background: var(--white); border-radius: var(--radius-lg);
     padding: 4px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
@@ -84,8 +79,6 @@
   }
   .tab-btn.active { background: var(--navy); color: var(--white); }
   .tab-btn:hover:not(.active) { background: var(--gray-100); }
-
-  /* Cards / Sections */
   .section-card {
     background: var(--white); border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
@@ -105,8 +98,6 @@
   .section-header.collapsed .chevron { transform: rotate(-90deg); }
   .section-body { padding: 16px 20px; }
   .section-body.collapsed { display: none; }
-
-  /* Form elements */
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
   .form-row.single { grid-template-columns: 1fr; }
@@ -129,11 +120,7 @@
   }
   textarea { resize: vertical; min-height: 72px; }
   select { cursor: pointer; appearance: auto; }
-
-  /* Inline add */
-  .inline-add {
-    display: flex; gap: 8px; align-items: center;
-  }
+  .inline-add { display: flex; gap: 8px; align-items: center; }
   .inline-add select, .inline-add input { flex: 1; }
   .add-btn {
     background: var(--teal-light); color: var(--teal); border: 1px solid var(--teal);
@@ -141,8 +128,6 @@
     font-weight: 600; white-space: nowrap; transition: all 0.2s;
   }
   .add-btn:hover { background: var(--teal); color: var(--white); }
-
-  /* Toggle / Switch */
   .toggle-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 0; border-bottom: 1px solid var(--gray-100);
@@ -150,9 +135,7 @@
   .toggle-row:last-child { border-bottom: none; }
   .toggle-label { font-size: 14px; color: var(--gray-700); }
   .toggle-label .hint { font-size: 12px; color: var(--gray-500); display: block; }
-  .switch {
-    position: relative; width: 44px; height: 24px; flex-shrink: 0;
-  }
+  .switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
@@ -164,8 +147,6 @@
   }
   .switch input:checked + .slider { background: var(--teal); }
   .switch input:checked + .slider:before { transform: translateX(20px); }
-
-  /* Status pills */
   .status-options { display: flex; gap: 8px; flex-wrap: wrap; }
   .status-pill {
     padding: 8px 16px; border-radius: 20px; border: 2px solid var(--gray-300);
@@ -176,8 +157,6 @@
   .status-pill.active-planned { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
   .status-pill.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
   .status-pill.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
-
-  /* Billing type selector */
   .billing-type-selector { display: flex; gap: 8px; margin-bottom: 16px; }
   .billing-type-btn {
     flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius);
@@ -187,22 +166,17 @@
   .billing-type-btn .label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
   .billing-type-btn.active { border-color: var(--navy); background: #f0f4ff; }
   .billing-type-btn.active .label { color: var(--navy); }
-
-  /* Calculation summary */
   .calc-summary {
     background: var(--gray-50); border: 1px solid var(--gray-200);
     border-radius: var(--radius); padding: 16px; margin-top: 12px;
   }
   .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
-  .calc-row.subtotal { border-top: 1px solid var(--gray-300); padding-top: 10px; margin-top: 4px; }
   .calc-row.total {
     border-top: 2px solid var(--navy); padding-top: 10px; margin-top: 4px;
     font-weight: 700; font-size: 16px; color: var(--navy);
   }
   .calc-label { color: var(--gray-600); }
   .calc-value { font-weight: 600; }
-
-  /* Upload area */
   .upload-area {
     border: 2px dashed var(--gray-300); border-radius: var(--radius);
     padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s;
@@ -212,9 +186,7 @@
   .upload-area .icon { font-size: 36px; margin-bottom: 8px; }
   .upload-area .text { font-size: 14px; color: var(--gray-600); }
   .upload-area .hint { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
-  .receipt-preview {
-    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
-  }
+  .receipt-preview { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
   .receipt-thumb {
     width: 80px; height: 80px; border-radius: 6px; background: var(--gray-200);
     display: flex; align-items: center; justify-content: center; position: relative;
@@ -226,15 +198,11 @@
     border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
     font-size: 12px; display: flex; align-items: center; justify-content: center;
   }
-
-  /* Receipt detail row */
   .receipt-detail {
     background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 6px;
     padding: 12px; margin-top: 8px;
   }
   .receipt-detail .form-row { margin-bottom: 8px; }
-
-  /* Duplicate warning */
   .duplicate-warning {
     background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius);
     padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;
@@ -242,8 +210,6 @@
   .duplicate-warning .warn-icon { font-size: 22px; flex-shrink: 0; }
   .duplicate-warning .warn-text { font-size: 14px; color: var(--gray-700); }
   .duplicate-warning .warn-text strong { color: var(--gray-800); }
-
-  /* Submit bar */
   .submit-bar {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
     background: var(--white); border-top: 1px solid var(--gray-200);
@@ -264,8 +230,6 @@
     padding: 14px 20px; border-radius: var(--radius); cursor: pointer;
     font-size: 14px; font-weight: 500; transition: all 0.2s;
   }
-
-  /* Log table */
   .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .log-table th {
     background: var(--navy); color: var(--white); padding: 10px 12px;
@@ -281,8 +245,6 @@
   .status-planned { background: #e8f0ff; color: var(--blue); }
   .status-inprogress { background: var(--orange-light); color: var(--orange); }
   .status-completed { background: var(--green-light); color: var(--green); }
-
-  /* Timeline */
   .timeline-item {
     display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--gray-100);
   }
@@ -298,29 +260,20 @@
   .timeline-body .event { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
   .timeline-body .meta { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
   .timeline-urgent { border-left: 3px solid var(--red); padding-left: 11px; }
-
-  /* Currency selector */
   .currency-row { display: flex; gap: 8px; align-items: center; }
   .currency-row select { width: 90px; flex-shrink: 0; }
   .currency-row input { flex: 1; }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    .form-row { grid-template-columns: 1fr; }
-    .form-row.three { grid-template-columns: 1fr; }
-    .header-nav { display: none; }
-    .header-brand h1 { font-size: 15px; }
-    .billing-type-selector { flex-wrap: wrap; }
-    .billing-type-btn { flex: 1 1 45%; }
-    .status-options { gap: 6px; }
-    .status-pill { padding: 6px 12px; font-size: 12px; }
-    .section-body { padding: 12px 14px; }
-    .submit-inner { flex-wrap: wrap; }
-    .log-table { font-size: 12px; }
-    .log-table th, .log-table td { padding: 8px 6px; }
+  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .search-bar input { flex: 1; min-width: 200px; }
+  .search-bar select { width: 160px; }
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: var(--white); padding: 12px 24px;
+    border-radius: var(--radius); font-size: 14px; z-index: 300;
+    box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
   }
-
-  /* Modal */
+  @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+  .hidden { display: none !important; }
   .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.5); z-index: 200; display: flex;
@@ -337,24 +290,41 @@
   }
   .modal-actions .cancel { background: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
   .modal-actions .confirm { background: var(--teal); border: none; color: var(--white); }
-
-  /* Search bar for log */
-  .search-bar {
-    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  /* Sync indicator */
+  .sync-status {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
+    padding: 4px 10px; border-radius: 12px; margin-left: 8px;
   }
-  .search-bar input { flex: 1; min-width: 200px; }
-  .search-bar select { width: 160px; }
-
-  /* Toasts */
-  .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: var(--navy); color: var(--white); padding: 12px 24px;
-    border-radius: var(--radius); font-size: 14px; z-index: 300;
-    box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
+  .sync-ok { background: var(--green-light); color: var(--green); }
+  .sync-pending { background: #fff8f0; color: var(--orange); }
+  .sync-error { background: var(--red-light); color: var(--red); }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.pending { background: var(--orange); animation: pulse 1.5s infinite; }
+  .sync-dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  /* Settings panel */
+  .settings-panel {
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
   }
-  @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
-
-  .hidden { display: none !important; }
+  .settings-panel label { display: block; margin-bottom: 4px; }
+  .settings-panel input { margin-bottom: 12px; }
+  .settings-panel .hint { font-size: 12px; color: var(--gray-500); margin-bottom: 8px; }
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr; }
+    .header-nav { display: none; }
+    .header-brand h1 { font-size: 15px; }
+    .billing-type-selector { flex-wrap: wrap; }
+    .billing-type-btn { flex: 1 1 45%; }
+    .status-options { gap: 6px; }
+    .status-pill { padding: 6px 12px; font-size: 12px; }
+    .section-body { padding: 12px 14px; }
+    .submit-inner { flex-wrap: wrap; }
+    .log-table { font-size: 12px; }
+    .log-table th, .log-table td { padding: 8px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -374,17 +344,18 @@
       <button class="nav-btn" onclick="showView('log')">Log</button>
       <button class="nav-btn" onclick="showView('timeline')">Timeline</button>
       <button class="nav-btn" onclick="showView('staff')">Staff</button>
+      <button class="nav-btn" onclick="showView('settings')">&#9881;</button>
     </div>
   </div>
 </header>
 
-<!-- MOBILE TAB BAR -->
 <div class="app-main">
   <div class="tab-bar" id="mobileTabBar">
     <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
     <button class="tab-btn" data-view="staff" onclick="showView('staff')">Staff</button>
+    <button class="tab-btn" data-view="settings" onclick="showView('settings')">&#9881;</button>
   </div>
 
   <!-- =============================== -->
@@ -485,21 +456,21 @@
         <div class="form-row">
           <div class="form-group">
             <label>Cleared In At</label>
-            <input type="text" placeholder="e.g. English Harbour">
+            <input type="text" id="clearedIn" placeholder="e.g. English Harbour">
           </div>
           <div class="form-group">
             <label>Cleared Out At</label>
-            <input type="text" placeholder="e.g. Falmouth Harbour">
+            <input type="text" id="clearedOut" placeholder="e.g. Falmouth Harbour">
           </div>
         </div>
         <div class="form-row three">
           <div class="form-group">
             <label>Marina / Berth / Port</label>
-            <input type="text" placeholder="e.g. Nelson's Dockyard">
+            <input type="text" id="marina" placeholder="e.g. Nelson's Dockyard">
           </div>
           <div class="form-group">
             <label>Country / Island</label>
-            <select>
+            <select id="country">
               <option value="">Select...</option>
               <option>Antigua</option>
               <option>Barbuda</option>
@@ -518,7 +489,7 @@
           </div>
           <div class="form-group">
             <label>Jurisdiction</label>
-            <input type="text" placeholder="If applicable">
+            <input type="text" id="jurisdiction" placeholder="If applicable">
           </div>
         </div>
       </div>
@@ -561,11 +532,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>Crew Arrival</label>
-              <input type="datetime-local">
+              <input type="datetime-local" id="crewArrival">
             </div>
-                       <div class="form-group">
+            <div class="form-group">
               <label>Crew Departure</label>
-              <input type="datetime-local">
+              <input type="datetime-local" id="crewDeparture">
             </div>
           </div>
         </div>
@@ -584,24 +555,19 @@
           <div class="toggle-label">Billable<span class="hint">Uncheck for non-billable internal work</span></div>
           <label class="switch"><input type="checkbox" id="billableToggle" checked onchange="recalculate()"><span class="slider"></span></label>
         </div>
-
         <label style="margin-bottom: 8px; display: block;">Billing Type</label>
         <div class="billing-type-selector">
           <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
-            <span class="icon">&#9201;</span>
-            <span class="label">Hourly</span>
+            <span class="icon">&#9201;</span><span class="label">Hourly</span>
           </button>
           <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
-            <span class="icon">&#x1F4CB;</span>
-            <span class="label">Fixed Fee</span>
+            <span class="icon">&#x1F4CB;</span><span class="label">Fixed Fee</span>
           </button>
           <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
-            <span class="icon">%</span>
-            <span class="label">Percentage</span>
+            <span class="icon">%</span><span class="label">Percentage</span>
           </button>
           <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
-            <span class="icon">&#x270F;</span>
-            <span class="label">Manual</span>
+            <span class="icon">&#x270F;</span><span class="label">Manual</span>
           </button>
         </div>
 
@@ -647,16 +613,16 @@
               <label>Predefined Service</label>
               <select id="fixedServiceSelect" onchange="applyFixedRate()">
                 <option value="">Select or enter custom...</option>
-                <option value="200">Customs &amp; Immigration Clearance â $200</option>
-                <option value="35">Additional Crew Clearance â $35/person</option>
-                <option value="50">Crew Sign Off â $50/person</option>
-                <option value="75">Phytosanitary Certificate â $75</option>
-                <option value="150">Air Freight Brokerage â $150</option>
-                <option value="350">Sea Freight Brokerage â $350</option>
-                <option value="750">Yacht Import/Export Brokerage â $750</option>
-                <option value="50">Warrants &amp; Entry Documentation â $50</option>
-                <option value="600">Overseas Provisions (1st pallet) â $600</option>
-                <option value="120">Overseas Provisions (add'l pallet) â $120</option>
+                <option value="200">Customs &amp; Immigration Clearance — $200</option>
+                <option value="35">Additional Crew Clearance — $35/person</option>
+                <option value="50">Crew Sign Off — $50/person</option>
+                <option value="75">Phytosanitary Certificate — $75</option>
+                <option value="150">Air Freight Brokerage — $150</option>
+                <option value="350">Sea Freight Brokerage — $350</option>
+                <option value="750">Yacht Import/Export Brokerage — $750</option>
+                <option value="50">Warrants &amp; Entry Documentation — $50</option>
+                <option value="600">Overseas Provisions (1st pallet) — $600</option>
+                <option value="120">Overseas Provisions (add'l pallet) — $120</option>
               </select>
             </div>
             <div class="form-group">
@@ -690,7 +656,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Fee Type</label>
-              <select id="percentType" onchange="recalculate()">
+              <select id="percentType" onchange="updatePercentRate()">
                 <option value="22.5">Provisioning / Sourcing (22.5%)</option>
                 <option value="22.5">Item Sourcing (22.5%)</option>
                 <option value="15">National Parks &amp; Dockage (15%)</option>
@@ -746,7 +712,7 @@
           </div>
         </div>
 
-        <!-- Additional fees (always visible) -->
+        <!-- Additional fees -->
         <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
           <label style="margin-bottom: 8px; display: block;">Additional Fees</label>
           <div class="form-row three">
@@ -767,30 +733,12 @@
 
         <!-- Calculation summary -->
         <div class="calc-summary" id="calcSummary">
-          <div class="calc-row">
-            <span class="calc-label">Base Charge</span>
-            <span class="calc-value" id="calcBase">$0.00</span>
-          </div>
-          <div class="calc-row">
-            <span class="calc-label">Additional Crew</span>
-            <span class="calc-value" id="calcCrew">$0.00</span>
-          </div>
-          <div class="calc-row">
-            <span class="calc-label">Agency Fee</span>
-            <span class="calc-value" id="calcAgency">$0.00</span>
-          </div>
-          <div class="calc-row">
-            <span class="calc-label">Disbursement Fee</span>
-            <span class="calc-value" id="calcDisbursement">$0.00</span>
-          </div>
-          <div class="calc-row">
-            <span class="calc-label">Other Charges</span>
-            <span class="calc-value" id="calcOther">$0.00</span>
-          </div>
-          <div class="calc-row total">
-            <span class="calc-label">Total Charge</span>
-            <span class="calc-value" id="calcTotal">$0.00</span>
-          </div>
+          <div class="calc-row"><span class="calc-label">Base Charge</span><span class="calc-value" id="calcBase">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Additional Crew</span><span class="calc-value" id="calcCrew">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Agency Fee</span><span class="calc-value" id="calcAgency">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Disbursement Fee</span><span class="calc-value" id="calcDisbursement">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Other Charges</span><span class="calc-value" id="calcOther">$0.00</span></div>
+          <div class="calc-row total"><span class="calc-label">Total Charge</span><span class="calc-value" id="calcTotal">$0.00</span></div>
         </div>
       </div>
     </div>
@@ -805,17 +753,17 @@
         <div class="form-row single">
           <div class="form-group">
             <label>Requests / Special Notes</label>
-            <textarea placeholder="Any special requests from the vessel or crew..."></textarea>
+            <textarea id="specialNotes" placeholder="Any special requests from the vessel or crew..."></textarea>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Internal Notes</label>
-            <textarea placeholder="For team eyes only..." style="min-height: 60px;"></textarea>
+            <textarea id="internalNotes" placeholder="For team eyes only..." style="min-height: 60px;"></textarea>
           </div>
           <div class="form-group">
             <label>Client-Facing Notes</label>
-            <textarea placeholder="Notes visible on invoice..." style="min-height: 60px;"></textarea>
+            <textarea id="clientNotes" placeholder="Notes visible on invoice..." style="min-height: 60px;"></textarea>
           </div>
         </div>
       </div>
@@ -831,7 +779,7 @@
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
           <div class="icon">&#x1F4F8;</div>
           <div class="text">Tap to upload receipt photos or documents</div>
-          <div class="hint">JPG, PNG, PDF â up to 10MB each</div>
+          <div class="hint">JPG, PNG, PDF — up to 10MB each</div>
         </div>
         <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(event)">
         <div class="receipt-preview" id="receiptPreview"></div>
@@ -839,17 +787,14 @@
       </div>
     </div>
 
-    <!-- DUPLICATE WARNING (hidden by default) -->
     <div class="duplicate-warning hidden" id="duplicateWarning">
       <span class="warn-icon">&#9888;&#65039;</span>
       <div class="warn-text">
         <strong>Possible duplicate detected.</strong><br>
         A similar entry for this vessel, service type, and date may already exist.
-        You can still submit â both records will be kept. The duplicate flag will be logged.
       </div>
     </div>
-
-  </div><!-- end view-form -->
+  </div>
 
   <!-- =============================== -->
   <!-- VIEW: SERVICE LOG                -->
@@ -858,28 +803,22 @@
     <div class="section-card">
       <div class="section-body">
         <div class="search-bar">
-          <input type="text" placeholder="Search vessel, service, notes...">
-          <select>
-            <option>All Statuses</option>
-            <option>Planned</option>
-            <option>In Progress</option>
-            <option>Completed</option>
+          <input type="text" id="logSearch" placeholder="Search vessel, service, notes..." oninput="renderLog()">
+          <select id="logStatusFilter" onchange="renderLog()">
+            <option value="">All Statuses</option>
+            <option value="planned">Planned</option>
+            <option value="progress">In Progress</option>
+            <option value="completed">Completed</option>
           </select>
-          <select id="logVesselFilter">
-            <option>All Vessels</option>
+          <select id="logVesselFilter" onchange="renderLog()">
+            <option value="">All Vessels</option>
           </select>
         </div>
         <div style="overflow-x: auto;">
           <table class="log-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Vessel</th>
-                <th>Service</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Staff</th>
+                <th>ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Total</th><th>Staff</th>
               </tr>
             </thead>
             <tbody id="logTableBody">
@@ -890,9 +829,7 @@
       </div>
     </div>
     <div class="section-card">
-      <div class="section-header">
-        <h2>Running Totals by Vessel</h2>
-      </div>
+      <div class="section-header"><h2>Running Totals by Vessel</h2></div>
       <div class="section-body">
         <div class="calc-summary" id="runningTotals">
           <div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>
@@ -910,8 +847,8 @@
         <h2>Upcoming Movements &amp; Tasks</h2>
         <span class="badge">Next 14 days</span>
       </div>
-      <div class="section-body" style="padding: 8px 20px;">" id="timelineBody">
-        <div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks. Entries will appear here once services are logged.</div>
+      <div class="section-body" style="padding: 8px 20px;" id="timelineBody">
+        <div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks.</div>
       </div>
     </div>
   </div>
@@ -959,33 +896,56 @@
         </div>
       </div>
     </div>
-
     <div class="section-card">
-      <div class="section-header">
-        <h2>Current Team</h2>
-      </div>
+      <div class="section-header"><h2>Current Team</h2></div>
       <div class="section-body" style="padding:0;">
         <table class="log-table" id="staffTable">
           <thead>
-            <tr>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Actions</th>
-            </tr>
+            <tr><th>Name</th><th>Role</th><th>Phone</th><th>Email</th><th>Actions</th></tr>
           </thead>
           <tbody id="staffTableBody">
-            <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet. Add your team above.</td></tr>
+            <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-</div><!-- end app-main -->
+  <!-- =============================== -->
+  <!-- VIEW: SETTINGS                   -->
+  <!-- =============================== -->
+  <div id="view-settings" class="hidden">
+    <div class="section-card">
+      <div class="section-header">
+        <h2>&#9881; Google Sheets Integration</h2>
+        <span id="syncStatusBadge" class="sync-status sync-pending"><span class="sync-dot pending"></span>Not connected</span>
+      </div>
+      <div class="section-body">
+        <div class="settings-panel">
+          <label>Google Apps Script Web App URL</label>
+          <div class="hint">Deploy your Google Apps Script as a web app and paste the URL here. All data will sync automatically.</div>
+          <input type="url" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" value="">
+          <div style="display:flex; gap:8px;">
+            <button class="btn-submit" onclick="saveAndTestConnection()" style="padding:10px 20px; font-size:14px;">Save &amp; Test Connection</button>
+            <button class="btn-secondary" onclick="syncAllToSheets()" style="padding:10px 20px; font-size:14px;">Sync All Data Now</button>
+          </div>
+        </div>
+        <div class="settings-panel" style="margin-top:16px;">
+          <label>Data Management</label>
+          <div class="hint">Your data is stored locally in your browser and synced to Google Sheets when connected.</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn-secondary" onclick="exportLocalData()" style="padding:8px 16px; font-size:13px;">Export Local Data (JSON)</button>
+            <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="padding:8px 16px; font-size:13px;">Import Data</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importLocalData(event)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- SUBMIT BAR (visible on form view) -->
+</div>
+
+<!-- SUBMIT BAR -->
 <div class="submit-bar" id="submitBar">
   <div class="submit-inner">
     <div class="submit-total">
@@ -1012,185 +972,395 @@
   </div>
 </div>
 
-<!-- SUCCESS TOAST -->
+<!-- TOAST -->
 <div class="toast hidden" id="toast">Entry submitted successfully!</div>
 
 <script>
-  // ============ INITIALIZATION ============
-  const now = new Date();
-  document.getElementById('submissionDateTime').value = now.toISOString().slice(0, 16);
-  document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
+// ============================================================
+// DATA LAYER — localStorage persistence + Google Sheets sync
+// ============================================================
+const DB = {
+  _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
+  _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
 
-  // ============ SERVICE TYPE MAPPING ============
-  const serviceTypes = {
-    'Customs & Immigration': [
-      'Inward Clearance (up to 10 crew)',
-      'Outward Clearance',
-      'Additional Crew Clearance',
-      'Crew Sign Off â Immigration',
-      'Clearance Outside Falmouth/English Harbour'
-    ],
-    'Provisioning & Sourcing': [
-      'Provisioning â Local Sourcing',
-      'Provisioning â Overseas Import',
-      'Item Sourcing (non-food)',
-      'Fuel Arrangement',
-      'Flowers / Special Requests'
-    ],
-    'Logistics & Shipping': [
-      'Air Freight Brokerage',
-      'Sea Freight Brokerage',
-      'Airport Handling & Delivery',
-      'Container Movement â Inbound',
-      'Container Movement â Outbound',
-      'Trucking / Land Transport'
-    ],
-    'Crew Services': [
-      'Crew Transfer / Transport',
-      'Crew Accommodation Booking',
-      'Crew Change Coordination',
-      'Crew Immigration Handling'
-    ],
-    'Berth & Marina': [
-      'Berth Booking',
-      'National Parks Fees & Dockage',
-      'Marina Coordination',
-      'Anchorage Arrangement'
-    ],
-    'Consulting & Admin': [
-      'General Agency Services (Hourly)',
-      'Overtime Agency Services',
-      'Warrant & Entry Documentation',
-      'Phytosanitary Certificate',
-      'Vessel Registration Assistance'
-    ],
-    'Airport & Transport': [
-      'Airport Meet & Greet',
-      'Airport Transfer',
-      'VIP Lounge Arrangement',
-      'Private Charter Coordination'
-    ],
-    'Brokerage': [
-      'Yacht Import Brokerage',
-      'Yacht Export Brokerage',
-      'Customs Brokerage â General'
-    ],
-    'General Support': [
-      'Concierge Request',
-      'Restaurant / Activity Booking',
-      'Laundry / Dry Cleaning',
-      'Medical Assistance Coordination',
-      'Other â See Notes'
-    ]
-  };
+  get entries() { return this._get('anchorEntries', []); },
+  set entries(v) { this._set('anchorEntries', v); },
 
-  function updateServiceTypes() {
-    const cat = document.getElementById('serviceCategory').value;
-    const sel = document.getElementById('serviceType');
-    sel.innerHTML = '<option value="">Select type...</option>';
-    if (serviceTypes[cat]) {
-      serviceTypes[cat].forEach(t => {
-        const opt = document.createElement('option');
-        opt.textContent = t;
-        sel.appendChild(opt);
-      });
-    }
+  get staff() { return this._get('anchorStaff', []); },
+  set staff(v) { this._set('anchorStaff', v); },
+
+  get vessels() { return this._get('anchorVessels', []); },
+  set vessels(v) { this._set('anchorVessels', v); },
+
+  get sheetsUrl() { return localStorage.getItem('anchorSheetsUrl') || ''; },
+  set sheetsUrl(v) { localStorage.setItem('anchorSheetsUrl', v); },
+
+  get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
+  set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
+
+  nextEntryId() {
+    let c = this.entryCounter + 1;
+    this.entryCounter = c;
+    return 'AC-' + String(c).padStart(4, '0');
   }
+};
 
-  // ============ VIEW SWITCHING ============
-  function showView(view) {
-    document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
-    document.getElementById('view-' + view).classList.remove('hidden');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('.tab-btn[data-view="' + view + '"]').classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const labels = { form: '+ New', log: 'Log', timeline: 'Timeline' };
-    document.querySelectorAll('.nav-btn').forEach(b => {
-      if (b.textContent.trim() === labels[view]) b.classList.add('active');
+// ============================================================
+// GOOGLE SHEETS SYNC
+// ============================================================
+async function sheetsPost(payload) {
+  const url = DB.sheetsUrl;
+  if (!url) return { success: false, error: 'No Sheets URL configured' };
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
     });
-    document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
+    return await resp.json();
+  } catch (e) {
+    console.error('Sheets sync error:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+async function syncEntryToSheets(entry) {
+  if (!DB.sheetsUrl) return;
+  updateSyncStatus('pending', 'Syncing...');
+  const result = await sheetsPost({ action: 'submitEntry', entry });
+  if (result.success) {
+    updateSyncStatus('ok', 'Synced');
+  } else {
+    updateSyncStatus('error', 'Sync failed');
+    console.error('Sync failed:', result.error);
+  }
+}
+
+async function syncStaffToSheets(action, staff) {
+  if (!DB.sheetsUrl) return;
+  if (action === 'add') {
+    await sheetsPost({ action: 'addStaff', staff });
+  } else if (action === 'remove') {
+    await sheetsPost({ action: 'removeStaff', staffName: staff.name });
+  }
+}
+
+async function syncVesselToSheets(action, vesselName) {
+  if (!DB.sheetsUrl) return;
+  if (action === 'add') {
+    await sheetsPost({ action: 'addVessel', vessel: { name: vesselName } });
+  } else if (action === 'remove') {
+    await sheetsPost({ action: 'removeVessel', vesselName });
+  }
+}
+
+async function syncAllToSheets() {
+  if (!DB.sheetsUrl) { showToast('Set your Google Sheets URL in Settings first.'); return; }
+  updateSyncStatus('pending', 'Syncing all...');
+  showToast('Syncing all data to Google Sheets...');
+
+  // Sync staff and vessels
+  const result = await sheetsPost({
+    action: 'syncAll',
+    staff: DB.staff,
+    vessels: DB.vessels.map(v => typeof v === 'string' ? v : v.name || v)
+  });
+
+  // Sync all entries one by one
+  const entries = DB.entries;
+  for (const entry of entries) {
+    await sheetsPost({ action: 'submitEntry', entry });
   }
 
-  // ============ SECTION TOGGLE ============
-  function toggleSection(header) {
-    header.classList.toggle('collapsed');
-    header.nextElementSibling.classList.toggle('collapsed');
+  if (result.success) {
+    updateSyncStatus('ok', 'All synced');
+    showToast('All data synced to Google Sheets!');
+  } else {
+    updateSyncStatus('error', 'Sync failed');
+    showToast('Sync error: ' + (result.error || 'Unknown'));
   }
+}
 
-  // ============ STATUS PILLS ============
-  let currentStatus = 'planned';
-  function setStatus(btn, status) {
-    document.querySelectorAll('.status-pill').forEach(p => {
-      p.className = 'status-pill';
-    });
-    btn.classList.add('active-' + status);
-    currentStatus = status;
-    if (status === 'completed') {
-      document.getElementById('workCompleted').checked = true;
-    }
+async function saveAndTestConnection() {
+  const url = document.getElementById('sheetsUrl').value.trim();
+  DB.sheetsUrl = url;
+  if (!url) {
+    updateSyncStatus('error', 'No URL');
+    showToast('Please enter a Google Apps Script URL.');
+    return;
   }
-
-  // ============ FUTURE FIELDS ============
-  function toggleFutureFields() {
-    document.getElementById('futureFields').classList.toggle('hidden',
-      !document.getElementById('futureTask').checked);
-  }
-
-  // ============ BILLING TYPE ============
-  let currentBillingType = 'hourly';
-  function setBillingType(btn, type) {
-    document.querySelectorAll('.billing-type-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    ['hourly', 'fixed', 'percentage', 'manual'].forEach(t => {
-      document.getElementById('billing-' + t).classList.toggle('hidden', t !== type);
-    });
-    currentBillingType = type;
-    recalculate();
-  }
-
-  // ============ RATE RULES ============
-  function applyRateRule() {
-    const rateInput = document.getElementById('hourlyRate');
-    const overtime = document.getElementById('overtimeToggle').checked;
-    const sunday = document.getElementById('sundayToggle').checked;
-    const holiday = document.getElementById('holidayToggle').checked;
-
-    if (holiday) {
-      rateInput.value = 160;
-      document.getElementById('sundayToggle').checked = false;
-      document.getElementById('overtimeToggle').checked = false;
-    } else if (sunday) {
-      rateInput.value = 120;
-      document.getElementById('overtimeToggle').checked = false;
-      document.getElementById('holidayToggle').checked = false;
-    } else if (overtime) {
-      rateInput.value = 120; // 80 * 1.5
-      document.getElementById('sundayToggle').checked = false;
-      document.getElementById('holidayToggle').checked = false;
+  updateSyncStatus('pending', 'Testing...');
+  showToast('Testing connection...');
+  try {
+    const resp = await fetch(url + '?action=getData');
+    const data = await resp.json();
+    if (data.success) {
+      updateSyncStatus('ok', 'Connected');
+      showToast('Connected to Google Sheets successfully!');
     } else {
-      rateInput.value = 80;
+      updateSyncStatus('error', 'Error');
+      showToast('Connection test failed: ' + (data.error || 'Unknown error'));
     }
-    recalculate();
+  } catch (e) {
+    updateSyncStatus('error', 'Failed');
+    showToast('Could not connect: ' + e.message);
+  }
+}
+
+function updateSyncStatus(status, text) {
+  const badge = document.getElementById('syncStatusBadge');
+  if (!badge) return;
+  badge.className = 'sync-status sync-' + status;
+  badge.innerHTML = '<span class="sync-dot ' + status + '"></span>' + text;
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+const now = new Date();
+document.getElementById('submissionDateTime').value = now.toISOString().slice(0, 16);
+document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
+
+// Load saved Sheets URL
+if (DB.sheetsUrl) {
+  document.getElementById('sheetsUrl').value = DB.sheetsUrl;
+  updateSyncStatus('ok', 'Configured');
+}
+
+// ============================================================
+// SERVICE TYPE MAPPING
+// ============================================================
+const serviceTypes = {
+  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off — Immigration','Clearance Outside Falmouth/English Harbour'],
+  'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
+  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
+  'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
+  'Berth & Marina': ['Berth Booking','National Parks Fees & Dockage','Marina Coordination','Anchorage Arrangement'],
+  'Consulting & Admin': ['General Agency Services (Hourly)','Overtime Agency Services','Warrant & Entry Documentation','Phytosanitary Certificate','Vessel Registration Assistance'],
+  'Airport & Transport': ['Airport Meet & Greet','Airport Transfer','VIP Lounge Arrangement','Private Charter Coordination'],
+  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage — General'],
+  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
+};
+
+function updateServiceTypes() {
+  const cat = document.getElementById('serviceCategory').value;
+  const sel = document.getElementById('serviceType');
+  sel.innerHTML = '<option value="">Select type...</option>';
+  if (serviceTypes[cat]) {
+    serviceTypes[cat].forEach(t => { const o = document.createElement('option'); o.textContent = t; sel.appendChild(o); });
+  }
+}
+
+// ============================================================
+// VIEW SWITCHING
+// ============================================================
+function showView(view) {
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('view-' + view).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
+  if (tabBtn) tabBtn.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const labels = { form: '+ New', log: 'Log', timeline: 'Timeline', staff: 'Staff', settings: '\u2699' };
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.trim() === labels[view]) b.classList.add('active');
+  });
+  document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
+  if (view === 'log') renderLog();
+  if (view === 'timeline') renderTimeline();
+}
+
+// ============================================================
+// SECTION TOGGLE
+// ============================================================
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('collapsed');
+}
+
+// ============================================================
+// STATUS PILLS
+// ============================================================
+let currentStatus = 'planned';
+function setStatus(btn, status) {
+  document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
+  btn.classList.add('active-' + status);
+  currentStatus = status;
+  if (status === 'completed') document.getElementById('workCompleted').checked = true;
+}
+
+// ============================================================
+// FUTURE FIELDS
+// ============================================================
+function toggleFutureFields() {
+  document.getElementById('futureFields').classList.toggle('hidden', !document.getElementById('futureTask').checked);
+}
+
+// ============================================================
+// BILLING TYPE
+// ============================================================
+let currentBillingType = 'hourly';
+function setBillingType(btn, type) {
+  document.querySelectorAll('.billing-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['hourly','fixed','percentage','manual'].forEach(t => {
+    document.getElementById('billing-' + t).classList.toggle('hidden', t !== type);
+  });
+  currentBillingType = type;
+  recalculate();
+}
+
+// ============================================================
+// RATE RULES
+// ============================================================
+function applyRateRule() {
+  const rateInput = document.getElementById('hourlyRate');
+  const overtime = document.getElementById('overtimeToggle').checked;
+  const sunday = document.getElementById('sundayToggle').checked;
+  const holiday = document.getElementById('holidayToggle').checked;
+  if (holiday) { rateInput.value = 160; document.getElementById('sundayToggle').checked = false; document.getElementById('overtimeToggle').checked = false; }
+  else if (sunday) { rateInput.value = 120; document.getElementById('overtimeToggle').checked = false; document.getElementById('holidayToggle').checked = false; }
+  else if (overtime) { rateInput.value = 120; document.getElementById('sundayToggle').checked = false; document.getElementById('holidayToggle').checked = false; }
+  else { rateInput.value = 80; }
+  recalculate();
+}
+
+function applyFixedRate() {
+  const val = document.getElementById('fixedServiceSelect').value;
+  if (val) document.getElementById('fixedAmount').value = val;
+  recalculate();
+}
+
+function updatePercentRate() {
+  const val = document.getElementById('percentType').value;
+  if (val !== 'custom') document.getElementById('percentRate').value = val;
+  recalculate();
+}
+
+// ============================================================
+// PRICING CALCULATION
+// ============================================================
+function recalculate() {
+  const billable = document.getElementById('billableToggle').checked;
+  let base = 0, crewCharge = 0, currency = 'USD';
+  if (!billable) { updateCalcDisplay(0, 0, 0, 0, 0, 0, 'USD'); return; }
+
+  if (currentBillingType === 'hourly') {
+    const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
+    const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+    currency = document.getElementById('currencySelect').value;
+    base = hours * rate;
+  } else if (currentBillingType === 'fixed') {
+    const amount = parseFloat(document.getElementById('fixedAmount').value) || 0;
+    const qty = parseInt(document.getElementById('fixedQty').value) || 1;
+    const crew = parseInt(document.getElementById('additionalCrew').value) || 0;
+    currency = document.getElementById('fixedCurrency').value;
+    base = amount * qty;
+    crewCharge = crew * 35;
+  } else if (currentBillingType === 'percentage') {
+    const baseAmt = parseFloat(document.getElementById('baseAmount').value) || 0;
+    const pct = parseFloat(document.getElementById('percentRate').value) || 0;
+    currency = document.getElementById('percentCurrency').value;
+    base = baseAmt * (pct / 100);
+    document.getElementById('percentFee').value = formatCurrency(base, currency);
+  } else if (currentBillingType === 'manual') {
+    base = parseFloat(document.getElementById('manualAmount').value) || 0;
+    currency = document.getElementById('manualCurrency').value;
   }
 
-  // ============ FIXED RATE ============
-  function applyFixedRate() {
-    const val = document.getElementById('fixedServiceSelect').value;
-    if (val) document.getElementById('fixedAmount').value = val;
-    recalculate();
-  }
+  const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
+  const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
+  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+  updateCalcDisplay(base, crewCharge, agency, disbursement, other, base + crewCharge + agency + disbursement + other, currency);
+}
 
-  // ============ PRICING CALCULATION ============
-  function recalculate() {
-    const billable = document.getElementById('billableToggle').checked;
-    let base = 0, crewCharge = 0;
-    let currency = 'USD';
+function updateCalcDisplay(base, crew, agency, disbursement, other, total, currency) {
+  const sym = currencySymbol(currency);
+  document.getElementById('calcBase').textContent = sym + base.toFixed(2);
+  document.getElementById('calcCrew').textContent = sym + crew.toFixed(2);
+  document.getElementById('calcAgency').textContent = sym + agency.toFixed(2);
+  document.getElementById('calcDisbursement').textContent = sym + disbursement.toFixed(2);
+  document.getElementById('calcOther').textContent = sym + other.toFixed(2);
+  document.getElementById('calcTotal').textContent = sym + total.toFixed(2);
+  document.getElementById('submitTotal').textContent = sym + total.toFixed(2);
+}
 
-    if (!billable) {
-      updateCalcDisplay(0, 0, 0, 0, 0, 0, 'USD');
-      return;
+function currencySymbol(code) {
+  return ({ USD: '$', XCD: 'EC$', EUR: '\u20AC', GBP: '\u00A3', BBD: 'Bds$' })[code] || code + ' ';
+}
+function formatCurrency(amount, code) { return currencySymbol(code) + amount.toFixed(2); }
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+let uploadedFiles = [];
+function handleFileUpload(e) {
+  Array.from(e.target.files).forEach(file => {
+    uploadedFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const preview = document.getElementById('receiptPreview');
+      const thumb = document.createElement('div');
+      thumb.className = 'receipt-thumb';
+      if (file.type.startsWith('image/')) {
+        thumb.innerHTML = '<img src="' + ev.target.result + '"><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
+      } else {
+        thumb.innerHTML = '<span style="font-size:24px">&#x1F4C4;</span><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
+      }
+      preview.appendChild(thumb);
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+let modalType = '';
+function showAddModal(type) {
+  modalType = type;
+  const titles = { vessel: 'Add New Vessel', category: 'Add Service Category', serviceType: 'Add Service Type' };
+  const labels = { vessel: 'Vessel Name (e.g. M/Y Neptune)', category: 'Category Name', serviceType: 'Service Type Name' };
+  document.getElementById('modalTitle').textContent = titles[type];
+  document.getElementById('modalLabel').textContent = labels[type];
+  document.getElementById('modalInput').value = '';
+  document.getElementById('addModal').classList.remove('hidden');
+  document.getElementById('modalInput').focus();
+}
+function closeModal() { document.getElementById('addModal').classList.add('hidden'); }
+function confirmAdd() {
+  const val = document.getElementById('modalInput').value.trim();
+  if (!val) return;
+  if (modalType === 'vessel') {
+    // Save vessel to DB
+    const vessels = DB.vessels;
+    if (!vessels.includes(val)) {
+      vessels.push(val);
+      DB.vessels = vessels;
+      syncVesselToSheets('add', val);
     }
+    populateVesselDropdowns();
+    document.getElementById('vesselSelect').value = val;
+  } else if (modalType === 'category') {
+    const sel = document.getElementById('serviceCategory');
+    const opt = document.createElement('option'); opt.textContent = val; opt.selected = true; sel.appendChild(opt);
+  } else {
+    const sel = document.getElementById('serviceType');
+    const opt = document.createElement('option'); opt.textContent = val; opt.selected = true; sel.appendChild(opt);
+  }
+  closeModal();
+  showToast(val + ' added!');
+}
 
+// ============================================================
+// COLLECT FORM DATA
+// ============================================================
+function collectFormData() {
+  let base = 0, crewCharge = 0, currency = 'USD';
+  const billable = document.getElementById('billableToggle').checked;
+
+  if (billable) {
     if (currentBillingType === 'hourly') {
       const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
       const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
@@ -1208,200 +1378,391 @@
       const pct = parseFloat(document.getElementById('percentRate').value) || 0;
       currency = document.getElementById('percentCurrency').value;
       base = baseAmt * (pct / 100);
-      document.getElementById('percentFee').value = formatCurrency(base, currency);
     } else if (currentBillingType === 'manual') {
       base = parseFloat(document.getElementById('manualAmount').value) || 0;
       currency = document.getElementById('manualCurrency').value;
     }
-
-    const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
-    const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
-    const other = parseFloat(document.getElementById('otherCharges').value) || 0;
-
-    updateCalcDisplay(base, crewCharge, agency, disbursement, other, base + crewCharge + agency + disbursement + other, currency);
   }
 
-  function updateCalcDisplay(base, crew, agency, disbursement, other, total, currency) {
-    const sym = currencySymbol(currency);
-    document.getElementById('calcBase').textContent = sym + base.toFixed(2);
-    document.getElementById('calcCrew').textContent = sym + crew.toFixed(2);
-    document.getElementById('calcAgency').textContent = sym + agency.toFixed(2);
-    document.getElementById('calcDisbursement').textContent = sym + disbursement.toFixed(2);
-    document.getElementById('calcOther').textContent = sym + other.toFixed(2);
-    document.getElementById('calcTotal').textContent = sym + total.toFixed(2);
-    document.getElementById('submitTotal').textContent = sym + total.toFixed(2);
+  const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
+  const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
+  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+  const total = base + crewCharge + agency + disbursement + other;
+
+  return {
+    submissionDate: document.getElementById('submissionDateTime').value,
+    serviceDate: document.getElementById('serviceDate').value,
+    vessel: document.getElementById('vesselSelect').value,
+    staffMember: document.getElementById('staffSelect').value,
+    category: document.getElementById('serviceCategory').value,
+    serviceType: document.getElementById('serviceType').value,
+    description: document.getElementById('serviceDescription').value,
+    status: currentStatus,
+    workCompleted: document.getElementById('workCompleted').checked,
+    clearedIn: document.getElementById('clearedIn').value,
+    clearedOut: document.getElementById('clearedOut').value,
+    marina: document.getElementById('marina').value,
+    country: document.getElementById('country').value,
+    jurisdiction: document.getElementById('jurisdiction').value,
+    futureTask: document.getElementById('futureTask').checked,
+    eta: document.getElementById('etaField').value,
+    etd: document.getElementById('etdField').value,
+    crewArrival: document.getElementById('crewArrival').value,
+    crewDeparture: document.getElementById('crewDeparture').value,
+    billingType: currentBillingType,
+    billable: billable,
+    currency: currency,
+    baseCharge: base,
+    crewCharge: crewCharge,
+    agencyFee: agency,
+    disbursementFee: disbursement,
+    otherCharges: other,
+    totalCharge: total,
+    specialNotes: document.getElementById('specialNotes').value,
+    internalNotes: document.getElementById('internalNotes').value,
+    clientNotes: document.getElementById('clientNotes').value,
+    overrideNote: currentBillingType === 'manual' ? document.getElementById('manualNote').value : ''
+  };
+}
+
+// ============================================================
+// SUBMIT ENTRY
+// ============================================================
+function submitEntry() {
+  const vessel = document.getElementById('vesselSelect').value;
+  const staff = document.getElementById('staffSelect').value;
+  if (!vessel || !staff) { showToast('Please select a vessel and staff member.'); return; }
+
+  const entryId = DB.nextEntryId();
+  const entry = collectFormData();
+  entry.entryId = entryId;
+  entry.createdAt = new Date().toISOString();
+
+  // Save to localStorage
+  const entries = DB.entries;
+  entries.push(entry);
+  DB.entries = entries;
+
+  // Ensure vessel is saved
+  const vessels = DB.vessels;
+  if (!vessels.includes(vessel)) { vessels.push(vessel); DB.vessels = vessels; }
+
+  // Sync to Google Sheets
+  syncEntryToSheets(entry);
+
+  showToast('Entry ' + entryId + ' submitted and saved!');
+  resetForm();
+}
+
+function saveDraft() {
+  const entry = collectFormData();
+  entry.entryId = 'DRAFT-' + Date.now();
+  entry.createdAt = new Date().toISOString();
+  entry.status = 'draft';
+  const entries = DB.entries;
+  entries.push(entry);
+  DB.entries = entries;
+  showToast('Draft saved locally.');
+}
+
+function resetForm() {
+  document.getElementById('serviceCategory').value = '';
+  document.getElementById('serviceType').innerHTML = '<option value="">Select type...</option>';
+  document.getElementById('serviceDescription').value = '';
+  document.getElementById('clearedIn').value = '';
+  document.getElementById('clearedOut').value = '';
+  document.getElementById('marina').value = '';
+  document.getElementById('country').value = '';
+  document.getElementById('jurisdiction').value = '';
+  document.getElementById('workCompleted').checked = false;
+  document.getElementById('futureTask').checked = false;
+  document.getElementById('futureFields').classList.add('hidden');
+  document.getElementById('etaField').value = '';
+  document.getElementById('etdField').value = '';
+  document.getElementById('crewArrival').value = '';
+  document.getElementById('crewDeparture').value = '';
+  document.getElementById('hoursWorked').value = '';
+  document.getElementById('agencyFee').value = '0';
+  document.getElementById('disbursementFee').value = '0';
+  document.getElementById('otherCharges').value = '0';
+  document.getElementById('specialNotes').value = '';
+  document.getElementById('internalNotes').value = '';
+  document.getElementById('clientNotes').value = '';
+  document.getElementById('manualNote').value = '';
+  document.getElementById('receiptPreview').innerHTML = '';
+  document.getElementById('duplicateWarning').classList.add('hidden');
+  uploadedFiles = [];
+  currentStatus = 'planned';
+  document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
+  document.querySelector('.status-pill').classList.add('active-planned');
+
+  const newNow = new Date();
+  document.getElementById('submissionDateTime').value = newNow.toISOString().slice(0, 16);
+  document.getElementById('serviceDate').value = newNow.toISOString().slice(0, 10);
+  recalculate();
+}
+
+// ============================================================
+// RENDER SERVICE LOG
+// ============================================================
+function renderLog() {
+  const entries = DB.entries;
+  const tbody = document.getElementById('logTableBody');
+  const search = (document.getElementById('logSearch').value || '').toLowerCase();
+  const statusFilter = document.getElementById('logStatusFilter').value;
+  const vesselFilter = document.getElementById('logVesselFilter').value;
+
+  let filtered = entries.filter(e => e.status !== 'draft');
+
+  if (search) {
+    filtered = filtered.filter(e =>
+      (e.vessel || '').toLowerCase().includes(search) ||
+      (e.serviceType || '').toLowerCase().includes(search) ||
+      (e.description || '').toLowerCase().includes(search) ||
+      (e.staffMember || '').toLowerCase().includes(search) ||
+      (e.entryId || '').toLowerCase().includes(search)
+    );
+  }
+  if (statusFilter) filtered = filtered.filter(e => e.status === statusFilter);
+  if (vesselFilter) filtered = filtered.filter(e => e.vessel === vesselFilter);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
+  } else {
+    tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
+      const statusClass = e.status === 'planned' ? 'status-planned' : e.status === 'progress' ? 'status-inprogress' : 'status-completed';
+      const statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
+      return '<tr>' +
+        '<td><strong>' + (e.entryId || '—') + '</strong></td>' +
+        '<td>' + (e.serviceDate || '—') + '</td>' +
+        '<td>' + (e.vessel || '—') + '</td>' +
+        '<td>' + (e.serviceType || e.category || '—') + '</td>' +
+        '<td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td>' + formatCurrency(e.totalCharge || 0, e.currency || 'USD') + '</td>' +
+        '<td>' + (e.staffMember || '—') + '</td>' +
+        '</tr>';
+    }).join('');
   }
 
-  function currencySymbol(code) {
-    const symbols = { USD: '$', XCD: 'EC$', EUR: '\u20AC', GBP: '\u00A3', BBD: 'Bds$' };
-    return symbols[code] || code + ' ';
-  }
-  function formatCurrency(amount, code) {
-    return currencySymbol(code) + amount.toFixed(2);
-  }
+  // Update running totals
+  renderRunningTotals(entries.filter(e => e.status !== 'draft'));
 
-  // ============ FILE UPLOAD ============
-  let uploadedFiles = [];
-  function handleFileUpload(e) {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      uploadedFiles.push(file);
-      const reader = new FileReader();
-      reader.onload = function(ev) {
-        const preview = document.getElementById('receiptPreview');
-        const thumb = document.createElement('div');
-        thumb.className = 'receipt-thumb';
-        if (file.type.startsWith('image/')) {
-          thumb.innerHTML = '<img src="' + ev.target.result + '"><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
-        } else {
-          thumb.innerHTML = '<span style="font-size:24px">&#x1F4C4;</span><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
-        }
-        preview.appendChild(thumb);
+  // Update vessel filter dropdown
+  updateVesselFilterDropdown();
+}
 
-        // Add receipt detail fields
-        const details = document.getElementById('receiptDetails');
-        const detailRow = document.createElement('div');
-        detailRow.className = 'receipt-detail';
-        detailRow.innerHTML =
-          '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">' + file.name + '</div>' +
-          '<div class="form-row three">' +
-          '<div class="form-group"><label>Vendor</label><input type="text" placeholder="Vendor name"></div>' +
-          '<div class="form-group"><label>Receipt Date</label><input type="date"></div>' +
-          '<div class="form-group"><label>Amount</label><div class="currency-row"><select style="width:70px"><option>USD</option><option>XCD</option><option>EUR</option><option>GBP</option></select><input type="number" step="0.01" placeholder="0.00"></div></div>' +
-          '</div>' +
-          '<div class="form-row"><div class="form-group"><label>Description</label><input type="text" placeholder="What was purchased..."></div>' +
-          '<div class="form-group"><label>Currency</label><input type="text" placeholder="If not USD"></div></div>';
-        details.appendChild(detailRow);
-      };
-      reader.readAsDataURL(file);
-    });
-    e.target.value = '';
-  }
-
-  // ============ MODAL ============
-  let modalType = '';
-  function showAddModal(type) {
-    modalType = type;
-    const titles = { vessel: 'Add New Vessel', category: 'Add Service Category', serviceType: 'Add Service Type' };
-    const labels = { vessel: 'Vessel Name (e.g. M/Y Neptune)', category: 'Category Name', serviceType: 'Service Type Name' };
-    document.getElementById('modalTitle').textContent = titles[type];
-    document.getElementById('modalLabel').textContent = labels[type];
-    document.getElementById('modalInput').value = '';
-    document.getElementById('addModal').classList.remove('hidden');
-    document.getElementById('modalInput').focus();
-  }
-  function closeModal() { document.getElementById('addModal').classList.add('hidden'); }
-  function confirmAdd() {
-    const val = document.getElementById('modalInput').value.trim();
-    if (!val) return;
-    let sel;
-    if (modalType === 'vessel') sel = document.getElementById('vesselSelect');
-    else if (modalType === 'category') sel = document.getElementById('serviceCategory');
-    else sel = document.getElementById('serviceType');
-    const opt = document.createElement('option');
-    opt.textContent = val;
-    opt.selected = true;
-    sel.appendChild(opt);
-    closeModal();
-    showToast(val + ' added!');
-  }
-
-  // ============ SUBMIT ============
-  function submitEntry() {
-    const vessel = document.getElementById('vesselSelect').value;
-    const staff = document.getElementById('staffSelect').value;
-    if (!vessel || !staff) {
-      showToast('Please select a vessel and staff member.');
-      return;
-    }
-    completeSubmission();
-  }
-
-  let entryCounter = 0;
-  function completeSubmission() {
-    document.getElementById('duplicateWarning').classList.add('hidden');
-    entryCounter++;
-    const entryId = 'AC-' + String(entryCounter).padStart(4, '0');
-    showToast('Entry ' + entryId + ' submitted successfully!');
-    // In production this would POST to the backend / Apps Script
-  }
-
-  function saveDraft() { showToast('Draft saved.'); }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.remove('hidden');
-    setTimeout(() => t.classList.add('hidden'), 3000);
-  }
-
-  // ============ PERCENTAGE TYPE ============
-  document.getElementById('percentType').addEventListener('change', function() {
-    const val = this.value;
-    if (val !== 'custom') {
-      document.getElementById('percentRate').value = val;
-    }
-    recalculate();
+function renderRunningTotals(entries) {
+  const totals = {};
+  entries.forEach(e => {
+    const v = e.vessel || 'Unknown';
+    if (!totals[v]) totals[v] = 0;
+    totals[v] += (e.totalCharge || 0);
   });
 
-
-
-  // ============ STAFF MANAGEMENT ============
-  let staffMembers = JSON.parse(localStorage.getItem('anchorStaff') || '[]');
-
-  function renderStaffTable() {
-    const tbody = document.getElementById('staffTableBody');
-    const staffSelect = document.getElementById('staffSelect');
-    const countBadge = document.getElementById('staffCount');
-    countBadge.textContent = staffMembers.length;
-    if (staffMembers.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet. Add your team above.</td></tr>';
-    } else {
-      tbody.innerHTML = staffMembers.map((s, i) =>
-        '<tr><td><strong>' + s.name + '</strong></td><td>' + (s.role || '\u2014') + '</td><td>' + (s.phone || '\u2014') + '</td><td>' + (s.email || '\u2014') + '</td><td><button onclick="removeStaff(' + i + ')" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">Remove</button></td></tr>'
-      ).join('');
-    }
-    const currentVal = staffSelect.value;
-    staffSelect.innerHTML = '<option value="">Select staff...</option>';
-    staffMembers.forEach(s => {
-      const opt = document.createElement('option');
-      opt.textContent = s.name;
-      if (s.name === currentVal) opt.selected = true;
-      staffSelect.appendChild(opt);
-    });
+  const container = document.getElementById('runningTotals');
+  const vessels = Object.keys(totals);
+  if (vessels.length === 0) {
+    container.innerHTML = '<div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>';
+    return;
   }
 
-  function addStaffMember() {
-    const name = document.getElementById('newStaffName').value.trim();
-    if (!name) { showToast('Please enter a staff name.'); return; }
-    const role = document.getElementById('newStaffRole').value;
-    const phone = document.getElementById('newStaffPhone').value.trim();
-    const email = document.getElementById('newStaffEmail').value.trim();
-    staffMembers.push({ name, role, phone, email });
-    localStorage.setItem('anchorStaff', JSON.stringify(staffMembers));
-    document.getElementById('newStaffName').value = '';
-    document.getElementById('newStaffRole').value = '';
-    document.getElementById('newStaffPhone').value = '';
-    document.getElementById('newStaffEmail').value = '';
-    renderStaffTable();
-    showToast(name + ' added to team!');
+  const grandTotal = Object.values(totals).reduce((s, v) => s + v, 0);
+  container.innerHTML = vessels.map(v =>
+    '<div class="calc-row"><span class="calc-label">' + v + '</span><span class="calc-value">$' + totals[v].toFixed(2) + '</span></div>'
+  ).join('') +
+  '<div class="calc-row total"><span class="calc-label">Grand Total</span><span class="calc-value">$' + grandTotal.toFixed(2) + '</span></div>';
+}
+
+function updateVesselFilterDropdown() {
+  const sel = document.getElementById('logVesselFilter');
+  const current = sel.value;
+  const vessels = DB.vessels;
+  sel.innerHTML = '<option value="">All Vessels</option>';
+  vessels.forEach(v => {
+    const opt = document.createElement('option');
+    opt.textContent = v; opt.value = v;
+    if (v === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// ============================================================
+// RENDER TIMELINE
+// ============================================================
+function renderTimeline() {
+  const entries = DB.entries.filter(e => e.futureTask || e.eta || e.etd || e.status === 'planned');
+  const container = document.getElementById('timelineBody');
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks.</div>';
+    return;
   }
 
-  function removeStaff(index) {
-    const name = staffMembers[index].name;
-    if (confirm('Remove ' + name + ' from the team?')) {
-      staffMembers.splice(index, 1);
-      localStorage.setItem('anchorStaff', JSON.stringify(staffMembers));
-      renderStaffTable();
-      showToast(name + ' removed.');
-    }
+  const sorted = entries.sort((a, b) => {
+    const dateA = a.eta || a.etd || a.serviceDate || '';
+    const dateB = b.eta || b.etd || b.serviceDate || '';
+    return dateA.localeCompare(dateB);
+  });
+
+  container.innerHTML = sorted.map(e => {
+    const date = new Date(e.eta || e.etd || e.serviceDate || Date.now());
+    const day = date.getDate();
+    const month = date.toLocaleString('en', { month: 'short' });
+    const details = [];
+    if (e.serviceType) details.push(e.serviceType);
+    if (e.eta) details.push('ETA: ' + new Date(e.eta).toLocaleString());
+    if (e.etd) details.push('ETD: ' + new Date(e.etd).toLocaleString());
+    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' \u2192 ' + (e.clearedOut || ''));
+
+    return '<div class="timeline-item">' +
+      '<div class="timeline-date"><div class="day">' + day + '</div><div class="month">' + month + '</div></div>' +
+      '<div class="timeline-body">' +
+      '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
+      '<div class="event">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
+      '<div class="meta">' + details.join(' | ') + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ============================================================
+// STAFF MANAGEMENT
+// ============================================================
+function renderStaffTable() {
+  const staffMembers = DB.staff;
+  const tbody = document.getElementById('staffTableBody');
+  const staffSelect = document.getElementById('staffSelect');
+  document.getElementById('staffCount').textContent = staffMembers.length;
+
+  if (staffMembers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet.</td></tr>';
+  } else {
+    tbody.innerHTML = staffMembers.map((s, i) =>
+      '<tr><td><strong>' + s.name + '</strong></td>' +
+      '<td>' + (s.role || '\u2014') + '</td>' +
+      '<td>' + (s.phone || '\u2014') + '</td>' +
+      '<td>' + (s.email || '\u2014') + '</td>' +
+      '<td><button onclick="removeStaff(' + i + ')" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">Remove</button></td></tr>'
+    ).join('');
   }
 
-  // Initialize staff on load
+  const currentVal = staffSelect.value;
+  staffSelect.innerHTML = '<option value="">Select staff...</option>';
+  staffMembers.forEach(s => {
+    const opt = document.createElement('option');
+    opt.textContent = s.name;
+    if (s.name === currentVal) opt.selected = true;
+    staffSelect.appendChild(opt);
+  });
+}
+
+function addStaffMember() {
+  const name = document.getElementById('newStaffName').value.trim();
+  if (!name) { showToast('Please enter a staff name.'); return; }
+  const member = {
+    name,
+    role: document.getElementById('newStaffRole').value,
+    phone: document.getElementById('newStaffPhone').value.trim(),
+    email: document.getElementById('newStaffEmail').value.trim()
+  };
+
+  const staff = DB.staff;
+  staff.push(member);
+  DB.staff = staff;
+
+  syncStaffToSheets('add', member);
+
+  document.getElementById('newStaffName').value = '';
+  document.getElementById('newStaffRole').value = '';
+  document.getElementById('newStaffPhone').value = '';
+  document.getElementById('newStaffEmail').value = '';
   renderStaffTable();
+  showToast(name + ' added to team!');
+}
 
-  // Initial calc
-  recalculate();
+function removeStaff(index) {
+  const staff = DB.staff;
+  const member = staff[index];
+  if (confirm('Remove ' + member.name + ' from the team?')) {
+    staff.splice(index, 1);
+    DB.staff = staff;
+    syncStaffToSheets('remove', member);
+    renderStaffTable();
+    showToast(member.name + ' removed.');
+  }
+}
+
+// ============================================================
+// VESSEL MANAGEMENT
+// ============================================================
+function populateVesselDropdowns() {
+  const vessels = DB.vessels;
+  const sel = document.getElementById('vesselSelect');
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Select vessel...</option>';
+  vessels.forEach(v => {
+    const opt = document.createElement('option');
+    opt.textContent = v; opt.value = v;
+    if (v === currentVal) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// ============================================================
+// DATA EXPORT / IMPORT
+// ============================================================
+function exportLocalData() {
+  const data = {
+    entries: DB.entries,
+    staff: DB.staff,
+    vessels: DB.vessels,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'anchor-concierge-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('Data exported!');
+}
+
+function importLocalData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.entries) DB.entries = data.entries;
+      if (data.staff) DB.staff = data.staff;
+      if (data.vessels) DB.vessels = data.vessels;
+      renderStaffTable();
+      populateVesselDropdowns();
+      showToast('Data imported! ' + (data.entries || []).length + ' entries loaded.');
+    } catch (err) {
+      showToast('Import error: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+// ============================================================
+// INITIALIZE ALL
+// ============================================================
+renderStaffTable();
+populateVesselDropdowns();
+recalculate();
 </script>
 </body>
 </html>
