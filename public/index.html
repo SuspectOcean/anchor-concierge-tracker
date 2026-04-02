@@ -504,40 +504,31 @@
         <div class="form-row">
           <div class="form-group">
             <label>Cleared In At</label>
-            <input type="text" id="clearedIn" placeholder="e.g. English Harbour">
-          </div>
-          <div class="form-group">
-            <label>Cleared Out At</label>
-            <input type="text" id="clearedOut" placeholder="e.g. Falmouth Harbour">
-          </div>
-        </div>
-        <div class="form-row three">
-          <div class="form-group">
-            <label>Marina / Berth / Port</label>
-            <input type="text" id="marina" placeholder="e.g. Nelson's Dockyard">
-          </div>
-          <div class="form-group">
-            <label>Country / Island</label>
-            <select id="country">
+            <select id="clearedIn">
               <option value="">Select...</option>
-              <option>Antigua</option>
+              <option>North Sound, Crabbs</option>
+              <option>Jolly Harbour</option>
+              <option>English Harbour</option>
+              <option>St. Johns</option>
               <option>Barbuda</option>
-              <option>St. Kitts</option>
-              <option>Nevis</option>
-              <option>Dominica</option>
-              <option>Guadeloupe</option>
-              <option>Martinique</option>
-              <option>St. Lucia</option>
-              <option>St. Vincent</option>
-              <option>Grenada</option>
-              <option>Barbados</option>
-              <option>Trinidad</option>
-              <option>Other</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Jurisdiction</label>
-            <input type="text" id="jurisdiction" placeholder="If applicable">
+            <label>Cleared Out At</label>
+            <select id="clearedOut">
+              <option value="">Select...</option>
+              <option>North Sound, Crabbs</option>
+              <option>Jolly Harbour</option>
+              <option>English Harbour</option>
+              <option>St. Johns</option>
+              <option>Barbuda</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Marina / Berth / Port</label>
+            <input type="text" id="marina" placeholder="e.g. Nelson's Dockyard">
           </div>
         </div>
       </div>
@@ -1385,8 +1376,6 @@ function collectFormData() {
     clearedIn: document.getElementById('clearedIn').value,
     clearedOut: document.getElementById('clearedOut').value,
     marina: document.getElementById('marina').value,
-    country: document.getElementById('country').value,
-    jurisdiction: document.getElementById('jurisdiction').value,
     futureTask: document.getElementById('futureTask').checked,
     eta: document.getElementById('etaField').value,
     etd: document.getElementById('etdField').value,
@@ -1450,8 +1439,6 @@ function resetForm() {
   document.getElementById('clearedIn').value = '';
   document.getElementById('clearedOut').value = '';
   document.getElementById('marina').value = '';
-  document.getElementById('country').value = '';
-  document.getElementById('jurisdiction').value = '';
   document.getElementById('workCompleted').checked = false;
   document.getElementById('futureTask').checked = false;
   document.getElementById('futureFields').classList.add('hidden');
