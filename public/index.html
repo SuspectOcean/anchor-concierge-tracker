@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<title>Anchor Concierge &amp; Super Yacht Services â Service Tracker</title>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -373,6 +373,7 @@
       <button class="nav-btn active" onclick="showView('form')">+ New</button>
       <button class="nav-btn" onclick="showView('log')">Log</button>
       <button class="nav-btn" onclick="showView('timeline')">Timeline</button>
+      <button class="nav-btn" onclick="showView('staff')">Staff</button>
     </div>
   </div>
 </header>
@@ -383,6 +384,7 @@
     <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
+    <button class="tab-btn" data-view="staff" onclick="showView('staff')">Staff</button>
   </div>
 
   <!-- =============================== -->
@@ -404,11 +406,6 @@
             <div class="inline-add">
               <select id="vesselSelect">
                 <option value="">Select vessel...</option>
-                <option>M/Y Serenity</option>
-                <option>S/Y Blue Horizon</option>
-                <option>M/Y Ocean Pearl</option>
-                <option>M/Y Artemis</option>
-                <option>S/Y Windchaser</option>
               </select>
               <button class="add-btn" onclick="showAddModal('vessel')">+ Add</button>
             </div>
@@ -417,10 +414,6 @@
             <label>Staff Member <span class="required">*</span></label>
             <select id="staffSelect">
               <option value="">Select staff...</option>
-              <option>Keisha Thomas</option>
-              <option>Marcus Williams</option>
-              <option>Jade Roberts</option>
-              <option>Dwayne Joseph</option>
             </select>
           </div>
         </div>
@@ -654,16 +647,16 @@
               <label>Predefined Service</label>
               <select id="fixedServiceSelect" onchange="applyFixedRate()">
                 <option value="">Select or enter custom...</option>
-                <option value="200">Customs &amp; Immigration Clearance — $200</option>
-                <option value="35">Additional Crew Clearance — $35/person</option>
-                <option value="50">Crew Sign Off — $50/person</option>
-                <option value="75">Phytosanitary Certificate — $75</option>
-                <option value="150">Air Freight Brokerage — $150</option>
-                <option value="350">Sea Freight Brokerage — $350</option>
-                <option value="750">Yacht Import/Export Brokerage — $750</option>
-                <option value="50">Warrants &amp; Entry Documentation — $50</option>
-                <option value="600">Overseas Provisions (1st pallet) — $600</option>
-                <option value="120">Overseas Provisions (add'l pallet) — $120</option>
+                <option value="200">Customs &amp; Immigration Clearance â $200</option>
+                <option value="35">Additional Crew Clearance â $35/person</option>
+                <option value="50">Crew Sign Off â $50/person</option>
+                <option value="75">Phytosanitary Certificate â $75</option>
+                <option value="150">Air Freight Brokerage â $150</option>
+                <option value="350">Sea Freight Brokerage â $350</option>
+                <option value="750">Yacht Import/Export Brokerage â $750</option>
+                <option value="50">Warrants &amp; Entry Documentation â $50</option>
+                <option value="600">Overseas Provisions (1st pallet) â $600</option>
+                <option value="120">Overseas Provisions (add'l pallet) â $120</option>
               </select>
             </div>
             <div class="form-group">
@@ -838,7 +831,7 @@
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
           <div class="icon">&#x1F4F8;</div>
           <div class="text">Tap to upload receipt photos or documents</div>
-          <div class="hint">JPG, PNG, PDF — up to 10MB each</div>
+          <div class="hint">JPG, PNG, PDF â up to 10MB each</div>
         </div>
         <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(event)">
         <div class="receipt-preview" id="receiptPreview"></div>
@@ -852,7 +845,7 @@
       <div class="warn-text">
         <strong>Possible duplicate detected.</strong><br>
         A similar entry for this vessel, service type, and date may already exist.
-        You can still submit — both records will be kept. The duplicate flag will be logged.
+        You can still submit â both records will be kept. The duplicate flag will be logged.
       </div>
     </div>
 
@@ -872,11 +865,8 @@
             <option>In Progress</option>
             <option>Completed</option>
           </select>
-          <select>
+          <select id="logVesselFilter">
             <option>All Vessels</option>
-            <option>M/Y Serenity</option>
-            <option>S/Y Blue Horizon</option>
-            <option>M/Y Ocean Pearl</option>
           </select>
         </div>
         <div style="overflow-x: auto;">
@@ -892,52 +882,8 @@
                 <th>Staff</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>AC-0047</td>
-                <td>Apr 1</td>
-                <td>M/Y Serenity</td>
-                <td>Customs Clearance</td>
-                <td><span class="status-badge status-completed">Completed</span></td>
-                <td>$200.00</td>
-                <td>Keisha T.</td>
-              </tr>
-              <tr>
-                <td>AC-0046</td>
-                <td>Apr 1</td>
-                <td>S/Y Blue Horizon</td>
-                <td>Provisioning</td>
-                <td><span class="status-badge status-inprogress">In Progress</span></td>
-                <td>$562.50</td>
-                <td>Marcus W.</td>
-              </tr>
-              <tr>
-                <td>AC-0045</td>
-                <td>Mar 31</td>
-                <td>M/Y Ocean Pearl</td>
-                <td>Agency Services (4hrs)</td>
-                <td><span class="status-badge status-completed">Completed</span></td>
-                <td>$320.00</td>
-                <td>Jade R.</td>
-              </tr>
-              <tr>
-                <td>AC-0044</td>
-                <td>Mar 30</td>
-                <td>M/Y Artemis</td>
-                <td>Berth Booking</td>
-                <td><span class="status-badge status-planned">Planned</span></td>
-                <td>$0.00</td>
-                <td>Dwayne J.</td>
-              </tr>
-              <tr>
-                <td>AC-0043</td>
-                <td>Mar 29</td>
-                <td>S/Y Windchaser</td>
-                <td>Crew Sign Off (3)</td>
-                <td><span class="status-badge status-completed">Completed</span></td>
-                <td>$150.00</td>
-                <td>Keisha T.</td>
-              </tr>
+            <tbody id="logTableBody">
+              <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet. Submit a service entry to get started.</td></tr>
             </tbody>
           </table>
         </div>
@@ -948,13 +894,8 @@
         <h2>Running Totals by Vessel</h2>
       </div>
       <div class="section-body">
-        <div class="calc-summary">
-          <div class="calc-row"><span class="calc-label">M/Y Serenity</span><span class="calc-value">$2,840.00</span></div>
-          <div class="calc-row"><span class="calc-label">S/Y Blue Horizon</span><span class="calc-value">$1,562.50</span></div>
-          <div class="calc-row"><span class="calc-label">M/Y Ocean Pearl</span><span class="calc-value">$980.00</span></div>
-          <div class="calc-row"><span class="calc-label">M/Y Artemis</span><span class="calc-value">$450.00</span></div>
-          <div class="calc-row"><span class="calc-label">S/Y Windchaser</span><span class="calc-value">$350.00</span></div>
-          <div class="calc-row total"><span class="calc-label">Season Total</span><span class="calc-value">$6,182.50</span></div>
+        <div class="calc-summary" id="runningTotals">
+          <div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>
         </div>
       </div>
     </div>
@@ -969,67 +910,75 @@
         <h2>Upcoming Movements &amp; Tasks</h2>
         <span class="badge">Next 14 days</span>
       </div>
-      <div class="section-body" style="padding: 8px 20px;">
-        <div class="timeline-item timeline-urgent">
-          <div class="timeline-date" style="background: var(--red);">
-            <div class="day">03</div><div class="month">Apr</div>
+      <div class="section-body" style="padding: 8px 20px;">" id="timelineBody">
+        <div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks. Entries will appear here once services are logged.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- VIEW: STAFF MANAGEMENT           -->
+  <!-- =============================== -->
+  <div id="view-staff" class="hidden">
+    <div class="section-card">
+      <div class="section-header">
+        <h2>&#x1F465; Staff Members</h2>
+        <span class="badge" id="staffCount">0</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name <span class="required">*</span></label>
+            <input type="text" id="newStaffName" placeholder="e.g. Keisha Thomas">
           </div>
-          <div class="timeline-body">
-            <div class="vessel">M/Y Artemis</div>
-            <div class="event">Arrival — English Harbour, berth booking needed</div>
-            <div class="meta">ETA: 08:00 · 12 crew · Customs clearance required · Assigned: Keisha T.</div>
-          </div>
-        </div>
-        <div class="timeline-item timeline-urgent">
-          <div class="timeline-date" style="background: var(--red);">
-            <div class="day">04</div><div class="month">Apr</div>
-          </div>
-          <div class="timeline-body">
-            <div class="vessel">S/Y Blue Horizon</div>
-            <div class="event">Provisioning delivery due</div>
-            <div class="meta">Requested: fresh produce &amp; fuel · Assigned: Marcus W.</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">
-            <div class="day">05</div><div class="month">Apr</div>
-          </div>
-          <div class="timeline-body">
-            <div class="vessel">M/Y Ocean Pearl</div>
-            <div class="event">Departure — Falmouth Harbour</div>
-            <div class="meta">ETD: 14:00 · Outward clearance needed</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">
-            <div class="day">07</div><div class="month">Apr</div>
-          </div>
-          <div class="timeline-body">
-            <div class="vessel">M/Y Serenity</div>
-            <div class="event">Crew change — 2 arriving, 1 departing</div>
-            <div class="meta">Crew sign-off &amp; immigration clearance required</div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="newStaffRole">
+              <option value="">Select role...</option>
+              <option>Concierge Agent</option>
+              <option>Logistics Coordinator</option>
+              <option>Customs Broker</option>
+              <option>Provisioning Lead</option>
+              <option>Operations Manager</option>
+              <option>Admin / Support</option>
+            </select>
           </div>
         </div>
-        <div class="timeline-item">
-          <div class="timeline-date">
-            <div class="day">10</div><div class="month">Apr</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="newStaffPhone" placeholder="+1 268 ...">
           </div>
-          <div class="timeline-body">
-            <div class="vessel">S/Y Windchaser</div>
-            <div class="event">Air freight shipment arriving — V.C. Bird Intl</div>
-            <div class="meta">3 pallets, customs brokerage needed · Assigned: Dwayne J.</div>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">
-            <div class="day">14</div><div class="month">Apr</div>
-          </div>
-          <div class="timeline-body">
-            <div class="vessel">M/Y Artemis</div>
-            <div class="event">Departure — St. Kitts</div>
-            <div class="meta">ETD: 10:00 · Outward clearance + provisioning request</div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="newStaffEmail" placeholder="name@anchorconcierge.com">
           </div>
         </div>
+        <div style="text-align:right; margin-top:8px;">
+          <button class="btn-submit" onclick="addStaffMember()" style="padding:10px 24px; font-size:14px;">+ Add Staff Member</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Current Team</h2>
+      </div>
+      <div class="section-body" style="padding:0;">
+        <table class="log-table" id="staffTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffTableBody">
+            <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet. Add your team above.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1078,12 +1027,12 @@
       'Inward Clearance (up to 10 crew)',
       'Outward Clearance',
       'Additional Crew Clearance',
-      'Crew Sign Off — Immigration',
+      'Crew Sign Off â Immigration',
       'Clearance Outside Falmouth/English Harbour'
     ],
     'Provisioning & Sourcing': [
-      'Provisioning — Local Sourcing',
-      'Provisioning — Overseas Import',
+      'Provisioning â Local Sourcing',
+      'Provisioning â Overseas Import',
       'Item Sourcing (non-food)',
       'Fuel Arrangement',
       'Flowers / Special Requests'
@@ -1092,8 +1041,8 @@
       'Air Freight Brokerage',
       'Sea Freight Brokerage',
       'Airport Handling & Delivery',
-      'Container Movement — Inbound',
-      'Container Movement — Outbound',
+      'Container Movement â Inbound',
+      'Container Movement â Outbound',
       'Trucking / Land Transport'
     ],
     'Crew Services': [
@@ -1124,14 +1073,14 @@
     'Brokerage': [
       'Yacht Import Brokerage',
       'Yacht Export Brokerage',
-      'Customs Brokerage — General'
+      'Customs Brokerage â General'
     ],
     'General Support': [
       'Concierge Request',
       'Restaurant / Activity Booking',
       'Laundry / Dry Cleaning',
       'Medical Assistance Coordination',
-      'Other — See Notes'
+      'Other â See Notes'
     ]
   };
 
@@ -1365,22 +1314,15 @@
       showToast('Please select a vessel and staff member.');
       return;
     }
-    // Simulate duplicate check
-    if (vessel === 'M/Y Serenity' && currentBillingType === 'fixed') {
-      document.getElementById('duplicateWarning').classList.remove('hidden');
-      setTimeout(() => {
-        if (confirm('A similar submission may already exist. Submit anyway?')) {
-          completeSubmission();
-        }
-      }, 300);
-    } else {
-      completeSubmission();
-    }
+    completeSubmission();
   }
 
+  let entryCounter = 0;
   function completeSubmission() {
     document.getElementById('duplicateWarning').classList.add('hidden');
-    showToast('Entry AC-0048 submitted successfully!');
+    entryCounter++;
+    const entryId = 'AC-' + String(entryCounter).padStart(4, '0');
+    showToast('Entry ' + entryId + ' submitted successfully!');
     // In production this would POST to the backend / Apps Script
   }
 
@@ -1401,6 +1343,62 @@
     }
     recalculate();
   });
+
+
+
+  // ============ STAFF MANAGEMENT ============
+  let staffMembers = JSON.parse(localStorage.getItem('anchorStaff') || '[]');
+
+  function renderStaffTable() {
+    const tbody = document.getElementById('staffTableBody');
+    const staffSelect = document.getElementById('staffSelect');
+    const countBadge = document.getElementById('staffCount');
+    countBadge.textContent = staffMembers.length;
+    if (staffMembers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--gray-500);">No staff members added yet. Add your team above.</td></tr>';
+    } else {
+      tbody.innerHTML = staffMembers.map((s, i) =>
+        '<tr><td><strong>' + s.name + '</strong></td><td>' + (s.role || '\u2014') + '</td><td>' + (s.phone || '\u2014') + '</td><td>' + (s.email || '\u2014') + '</td><td><button onclick="removeStaff(' + i + ')" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">Remove</button></td></tr>'
+      ).join('');
+    }
+    const currentVal = staffSelect.value;
+    staffSelect.innerHTML = '<option value="">Select staff...</option>';
+    staffMembers.forEach(s => {
+      const opt = document.createElement('option');
+      opt.textContent = s.name;
+      if (s.name === currentVal) opt.selected = true;
+      staffSelect.appendChild(opt);
+    });
+  }
+
+  function addStaffMember() {
+    const name = document.getElementById('newStaffName').value.trim();
+    if (!name) { showToast('Please enter a staff name.'); return; }
+    const role = document.getElementById('newStaffRole').value;
+    const phone = document.getElementById('newStaffPhone').value.trim();
+    const email = document.getElementById('newStaffEmail').value.trim();
+    staffMembers.push({ name, role, phone, email });
+    localStorage.setItem('anchorStaff', JSON.stringify(staffMembers));
+    document.getElementById('newStaffName').value = '';
+    document.getElementById('newStaffRole').value = '';
+    document.getElementById('newStaffPhone').value = '';
+    document.getElementById('newStaffEmail').value = '';
+    renderStaffTable();
+    showToast(name + ' added to team!');
+  }
+
+  function removeStaff(index) {
+    const name = staffMembers[index].name;
+    if (confirm('Remove ' + name + ' from the team?')) {
+      staffMembers.splice(index, 1);
+      localStorage.setItem('anchorStaff', JSON.stringify(staffMembers));
+      renderStaffTable();
+      showToast(name + ' removed.');
+    }
+  }
+
+  // Initialize staff on load
+  renderStaffTable();
 
   // Initial calc
   recalculate();
