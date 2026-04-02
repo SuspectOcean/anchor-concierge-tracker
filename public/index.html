@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<style>
+  :root {
+    --navy: #0b1d3a;
+    --navy-light: #132d5e;
+    --gold: #c8a84e;
+    --gold-light: #e8d49e;
+    --teal: #1a8a7d;
+    --teal-light: #e0f5f2;
+    --white: #ffffff;
+    --gray-50: #f8f9fa;
+    --gray-100: #f1f3f5;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --red: #dc3545;
+    --red-light: #fff5f5;
+    --orange: #fd7e14;
+    --orange-light: #fff8f0;
+    --green: #28a745;
+    --green-light: #f0fff4;
+    --blue: #007bff;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  /* Header */
+  .app-header {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: var(--white);
+    padding: 16px 20px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow-md);
+  }
+  .header-inner {
+    max-width: 800px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-brand .anchor-icon { font-size: 28px; }
+  .header-brand h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+  .header-brand .subtitle { font-size: 11px; color: var(--gold-light); text-transform: uppercase; letter-spacing: 1.5px; }
+  .header-nav { display: flex; gap: 8px; }
+  .nav-btn {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: var(--white); padding: 7px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-weight: 500; transition: all 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.22); }
+  .nav-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+  /* Main */
+  .app-main { max-width: 800px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex; gap: 4px; background: var(--white); border-radius: var(--radius-lg);
+    padding: 4px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn {
+    flex: 1; min-width: 0; padding: 10px 12px; border: none; background: none;
+    border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--gray-600); transition: all 0.2s; white-space: nowrap;
+  }
+  .tab-btn.active { background: var(--navy); color: var(--white); }
+  .tab-btn:hover:not(.active) { background: var(--gray-100); }
+
+  /* Cards / Sections */
+  .section-card {
+    background: var(--white); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+  }
+  .section-header {
+    padding: 14px 20px; background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    user-select: none;
+  }
+  .section-header h2 { font-size: 15px; font-weight: 600; color: var(--navy); flex: 1; }
+  .section-header .badge {
+    background: var(--teal); color: var(--white); font-size: 11px;
+    padding: 2px 8px; border-radius: 10px; font-weight: 600;
+  }
+  .section-header .chevron { color: var(--gray-500); transition: transform 0.2s; font-size: 18px; }
+  .section-header.collapsed .chevron { transform: rotate(-90deg); }
+  .section-body { padding: 16px 20px; }
+  .section-body.collapsed { display: none; }
+
+  /* Form elements */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: 12px; font-weight: 600; color: var(--gray-700);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  label .required { color: var(--red); }
+  input, select, textarea {
+    padding: 10px 12px; border: 1px solid var(--gray-300); border-radius: 6px;
+    font-size: 14px; font-family: inherit; color: var(--gray-800);
+    background: var(--white); transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(26,138,125,0.12);
+  }
+  textarea { resize: vertical; min-height: 72px; }
+  select { cursor: pointer; appearance: auto; }
+
+  /* Inline add */
+  .inline-add {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .inline-add select, .inline-add input { flex: 1; }
+  .add-btn {
+    background: var(--teal-light); color: var(--teal); border: 1px solid var(--teal);
+    border-radius: 6px; padding: 10px 14px; cursor: pointer; font-size: 13px;
+    font-weight: 600; white-space: nowrap; transition: all 0.2s;
+  }
+  .add-btn:hover { background: var(--teal); color: var(--white); }
+
+  /* Toggle / Switch */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--gray-100);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 14px; color: var(--gray-700); }
+  .toggle-label .hint { font-size: 12px; color: var(--gray-500); display: block; }
+  .switch {
+    position: relative; width: 44px; height: 24px; flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--gray-300); border-radius: 24px; transition: 0.3s;
+  }
+  .slider:before {
+    content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+    background: var(--white); border-radius: 50%; transition: 0.3s;
+  }
+  .switch input:checked + .slider { background: var(--teal); }
+  .switch input:checked + .slider:before { transform: translateX(20px); }
+
+  /* Status pills */
+  .status-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .status-pill {
+    padding: 8px 16px; border-radius: 20px; border: 2px solid var(--gray-300);
+    background: var(--white); cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.2s; color: var(--gray-600);
+  }
+  .status-pill:hover { border-color: var(--gray-400); }
+  .status-pill.active-planned { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
+  .status-pill.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+  .status-pill.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
+
+  /* Billing type selector */
+  .billing-type-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+  .billing-type-btn {
+    flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius);
+    background: var(--white); cursor: pointer; text-align: center; transition: all 0.2s;
+  }
+  .billing-type-btn .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+  .billing-type-btn .label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+  .billing-type-btn.active { border-color: var(--navy); background: #f0f4ff; }
+  .billing-type-btn.active .label { color: var(--navy); }
+
+  /* Calculation summary */
+  .calc-summary {
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: var(--radius); padding: 16px; margin-top: 12px;
+  }
+  .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .calc-row.subtotal { border-top: 1px solid var(--gray-300); padding-top: 10px; margin-top: 4px; }
+  .calc-row.total {
+    border-top: 2px solid var(--navy); padding-top: 10px; margin-top: 4px;
+    font-weight: 700; font-size: 16px; color: var(--navy);
+  }
+  .calc-label { color: var(--gray-600); }
+  .calc-value { font-weight: 600; }
+
+  /* Upload area */
+  .upload-area {
+    border: 2px dashed var(--gray-300); border-radius: var(--radius);
+    padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s;
+    background: var(--gray-50);
+  }
+  .upload-area:hover { border-color: var(--teal); background: var(--teal-light); }
+  .upload-area .icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-area .text { font-size: 14px; color: var(--gray-600); }
+  .upload-area .hint { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+  .receipt-preview {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+  }
+  .receipt-thumb {
+    width: 80px; height: 80px; border-radius: 6px; background: var(--gray-200);
+    display: flex; align-items: center; justify-content: center; position: relative;
+    overflow: hidden; border: 1px solid var(--gray-300);
+  }
+  .receipt-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .receipt-thumb .remove {
+    position: absolute; top: 2px; right: 2px; background: var(--red); color: var(--white);
+    border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
+    font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Receipt detail row */
+  .receipt-detail {
+    background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 6px;
+    padding: 12px; margin-top: 8px;
+  }
+  .receipt-detail .form-row { margin-bottom: 8px; }
+
+  /* Duplicate warning */
+  .duplicate-warning {
+    background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;
+  }
+  .duplicate-warning .warn-icon { font-size: 22px; flex-shrink: 0; }
+  .duplicate-warning .warn-text { font-size: 14px; color: var(--gray-700); }
+  .duplicate-warning .warn-text strong { color: var(--gray-800); }
+
+  /* Submit bar */
+  .submit-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--white); border-top: 1px solid var(--gray-200);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08); padding: 12px 16px;
+  }
+  .submit-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+  .submit-total { flex: 1; }
+  .submit-total .amount { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .submit-total .label { font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 1px; }
+  .btn-submit {
+    background: linear-gradient(135deg, var(--teal), #15796e); color: var(--white);
+    border: none; padding: 14px 32px; border-radius: var(--radius); cursor: pointer;
+    font-size: 15px; font-weight: 600; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-submit:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-secondary {
+    background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300);
+    padding: 14px 20px; border-radius: var(--radius); cursor: pointer;
+    font-size: 14px; font-weight: 500; transition: all 0.2s;
+  }
+
+  /* Log table */
+  .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .log-table th {
+    background: var(--navy); color: var(--white); padding: 10px 12px;
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    position: sticky; top: 0;
+  }
+  .log-table td { padding: 10px 12px; border-bottom: 1px solid var(--gray-200); }
+  .log-table tr:hover td { background: var(--gray-50); }
+  .log-table .status-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 600;
+  }
+  .status-planned { background: #e8f0ff; color: var(--blue); }
+  .status-inprogress { background: var(--orange-light); color: var(--orange); }
+  .status-completed { background: var(--green-light); color: var(--green); }
+
+  /* Timeline */
+  .timeline-item {
+    display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--gray-100);
+  }
+  .timeline-date {
+    width: 60px; flex-shrink: 0; text-align: center;
+    background: var(--navy); color: var(--white); border-radius: 8px;
+    padding: 8px 4px;
+  }
+  .timeline-date .day { font-size: 20px; font-weight: 700; line-height: 1; }
+  .timeline-date .month { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .timeline-body { flex: 1; }
+  .timeline-body .vessel { font-weight: 600; color: var(--navy); font-size: 15px; }
+  .timeline-body .event { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+  .timeline-body .meta { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+  .timeline-urgent { border-left: 3px solid var(--red); padding-left: 11px; }
+
+  /* Currency selector */
+  .currency-row { display: flex; gap: 8px; align-items: center; }
+  .currency-row select { width: 90px; flex-shrink: 0; }
+  .currency-row input { flex: 1; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr; }
+    .header-nav { display: none; }
+    .header-brand h1 { font-size: 15px; }
+    .billing-type-selector { flex-wrap: wrap; }
+    .billing-type-btn { flex: 1 1 45%; }
+    .status-options { gap: 6px; }
+    .status-pill { padding: 6px 12px; font-size: 12px; }
+    .section-body { padding: 12px 14px; }
+    .submit-inner { flex-wrap: wrap; }
+    .log-table { font-size: 12px; }
+    .log-table th, .log-table td { padding: 8px 6px; }
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 200; display: flex;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal {
+    background: var(--white); border-radius: var(--radius-lg); padding: 24px;
+    max-width: 440px; width: 100%; box-shadow: var(--shadow-lg);
+  }
+  .modal h3 { font-size: 17px; color: var(--navy); margin-bottom: 12px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal-actions button {
+    padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
+  }
+  .modal-actions .cancel { background: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
+  .modal-actions .confirm { background: var(--teal); border: none; color: var(--white); }
+
+  /* Search bar for log */
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .search-bar input { flex: 1; min-width: 200px; }
+  .search-bar select { width: 160px; }
+
+  /* Toasts */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: var(--white); padding: 12px 24px;
+    border-radius: var(--radius); font-size: 14px; z-index: 300;
+    box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="anchor-icon">&#9875;</span>
+      <div>
+        <h1>Anchor Concierge</h1>
+        <div class="subtitle">Super Yacht Services</div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <button class="nav-btn active" onclick="showView('form')">+ New</button>
+      <button class="nav-btn" onclick="showView('log')">Log</button>
+      <button class="nav-btn" onclick="showView('timeline')">Timeline</button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE TAB BAR -->
+<div class="app-main">
+  <div class="tab-bar" id="mobileTabBar">
+    <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
+    <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
+    <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
+  </div>
+
+  <!-- =============================== -->
+  <!-- VIEW: NEW ENTRY FORM            -->
+  <!-- =============================== -->
+  <div id="view-form">
+
+    <!-- VESSEL & STAFF -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F6A2; Vessel &amp; Staff</h2>
+        <span class="badge">Required</span>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vessel <span class="required">*</span></label>
+            <div class="inline-add">
+              <select id="vesselSelect">
+                <option value="">Select vessel...</option>
+                <option>M/Y Serenity</option>
+                <option>S/Y Blue Horizon</option>
+                <option>M/Y Ocean Pearl</option>
+                <option>M/Y Artemis</option>
+                <option>S/Y Windchaser</option>
+              </select>
+              <button class="add-btn" onclick="showAddModal('vessel')">+ Add</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Staff Member <span class="required">*</span></label>
+            <select id="staffSelect">
+              <option value="">Select staff...</option>
+              <option>Keisha Thomas</option>
+              <option>Marcus Williams</option>
+              <option>Jade Roberts</option>
+              <option>Dwayne Joseph</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Submission Date/Time</label>
+            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
+          </div>
+          <div class="form-group">
+            <label>Service Date <span class="required">*</span></label>
+            <input type="date" id="serviceDate">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICE DETAILS -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F527; Service Details</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Service Category <span class="required">*</span></label>
+            <div class="inline-add">
+              <select id="serviceCategory" onchange="updateServiceTypes()">
+                <option value="">Select category...</option>
+                <option>Customs &amp; Immigration</option>
+                <option>Provisioning &amp; Sourcing</option>
+                <option>Logistics &amp; Shipping</option>
+                <option>Crew Services</option>
+                <option>Berth &amp; Marina</option>
+                <option>Consulting &amp; Admin</option>
+                <option>Airport &amp; Transport</option>
+                <option>Brokerage</option>
+                <option>General Support</option>
+              </select>
+              <button class="add-btn" onclick="showAddModal('category')">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Service Type <span class="required">*</span></label>
+            <div class="inline-add">
+              <select id="serviceType">
+                <option value="">Select type...</option>
+              </select>
+              <button class="add-btn" onclick="showAddModal('serviceType')">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Description / Notes</label>
+            <textarea id="serviceDescription" placeholder="Describe the service performed or required..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOCATION -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4CD; Location</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cleared In At</label>
+            <input type="text" placeholder="e.g. English Harbour">
+          </div>
+          <div class="form-group">
+            <label>Cleared Out At</label>
+            <input type="text" placeholder="e.g. Falmouth Harbour">
+          </div>
+        </div>
+        <div class="form-row three">
+          <div class="form-group">
+            <label>Marina / Berth / Port</label>
+            <input type="text" placeholder="e.g. Nelson's Dockyard">
+          </div>
+          <div class="form-group">
+            <label>Country / Island</label>
+            <select>
+              <option value="">Select...</option>
+              <option>Antigua</option>
+              <option>Barbuda</option>
+              <option>St. Kitts</option>
+              <option>Nevis</option>
+              <option>Dominica</option>
+              <option>Guadeloupe</option>
+              <option>Martinique</option>
+              <option>St. Lucia</option>
+              <option>St. Vincent</option>
+              <option>Grenada</option>
+              <option>Barbados</option>
+              <option>Trinidad</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Jurisdiction</label>
+            <input type="text" placeholder="If applicable">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS & SCHEDULING -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4C5; Status &amp; Scheduling</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label>Status <span class="required">*</span></label>
+          <div class="status-options">
+            <button class="status-pill active-planned" onclick="setStatus(this, 'planned')">Planned / Upcoming</button>
+            <button class="status-pill" onclick="setStatus(this, 'progress')">In Progress</button>
+            <button class="status-pill" onclick="setStatus(this, 'completed')">Completed</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">Work Completed<span class="hint">Mark when service is fully done</span></div>
+          <label class="switch"><input type="checkbox" id="workCompleted"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">Future Task / Movement<span class="hint">Flag this as an upcoming action</span></div>
+          <label class="switch"><input type="checkbox" id="futureTask" onchange="toggleFutureFields()"><span class="slider"></span></label>
+        </div>
+        <div id="futureFields" class="hidden" style="margin-top: 12px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>ETA (Arrival)</label>
+              <input type="datetime-local" id="etaField">
+            </div>
+            <div class="form-group">
+              <label>ETD (Departure)</label>
+              <input type="datetime-local" id="etdField">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Crew Arrival</label>
+              <input type="datetime-local">
+            </div>
+                       <div class="form-group">
+              <label>Crew Departure</label>
+              <input type="datetime-local">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BILLING & PRICING -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4B0; Billing &amp; Pricing</h2>
+        <span class="badge">Auto-calc</span>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="toggle-row" style="border-bottom: 1px solid var(--gray-200); margin-bottom: 14px; padding-bottom: 14px;">
+          <div class="toggle-label">Billable<span class="hint">Uncheck for non-billable internal work</span></div>
+          <label class="switch"><input type="checkbox" id="billableToggle" checked onchange="recalculate()"><span class="slider"></span></label>
+        </div>
+
+        <label style="margin-bottom: 8px; display: block;">Billing Type</label>
+        <div class="billing-type-selector">
+          <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
+            <span class="icon">&#9201;</span>
+            <span class="label">Hourly</span>
+          </button>
+          <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
+            <span class="icon">&#x1F4CB;</span>
+            <span class="label">Fixed Fee</span>
+          </button>
+          <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
+            <span class="icon">%</span>
+            <span class="label">Percentage</span>
+          </button>
+          <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
+            <span class="icon">&#x270F;</span>
+            <span class="label">Manual</span>
+          </button>
+        </div>
+
+        <!-- Hourly billing fields -->
+        <div id="billing-hourly">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Hours Worked <span class="required">*</span></label>
+              <input type="number" id="hoursWorked" step="0.25" min="0" placeholder="0.00" oninput="recalculate()">
+            </div>
+            <div class="form-group">
+              <label>Currency &amp; Hourly Rate</label>
+              <div class="currency-row">
+                <select id="currencySelect" onchange="recalculate()">
+                  <option value="USD">USD</option>
+                  <option value="XCD">XCD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="BBD">BBD</option>
+                </select>
+                <input type="number" id="hourlyRate" value="80" step="0.01" oninput="recalculate()">
+              </div>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">Overtime (time &amp; a half)<span class="hint">Outside 7am-6pm: rate x 1.5</span></div>
+            <label class="switch"><input type="checkbox" id="overtimeToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">Sunday Rate<span class="hint">US$120/hr standard</span></div>
+            <label class="switch"><input type="checkbox" id="sundayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">Public Holiday Rate<span class="hint">US$160/hr standard</span></div>
+            <label class="switch"><input type="checkbox" id="holidayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+          </div>
+        </div>
+
+        <!-- Fixed fee fields -->
+        <div id="billing-fixed" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Predefined Service</label>
+              <select id="fixedServiceSelect" onchange="applyFixedRate()">
+                <option value="">Select or enter custom...</option>
+                <option value="200">Customs &amp; Immigration Clearance — $200</option>
+                <option value="35">Additional Crew Clearance — $35/person</option>
+                <option value="50">Crew Sign Off — $50/person</option>
+                <option value="75">Phytosanitary Certificate — $75</option>
+                <option value="150">Air Freight Brokerage — $150</option>
+                <option value="350">Sea Freight Brokerage — $350</option>
+                <option value="750">Yacht Import/Export Brokerage — $750</option>
+                <option value="50">Warrants &amp; Entry Documentation — $50</option>
+                <option value="600">Overseas Provisions (1st pallet) — $600</option>
+                <option value="120">Overseas Provisions (add'l pallet) — $120</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" id="fixedQty" value="1" min="1" oninput="recalculate()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Currency &amp; Unit Price</label>
+              <div class="currency-row">
+                <select id="fixedCurrency" onchange="recalculate()">
+                  <option value="USD">USD</option>
+                  <option value="XCD">XCD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+                <input type="number" id="fixedAmount" step="0.01" placeholder="0.00" oninput="recalculate()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Additional Crew Count</label>
+              <input type="number" id="additionalCrew" value="0" min="0" oninput="recalculate()">
+              <span style="font-size:11px; color: var(--gray-500);">$35 each for clearance entries</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Percentage billing fields -->
+        <div id="billing-percentage" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fee Type</label>
+              <select id="percentType" onchange="recalculate()">
+                <option value="22.5">Provisioning / Sourcing (22.5%)</option>
+                <option value="22.5">Item Sourcing (22.5%)</option>
+                <option value="15">National Parks &amp; Dockage (15%)</option>
+                <option value="4">Credit Card Processing (4%)</option>
+                <option value="2.5">APA Commission (2.5%)</option>
+                <option value="custom">Custom Percentage</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Percentage Rate (%)</label>
+              <input type="number" id="percentRate" value="22.5" step="0.1" oninput="recalculate()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Currency &amp; Base Amount</label>
+              <div class="currency-row">
+                <select id="percentCurrency" onchange="recalculate()">
+                  <option value="USD">USD</option>
+                  <option value="XCD">XCD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+                <input type="number" id="baseAmount" step="0.01" placeholder="Total bill amount" oninput="recalculate()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Calculated Fee</label>
+              <input type="text" id="percentFee" readonly style="background: var(--gray-50); font-weight: 600;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual billing fields -->
+        <div id="billing-manual" class="hidden">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Currency &amp; Custom Charge</label>
+              <div class="currency-row">
+                <select id="manualCurrency" onchange="recalculate()">
+                  <option value="USD">USD</option>
+                  <option value="XCD">XCD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+                <input type="number" id="manualAmount" step="0.01" placeholder="0.00" oninput="recalculate()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Reason / Override Note</label>
+              <input type="text" id="manualNote" placeholder="Explain custom charge...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional fees (always visible) -->
+        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
+          <label style="margin-bottom: 8px; display: block;">Additional Fees</label>
+          <div class="form-row three">
+            <div class="form-group">
+              <label>Agency Fee</label>
+              <input type="number" id="agencyFee" step="0.01" value="0" oninput="recalculate()">
+            </div>
+            <div class="form-group">
+              <label>Disbursement Fee</label>
+              <input type="number" id="disbursementFee" step="0.01" value="0" oninput="recalculate()">
+            </div>
+            <div class="form-group">
+              <label>Other Charges</label>
+              <input type="number" id="otherCharges" step="0.01" value="0" oninput="recalculate()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculation summary -->
+        <div class="calc-summary" id="calcSummary">
+          <div class="calc-row">
+            <span class="calc-label">Base Charge</span>
+            <span class="calc-value" id="calcBase">$0.00</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Additional Crew</span>
+            <span class="calc-value" id="calcCrew">$0.00</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Agency Fee</span>
+            <span class="calc-value" id="calcAgency">$0.00</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Disbursement Fee</span>
+            <span class="calc-value" id="calcDisbursement">$0.00</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Other Charges</span>
+            <span class="calc-value" id="calcOther">$0.00</span>
+          </div>
+          <div class="calc-row total">
+            <span class="calc-label">Total Charge</span>
+            <span class="calc-value" id="calcTotal">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4DD; Notes</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Requests / Special Notes</label>
+            <textarea placeholder="Any special requests from the vessel or crew..."></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Internal Notes</label>
+            <textarea placeholder="For team eyes only..." style="min-height: 60px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Client-Facing Notes</label>
+            <textarea placeholder="Notes visible on invoice..." style="min-height: 60px;"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIPTS -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4F7; Receipts &amp; Uploads</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+          <div class="icon">&#x1F4F8;</div>
+          <div class="text">Tap to upload receipt photos or documents</div>
+          <div class="hint">JPG, PNG, PDF — up to 10MB each</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(event)">
+        <div class="receipt-preview" id="receiptPreview"></div>
+        <div id="receiptDetails"></div>
+      </div>
+    </div>
+
+    <!-- DUPLICATE WARNING (hidden by default) -->
+    <div class="duplicate-warning hidden" id="duplicateWarning">
+      <span class="warn-icon">&#9888;&#65039;</span>
+      <div class="warn-text">
+        <strong>Possible duplicate detected.</strong><br>
+        A similar entry for this vessel, service type, and date may already exist.
+        You can still submit — both records will be kept. The duplicate flag will be logged.
+      </div>
+    </div>
+
+  </div><!-- end view-form -->
+
+  <!-- =============================== -->
+  <!-- VIEW: SERVICE LOG                -->
+  <!-- =============================== -->
+  <div id="view-log" class="hidden">
+    <div class="section-card">
+      <div class="section-body">
+        <div class="search-bar">
+          <input type="text" placeholder="Search vessel, service, notes...">
+          <select>
+            <option>All Statuses</option>
+            <option>Planned</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+          </select>
+          <select>
+            <option>All Vessels</option>
+            <option>M/Y Serenity</option>
+            <option>S/Y Blue Horizon</option>
+            <option>M/Y Ocean Pearl</option>
+          </select>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Vessel</th>
+                <th>Service</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Staff</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AC-0047</td>
+                <td>Apr 1</td>
+                <td>M/Y Serenity</td>
+                <td>Customs Clearance</td>
+                <td><span class="status-badge status-completed">Completed</span></td>
+                <td>$200.00</td>
+                <td>Keisha T.</td>
+              </tr>
+              <tr>
+                <td>AC-0046</td>
+                <td>Apr 1</td>
+                <td>S/Y Blue Horizon</td>
+                <td>Provisioning</td>
+                <td><span class="status-badge status-inprogress">In Progress</span></td>
+                <td>$562.50</td>
+                <td>Marcus W.</td>
+              </tr>
+              <tr>
+                <td>AC-0045</td>
+                <td>Mar 31</td>
+                <td>M/Y Ocean Pearl</td>
+                <td>Agency Services (4hrs)</td>
+                <td><span class="status-badge status-completed">Completed</span></td>
+                <td>$320.00</td>
+                <td>Jade R.</td>
+              </tr>
+              <tr>
+                <td>AC-0044</td>
+                <td>Mar 30</td>
+                <td>M/Y Artemis</td>
+                <td>Berth Booking</td>
+                <td><span class="status-badge status-planned">Planned</span></td>
+                <td>$0.00</td>
+                <td>Dwayne J.</td>
+              </tr>
+              <tr>
+                <td>AC-0043</td>
+                <td>Mar 29</td>
+                <td>S/Y Windchaser</td>
+                <td>Crew Sign Off (3)</td>
+                <td><span class="status-badge status-completed">Completed</span></td>
+                <td>$150.00</td>
+                <td>Keisha T.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Running Totals by Vessel</h2>
+      </div>
+      <div class="section-body">
+        <div class="calc-summary">
+          <div class="calc-row"><span class="calc-label">M/Y Serenity</span><span class="calc-value">$2,840.00</span></div>
+          <div class="calc-row"><span class="calc-label">S/Y Blue Horizon</span><span class="calc-value">$1,562.50</span></div>
+          <div class="calc-row"><span class="calc-label">M/Y Ocean Pearl</span><span class="calc-value">$980.00</span></div>
+          <div class="calc-row"><span class="calc-label">M/Y Artemis</span><span class="calc-value">$450.00</span></div>
+          <div class="calc-row"><span class="calc-label">S/Y Windchaser</span><span class="calc-value">$350.00</span></div>
+          <div class="calc-row total"><span class="calc-label">Season Total</span><span class="calc-value">$6,182.50</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- VIEW: TIMELINE                   -->
+  <!-- =============================== -->
+  <div id="view-timeline" class="hidden">
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Upcoming Movements &amp; Tasks</h2>
+        <span class="badge">Next 14 days</span>
+      </div>
+      <div class="section-body" style="padding: 8px 20px;">
+        <div class="timeline-item timeline-urgent">
+          <div class="timeline-date" style="background: var(--red);">
+            <div class="day">03</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">M/Y Artemis</div>
+            <div class="event">Arrival — English Harbour, berth booking needed</div>
+            <div class="meta">ETA: 08:00 · 12 crew · Customs clearance required · Assigned: Keisha T.</div>
+          </div>
+        </div>
+        <div class="timeline-item timeline-urgent">
+          <div class="timeline-date" style="background: var(--red);">
+            <div class="day">04</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">S/Y Blue Horizon</div>
+            <div class="event">Provisioning delivery due</div>
+            <div class="meta">Requested: fresh produce &amp; fuel · Assigned: Marcus W.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">
+            <div class="day">05</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">M/Y Ocean Pearl</div>
+            <div class="event">Departure — Falmouth Harbour</div>
+            <div class="meta">ETD: 14:00 · Outward clearance needed</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">
+            <div class="day">07</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">M/Y Serenity</div>
+            <div class="event">Crew change — 2 arriving, 1 departing</div>
+            <div class="meta">Crew sign-off &amp; immigration clearance required</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">
+            <div class="day">10</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">S/Y Windchaser</div>
+            <div class="event">Air freight shipment arriving — V.C. Bird Intl</div>
+            <div class="meta">3 pallets, customs brokerage needed · Assigned: Dwayne J.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">
+            <div class="day">14</div><div class="month">Apr</div>
+          </div>
+          <div class="timeline-body">
+            <div class="vessel">M/Y Artemis</div>
+            <div class="event">Departure — St. Kitts</div>
+            <div class="meta">ETD: 10:00 · Outward clearance + provisioning request</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-main -->
+
+<!-- SUBMIT BAR (visible on form view) -->
+<div class="submit-bar" id="submitBar">
+  <div class="submit-inner">
+    <div class="submit-total">
+      <div class="label">Estimated Total</div>
+      <div class="amount" id="submitTotal">$0.00</div>
+    </div>
+    <button class="btn-secondary" onclick="saveDraft()">Save Draft</button>
+    <button class="btn-submit" onclick="submitEntry()">Submit Entry</button>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="addModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add New Item</h3>
+    <div class="form-group">
+      <label id="modalLabel">Name</label>
+      <input type="text" id="modalInput" placeholder="">
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Cancel</button>
+      <button class="confirm" onclick="confirmAdd()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div class="toast hidden" id="toast">Entry submitted successfully!</div>
+
+<script>
+  // ============ INITIALIZATION ============
+  const now = new Date();
+  document.getElementById('submissionDateTime').value = now.toISOString().slice(0, 16);
+  document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
+
+  // ============ SERVICE TYPE MAPPING ============
+  const serviceTypes = {
+    'Customs & Immigration': [
+      'Inward Clearance (up to 10 crew)',
+      'Outward Clearance',
+      'Additional Crew Clearance',
+      'Crew Sign Off — Immigration',
+      'Clearance Outside Falmouth/English Harbour'
+    ],
+    'Provisioning & Sourcing': [
+      'Provisioning — Local Sourcing',
+      'Provisioning — Overseas Import',
+      'Item Sourcing (non-food)',
+      'Fuel Arrangement',
+      'Flowers / Special Requests'
+    ],
+    'Logistics & Shipping': [
+      'Air Freight Brokerage',
+      'Sea Freight Brokerage',
+      'Airport Handling & Delivery',
+      'Container Movement — Inbound',
+      'Container Movement — Outbound',
+      'Trucking / Land Transport'
+    ],
+    'Crew Services': [
+      'Crew Transfer / Transport',
+      'Crew Accommodation Booking',
+      'Crew Change Coordination',
+      'Crew Immigration Handling'
+    ],
+    'Berth & Marina': [
+      'Berth Booking',
+      'National Parks Fees & Dockage',
+      'Marina Coordination',
+      'Anchorage Arrangement'
+    ],
+    'Consulting & Admin': [
+      'General Agency Services (Hourly)',
+      'Overtime Agency Services',
+      'Warrant & Entry Documentation',
+      'Phytosanitary Certificate',
+      'Vessel Registration Assistance'
+    ],
+    'Airport & Transport': [
+      'Airport Meet & Greet',
+      'Airport Transfer',
+      'VIP Lounge Arrangement',
+      'Private Charter Coordination'
+    ],
+    'Brokerage': [
+      'Yacht Import Brokerage',
+      'Yacht Export Brokerage',
+      'Customs Brokerage — General'
+    ],
+    'General Support': [
+      'Concierge Request',
+      'Restaurant / Activity Booking',
+      'Laundry / Dry Cleaning',
+      'Medical Assistance Coordination',
+      'Other — See Notes'
+    ]
+  };
+
+  function updateServiceTypes() {
+    const cat = document.getElementById('serviceCategory').value;
+    const sel = document.getElementById('serviceType');
+    sel.innerHTML = '<option value="">Select type...</option>';
+    if (serviceTypes[cat]) {
+      serviceTypes[cat].forEach(t => {
+        const opt = document.createElement('option');
+        opt.textContent = t;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // ============ VIEW SWITCHING ============
+  function showView(view) {
+    document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+    document.getElementById('view-' + view).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.tab-btn[data-view="' + view + '"]').classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const labels = { form: '+ New', log: 'Log', timeline: 'Timeline' };
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      if (b.textContent.trim() === labels[view]) b.classList.add('active');
+    });
+    document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
+  }
+
+  // ============ SECTION TOGGLE ============
+  function toggleSection(header) {
+    header.classList.toggle('collapsed');
+    header.nextElementSibling.classList.toggle('collapsed');
+  }
+
+  // ============ STATUS PILLS ============
+  let currentStatus = 'planned';
+  function setStatus(btn, status) {
+    document.querySelectorAll('.status-pill').forEach(p => {
+      p.className = 'status-pill';
+    });
+    btn.classList.add('active-' + status);
+    currentStatus = status;
+    if (status === 'completed') {
+      document.getElementById('workCompleted').checked = true;
+    }
+  }
+
+  // ============ FUTURE FIELDS ============
+  function toggleFutureFields() {
+    document.getElementById('futureFields').classList.toggle('hidden',
+      !document.getElementById('futureTask').checked);
+  }
+
+  // ============ BILLING TYPE ============
+  let currentBillingType = 'hourly';
+  function setBillingType(btn, type) {
+    document.querySelectorAll('.billing-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['hourly', 'fixed', 'percentage', 'manual'].forEach(t => {
+      document.getElementById('billing-' + t).classList.toggle('hidden', t !== type);
+    });
+    currentBillingType = type;
+    recalculate();
+  }
+
+  // ============ RATE RULES ============
+  function applyRateRule() {
+    const rateInput = document.getElementById('hourlyRate');
+    const overtime = document.getElementById('overtimeToggle').checked;
+    const sunday = document.getElementById('sundayToggle').checked;
+    const holiday = document.getElementById('holidayToggle').checked;
+
+    if (holiday) {
+      rateInput.value = 160;
+      document.getElementById('sundayToggle').checked = false;
+      document.getElementById('overtimeToggle').checked = false;
+    } else if (sunday) {
+      rateInput.value = 120;
+      document.getElementById('overtimeToggle').checked = false;
+      document.getElementById('holidayToggle').checked = false;
+    } else if (overtime) {
+      rateInput.value = 120; // 80 * 1.5
+      document.getElementById('sundayToggle').checked = false;
+      document.getElementById('holidayToggle').checked = false;
+    } else {
+      rateInput.value = 80;
+    }
+    recalculate();
+  }
+
+  // ============ FIXED RATE ============
+  function applyFixedRate() {
+    const val = document.getElementById('fixedServiceSelect').value;
+    if (val) document.getElementById('fixedAmount').value = val;
+    recalculate();
+  }
+
+  // ============ PRICING CALCULATION ============
+  function recalculate() {
+    const billable = document.getElementById('billableToggle').checked;
+    let base = 0, crewCharge = 0;
+    let currency = 'USD';
+
+    if (!billable) {
+      updateCalcDisplay(0, 0, 0, 0, 0, 0, 'USD');
+      return;
+    }
+
+    if (currentBillingType === 'hourly') {
+      const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
+      const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+      currency = document.getElementById('currencySelect').value;
+      base = hours * rate;
+    } else if (currentBillingType === 'fixed') {
+      const amount = parseFloat(document.getElementById('fixedAmount').value) || 0;
+      const qty = parseInt(document.getElementById('fixedQty').value) || 1;
+      const crew = parseInt(document.getElementById('additionalCrew').value) || 0;
+      currency = document.getElementById('fixedCurrency').value;
+      base = amount * qty;
+      crewCharge = crew * 35;
+    } else if (currentBillingType === 'percentage') {
+      const baseAmt = parseFloat(document.getElementById('baseAmount').value) || 0;
+      const pct = parseFloat(document.getElementById('percentRate').value) || 0;
+      currency = document.getElementById('percentCurrency').value;
+      base = baseAmt * (pct / 100);
+      document.getElementById('percentFee').value = formatCurrency(base, currency);
+    } else if (currentBillingType === 'manual') {
+      base = parseFloat(document.getElementById('manualAmount').value) || 0;
+      currency = document.getElementById('manualCurrency').value;
+    }
+
+    const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
+    const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
+    const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+
+    updateCalcDisplay(base, crewCharge, agency, disbursement, other, base + crewCharge + agency + disbursement + other, currency);
+  }
+
+  function updateCalcDisplay(base, crew, agency, disbursement, other, total, currency) {
+    const sym = currencySymbol(currency);
+    document.getElementById('calcBase').textContent = sym + base.toFixed(2);
+    document.getElementById('calcCrew').textContent = sym + crew.toFixed(2);
+    document.getElementById('calcAgency').textContent = sym + agency.toFixed(2);
+    document.getElementById('calcDisbursement').textContent = sym + disbursement.toFixed(2);
+    document.getElementById('calcOther').textContent = sym + other.toFixed(2);
+    document.getElementById('calcTotal').textContent = sym + total.toFixed(2);
+    document.getElementById('submitTotal').textContent = sym + total.toFixed(2);
+  }
+
+  function currencySymbol(code) {
+    const symbols = { USD: '$', XCD: 'EC$', EUR: '\u20AC', GBP: '\u00A3', BBD: 'Bds$' };
+    return symbols[code] || code + ' ';
+  }
+  function formatCurrency(amount, code) {
+    return currencySymbol(code) + amount.toFixed(2);
+  }
+
+  // ============ FILE UPLOAD ============
+  let uploadedFiles = [];
+  function handleFileUpload(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      uploadedFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const preview = document.getElementById('receiptPreview');
+        const thumb = document.createElement('div');
+        thumb.className = 'receipt-thumb';
+        if (file.type.startsWith('image/')) {
+          thumb.innerHTML = '<img src="' + ev.target.result + '"><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
+        } else {
+          thumb.innerHTML = '<span style="font-size:24px">&#x1F4C4;</span><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
+        }
+        preview.appendChild(thumb);
+
+        // Add receipt detail fields
+        const details = document.getElementById('receiptDetails');
+        const detailRow = document.createElement('div');
+        detailRow.className = 'receipt-detail';
+        detailRow.innerHTML =
+          '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">' + file.name + '</div>' +
+          '<div class="form-row three">' +
+          '<div class="form-group"><label>Vendor</label><input type="text" placeholder="Vendor name"></div>' +
+          '<div class="form-group"><label>Receipt Date</label><input type="date"></div>' +
+          '<div class="form-group"><label>Amount</label><div class="currency-row"><select style="width:70px"><option>USD</option><option>XCD</option><option>EUR</option><option>GBP</option></select><input type="number" step="0.01" placeholder="0.00"></div></div>' +
+          '</div>' +
+          '<div class="form-row"><div class="form-group"><label>Description</label><input type="text" placeholder="What was purchased..."></div>' +
+          '<div class="form-group"><label>Currency</label><input type="text" placeholder="If not USD"></div></div>';
+        details.appendChild(detailRow);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  }
+
+  // ============ MODAL ============
+  let modalType = '';
+  function showAddModal(type) {
+    modalType = type;
+    const titles = { vessel: 'Add New Vessel', category: 'Add Service Category', serviceType: 'Add Service Type' };
+    const labels = { vessel: 'Vessel Name (e.g. M/Y Neptune)', category: 'Category Name', serviceType: 'Service Type Name' };
+    document.getElementById('modalTitle').textContent = titles[type];
+    document.getElementById('modalLabel').textContent = labels[type];
+    document.getElementById('modalInput').value = '';
+    document.getElementById('addModal').classList.remove('hidden');
+    document.getElementById('modalInput').focus();
+  }
+  function closeModal() { document.getElementById('addModal').classList.add('hidden'); }
+  function confirmAdd() {
+    const val = document.getElementById('modalInput').value.trim();
+    if (!val) return;
+    let sel;
+    if (modalType === 'vessel') sel = document.getElementById('vesselSelect');
+    else if (modalType === 'category') sel = document.getElementById('serviceCategory');
+    else sel = document.getElementById('serviceType');
+    const opt = document.createElement('option');
+    opt.textContent = val;
+    opt.selected = true;
+    sel.appendChild(opt);
+    closeModal();
+    showToast(val + ' added!');
+  }
+
+  // ============ SUBMIT ============
+  function submitEntry() {
+    const vessel = document.getElementById('vesselSelect').value;
+    const staff = document.getElementById('staffSelect').value;
+    if (!vessel || !staff) {
+      showToast('Please select a vessel and staff member.');
+      return;
+    }
+    // Simulate duplicate check
+    if (vessel === 'M/Y Serenity' && currentBillingType === 'fixed') {
+      document.getElementById('duplicateWarning').classList.remove('hidden');
+      setTimeout(() => {
+        if (confirm('A similar submission may already exist. Submit anyway?')) {
+          completeSubmission();
+        }
+      }, 300);
+    } else {
+      completeSubmission();
+    }
+  }
+
+  function completeSubmission() {
+    document.getElementById('duplicateWarning').classList.add('hidden');
+    showToast('Entry AC-0048 submitted successfully!');
+    // In production this would POST to the backend / Apps Script
+  }
+
+  function saveDraft() { showToast('Draft saved.'); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+
+  // ============ PERCENTAGE TYPE ============
+  document.getElementById('percentType').addEventListener('change', function() {
+    const val = this.value;
+    if (val !== 'custom') {
+      document.getElementById('percentRate').value = val;
+    }
+    recalculate();
+  });
+
+  // Initial calc
+  recalculate();
+</script>
+</body>
+</html>
