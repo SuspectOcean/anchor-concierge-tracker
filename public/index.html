@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -58,14 +59,6 @@
   .header-brand .anchor-icon { font-size: 28px; }
   .header-brand h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
   .header-brand .subtitle { font-size: 11px; color: var(--gold-light); text-transform: uppercase; letter-spacing: 1.5px; }
-  .header-nav { display: flex; gap: 8px; }
-  .nav-btn {
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
-    color: var(--white); padding: 7px 14px; border-radius: 6px; cursor: pointer;
-    font-size: 13px; font-weight: 500; transition: all 0.2s;
-  }
-  .nav-btn:hover { background: rgba(255,255,255,0.22); }
-  .nav-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
   .app-main { max-width: 800px; margin: 0 auto; padding: 20px 16px 80px; }
   .tab-bar {
     display: flex; gap: 4px; background: var(--white); border-radius: var(--radius-lg);
@@ -245,21 +238,104 @@
   .status-planned { background: #e8f0ff; color: var(--blue); }
   .status-inprogress { background: var(--orange-light); color: var(--orange); }
   .status-completed { background: var(--green-light); color: var(--green); }
+
+  /* Timeline Styles */
+  .timeline-container {
+    position: relative; padding: 20px 0;
+  }
+  .timeline-vertical-line {
+    position: absolute; left: 29px; top: 0; bottom: 0; width: 2px;
+    background: var(--teal); z-index: 0;
+  }
   .timeline-item {
-    display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--gray-100);
+    display: flex; gap: 20px; padding: 20px 0; position: relative; z-index: 1;
+    border-bottom: 1px solid var(--gray-100);
   }
-  .timeline-date {
-    width: 60px; flex-shrink: 0; text-align: center;
-    background: var(--navy); color: var(--white); border-radius: 8px;
-    padding: 8px 4px;
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-dot {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--teal);
+    border: 3px solid var(--white); flex-shrink: 0; margin-top: 4px;
+    box-shadow: 0 0 0 2px var(--teal);
   }
-  .timeline-date .day { font-size: 20px; font-weight: 700; line-height: 1; }
-  .timeline-date .month { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
-  .timeline-body { flex: 1; }
-  .timeline-body .vessel { font-weight: 600; color: var(--navy); font-size: 15px; }
-  .timeline-body .event { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
-  .timeline-body .meta { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
-  .timeline-urgent { border-left: 3px solid var(--red); padding-left: 11px; }
+  .timeline-dot.pulse {
+    animation: timelinePulse 2s infinite;
+  }
+  .timeline-dot.planned { background: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
+  .timeline-dot.progress { background: var(--orange); box-shadow: 0 0 0 2px var(--orange); }
+  .timeline-dot.completed { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  @keyframes timelinePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .timeline-content {
+    flex: 1;
+  }
+  .timeline-content .vessel { font-weight: 600; color: var(--navy); font-size: 15px; }
+  .timeline-content .service { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+  .timeline-content .meta { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+  .timeline-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .timeline-filter-btn {
+    padding: 8px 16px; border: 1px solid var(--gray-300); border-radius: 20px;
+    background: var(--white); cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--gray-600); transition: all 0.2s;
+  }
+  .timeline-filter-btn.active {
+    background: var(--navy); color: var(--white); border-color: var(--navy);
+  }
+  .timeline-filter-btn:hover { border-color: var(--teal); }
+
+  /* Budget Styles */
+  .budget-overview {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+  }
+  .budget-stat {
+    background: var(--white); border-radius: var(--radius-lg); padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .budget-stat .label { font-size: 12px; color: var(--gray-500); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px; }
+  .budget-stat .value { font-size: 28px; font-weight: 700; color: var(--navy); }
+  .budget-stat .subtext { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
+  .budget-vessel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .budget-vessel-table th {
+    background: var(--gray-50); padding: 12px; border-bottom: 2px solid var(--gray-200);
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    font-weight: 600; color: var(--navy);
+  }
+  .budget-vessel-table td { padding: 12px; border-bottom: 1px solid var(--gray-200); }
+  .progress-bar-container {
+    background: var(--gray-200); border-radius: 4px; height: 8px; overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%; border-radius: 4px; transition: all 0.3s;
+  }
+  .progress-bar.under-70 { background: var(--green); }
+  .progress-bar.under-90 { background: var(--orange); }
+  .progress-bar.over-90 { background: var(--red); }
+  .monthly-chart {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+    margin-top: 16px; align-items: flex-end; height: 200px;
+  }
+  .chart-bar-wrapper {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;
+  }
+  .chart-bar {
+    width: 100%; background: var(--teal); border-radius: 4px 4px 0 0;
+  }
+  .chart-label { font-size: 11px; color: var(--gray-600); text-align: center; white-space: nowrap; }
+  .chart-value { font-size: 11px; font-weight: 600; color: var(--navy); text-align: center; }
+  .budget-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .budget-actions button { padding: 10px 16px; font-size: 13px; }
+  .collapsible-section { margin-bottom: 16px; }
+  .collapsible-header {
+    padding: 14px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
+  }
+  .collapsible-header h3 { font-size: 14px; font-weight: 600; color: var(--navy); flex: 1; }
+  .collapsible-header .toggle { color: var(--gray-500); font-size: 18px; transition: transform 0.2s; }
+  .collapsible-header.expanded .toggle { transform: rotate(180deg); }
+  .collapsible-body { display: none; padding: 16px 20px; }
+  .collapsible-body.expanded { display: block; }
   .currency-row { display: flex; gap: 8px; align-items: center; }
   .currency-row select { width: 90px; flex-shrink: 0; }
   .currency-row input { flex: 1; }
@@ -290,31 +366,9 @@
   }
   .modal-actions .cancel { background: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
   .modal-actions .confirm { background: var(--teal); border: none; color: var(--white); }
-  /* Sync indicator */
-  .sync-status {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
-    padding: 4px 10px; border-radius: 12px; margin-left: 8px;
-  }
-  .sync-ok { background: var(--green-light); color: var(--green); }
-  .sync-pending { background: #fff8f0; color: var(--orange); }
-  .sync-error { background: var(--red-light); color: var(--red); }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .sync-dot.ok { background: var(--green); }
-  .sync-dot.pending { background: var(--orange); animation: pulse 1.5s infinite; }
-  .sync-dot.error { background: var(--red); }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-  /* Settings panel */
-  .settings-panel {
-    background: var(--gray-50); border: 1px solid var(--gray-200);
-    border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
-  }
-  .settings-panel label { display: block; margin-bottom: 4px; }
-  .settings-panel input { margin-bottom: 12px; }
-  .settings-panel .hint { font-size: 12px; color: var(--gray-500); margin-bottom: 8px; }
   @media (max-width: 600px) {
     .form-row { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr; }
-    .header-nav { display: none; }
     .header-brand h1 { font-size: 15px; }
     .billing-type-selector { flex-wrap: wrap; }
     .billing-type-btn { flex: 1 1 45%; }
@@ -324,6 +378,7 @@
     .submit-inner { flex-wrap: wrap; }
     .log-table { font-size: 12px; }
     .log-table th, .log-table td { padding: 8px 6px; }
+    .budget-overview { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -339,23 +394,17 @@
         <div class="subtitle">Super Yacht Services</div>
       </div>
     </div>
-    <div class="header-nav">
-      <button class="nav-btn active" onclick="showView('form')">+ New</button>
-      <button class="nav-btn" onclick="showView('log')">Log</button>
-      <button class="nav-btn" onclick="showView('timeline')">Timeline</button>
-      <button class="nav-btn" onclick="showView('staff')">Staff</button>
-      <button class="nav-btn" onclick="showView('settings')">&#9881;</button>
-    </div>
   </div>
 </header>
 
 <div class="app-main">
+  <!-- TAB BAR -->
   <div class="tab-bar" id="mobileTabBar">
     <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
     <button class="tab-btn" data-view="staff" onclick="showView('staff')">Staff</button>
-    <button class="tab-btn" data-view="settings" onclick="showView('settings')">&#9881;</button>
+    <button class="tab-btn" data-view="budget" onclick="showView('budget')">Budget</button>
   </div>
 
   <!-- =============================== -->
@@ -502,30 +551,44 @@
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label>Status <span class="required">*</span></label>
-          <div class="status-options">
-            <button class="status-pill active-planned" onclick="setStatus(this, 'planned')">Planned / Upcoming</button>
-            <button class="status-pill" onclick="setStatus(this, 'progress')">In Progress</button>
-            <button class="status-pill" onclick="setStatus(this, 'completed')">Completed</button>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Service Status</label>
+            <div class="status-options">
+              <button class="status-pill active-planned" onclick="setStatus(this, 'planned')">Planned</button>
+              <button class="status-pill" onclick="setStatus(this, 'progress')">In Progress</button>
+              <button class="status-pill" onclick="setStatus(this, 'completed')">Completed</button>
+            </div>
           </div>
         </div>
         <div class="toggle-row">
-          <div class="toggle-label">Work Completed<span class="hint">Mark when service is fully done</span></div>
-          <label class="switch"><input type="checkbox" id="workCompleted"><span class="slider"></span></label>
+          <label class="toggle-label">
+            Mark Work as Completed
+            <span class="hint">Check if the service has been completed</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="workCompleted" onchange="if (this.checked) setStatus(document.querySelector('.status-pill.active-completed') || document.querySelectorAll('.status-pill')[2], 'completed')">
+            <span class="slider"></span>
+          </label>
         </div>
         <div class="toggle-row">
-          <div class="toggle-label">Future Task / Movement<span class="hint">Flag this as an upcoming action</span></div>
-          <label class="switch"><input type="checkbox" id="futureTask" onchange="toggleFutureFields()"><span class="slider"></span></label>
+          <label class="toggle-label">
+            Future Task / Movement
+            <span class="hint">Schedule upcoming work (ETA/ETD)</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="futureTask" onchange="toggleFutureFields()">
+            <span class="slider"></span>
+          </label>
         </div>
-        <div id="futureFields" class="hidden" style="margin-top: 12px;">
+        <div id="futureFields" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
           <div class="form-row">
             <div class="form-group">
-              <label>ETA (Arrival)</label>
+              <label>Estimated Time of Arrival (ETA)</label>
               <input type="datetime-local" id="etaField">
             </div>
             <div class="form-group">
-              <label>ETD (Departure)</label>
+              <label>Estimated Time of Departure (ETD)</label>
               <input type="datetime-local" id="etdField">
             </div>
           </div>
@@ -543,43 +606,39 @@
       </div>
     </div>
 
+    <!-- DUPLICATE WARNING -->
+    <div id="duplicateWarning" class="duplicate-warning hidden">
+      <span class="warn-icon">&#9888;</span>
+      <div class="warn-text">
+        <strong>Similar entry detected</strong><br>
+        There may be a duplicate. Review before submitting.
+      </div>
+    </div>
+
     <!-- BILLING & PRICING -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
         <h2>&#x1F4B0; Billing &amp; Pricing</h2>
-        <span class="badge">Auto-calc</span>
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
-        <div class="toggle-row" style="border-bottom: 1px solid var(--gray-200); margin-bottom: 14px; padding-bottom: 14px;">
-          <div class="toggle-label">Billable<span class="hint">Uncheck for non-billable internal work</span></div>
-          <label class="switch"><input type="checkbox" id="billableToggle" checked onchange="recalculate()"><span class="slider"></span></label>
-        </div>
-        <label style="margin-bottom: 8px; display: block;">Billing Type</label>
-        <div class="billing-type-selector">
-          <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
-            <span class="icon">&#9201;</span><span class="label">Hourly</span>
-          </button>
-          <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
-            <span class="icon">&#x1F4CB;</span><span class="label">Fixed Fee</span>
-          </button>
-          <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
-            <span class="icon">%</span><span class="label">Percentage</span>
-          </button>
-          <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
-            <span class="icon">&#x270F;</span><span class="label">Manual</span>
-          </button>
+        <div class="toggle-row">
+          <label class="toggle-label">Billable Service</label>
+          <label class="switch">
+            <input type="checkbox" id="billableToggle" onchange="recalculate()">
+            <span class="slider"></span>
+          </label>
         </div>
 
-        <!-- Hourly billing fields -->
+        <!-- HOURLY -->
         <div id="billing-hourly">
           <div class="form-row">
             <div class="form-group">
-              <label>Hours Worked <span class="required">*</span></label>
-              <input type="number" id="hoursWorked" step="0.25" min="0" placeholder="0.00" oninput="recalculate()">
+              <label>Hours Worked</label>
+              <input type="number" id="hoursWorked" value="" placeholder="0.0" min="0" step="0.5" onchange="recalculate()">
             </div>
             <div class="form-group">
-              <label>Currency &amp; Hourly Rate</label>
+              <label>Rate Per Hour</label>
               <div class="currency-row">
                 <select id="currencySelect" onchange="recalculate()">
                   <option value="USD">USD</option>
@@ -588,222 +647,242 @@
                   <option value="GBP">GBP</option>
                   <option value="BBD">BBD</option>
                 </select>
-                <input type="number" id="hourlyRate" value="80" step="0.01" oninput="recalculate()">
+                <input type="number" id="hourlyRate" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
               </div>
             </div>
           </div>
-          <div class="toggle-row">
-            <div class="toggle-label">Overtime (time &amp; a half)<span class="hint">Outside 7am-6pm: rate x 1.5</span></div>
-            <label class="switch"><input type="checkbox" id="overtimeToggle" onchange="applyRateRule()"><span class="slider"></span></label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">Sunday Rate<span class="hint">US$120/hr standard</span></div>
-            <label class="switch"><input type="checkbox" id="sundayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
-          </div>
-          <div class="toggle-row">
-            <div class="toggle-label">Public Holiday Rate<span class="hint">US$160/hr standard</span></div>
-            <label class="switch"><input type="checkbox" id="holidayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+          <div class="form-row single">
+            <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">Rate Rules (Preset Multipliers)</label>
+            <div class="toggle-row" style="margin-bottom: 8px;">
+              <label class="toggle-label">Overtime (1.5x)</label>
+              <label class="switch"><input type="checkbox" id="overtimeToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-bottom: 8px;">
+              <label class="toggle-label">Sunday Service (1.5x)</label>
+              <label class="switch"><input type="checkbox" id="sundayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label">Holiday Service (2x)</label>
+              <label class="switch"><input type="checkbox" id="holidayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
+            </div>
           </div>
         </div>
 
-        <!-- Fixed fee fields -->
+        <!-- FIXED PRICE -->
         <div id="billing-fixed" class="hidden">
           <div class="form-row">
             <div class="form-group">
-              <label>Predefined Service</label>
+              <label>Service Package</label>
               <select id="fixedServiceSelect" onchange="applyFixedRate()">
-                <option value="">Select or enter custom...</option>
-                <option value="200">Customs &amp; Immigration Clearance — $200</option>
-                <option value="35">Additional Crew Clearance — $35/person</option>
-                <option value="50">Crew Sign Off — $50/person</option>
-                <option value="75">Phytosanitary Certificate — $75</option>
-                <option value="150">Air Freight Brokerage — $150</option>
-                <option value="350">Sea Freight Brokerage — $350</option>
-                <option value="750">Yacht Import/Export Brokerage — $750</option>
-                <option value="50">Warrants &amp; Entry Documentation — $50</option>
-                <option value="600">Overseas Provisions (1st pallet) — $600</option>
-                <option value="120">Overseas Provisions (add'l pallet) — $120</option>
+                <option value="">Select package...</option>
+                <option value="150">Basic Clearance (150)</option>
+                <option value="250">Full Crew Handling (250)</option>
+                <option value="500">Complex Import Brokerage (500)</option>
+                <option value="350">Marina Coordination (350)</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Quantity</label>
-              <input type="number" id="fixedQty" value="1" min="1" oninput="recalculate()">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Currency &amp; Unit Price</label>
+              <label>Service Amount</label>
               <div class="currency-row">
                 <select id="fixedCurrency" onchange="recalculate()">
                   <option value="USD">USD</option>
                   <option value="XCD">XCD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
+                  <option value="BBD">BBD</option>
                 </select>
-                <input type="number" id="fixedAmount" step="0.01" placeholder="0.00" oninput="recalculate()">
+                <input type="number" id="fixedAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
               </div>
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
-              <label>Additional Crew Count</label>
-              <input type="number" id="additionalCrew" value="0" min="0" oninput="recalculate()">
-              <span style="font-size:11px; color: var(--gray-500);">$35 each for clearance entries</span>
+              <label>Quantity</label>
+              <input type="number" id="fixedQty" value="1" min="1" step="1" onchange="recalculate()">
+            </div>
+            <div class="form-group">
+              <label>Additional Crew Members</label>
+              <input type="number" id="additionalCrew" value="0" min="0" step="1" onchange="recalculate()">
             </div>
           </div>
         </div>
 
-        <!-- Percentage billing fields -->
+        <!-- PERCENTAGE -->
         <div id="billing-percentage" class="hidden">
           <div class="form-row">
             <div class="form-group">
-              <label>Fee Type</label>
-              <select id="percentType" onchange="updatePercentRate()">
-                <option value="22.5">Provisioning / Sourcing (22.5%)</option>
-                <option value="22.5">Item Sourcing (22.5%)</option>
-                <option value="15">National Parks &amp; Dockage (15%)</option>
-                <option value="4">Credit Card Processing (4%)</option>
-                <option value="2.5">APA Commission (2.5%)</option>
-                <option value="custom">Custom Percentage</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Percentage Rate (%)</label>
-              <input type="number" id="percentRate" value="22.5" step="0.1" oninput="recalculate()">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Currency &amp; Base Amount</label>
+              <label>Base Amount (Goods/Services)</label>
               <div class="currency-row">
                 <select id="percentCurrency" onchange="recalculate()">
                   <option value="USD">USD</option>
                   <option value="XCD">XCD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
+                  <option value="BBD">BBD</option>
                 </select>
-                <input type="number" id="baseAmount" step="0.01" placeholder="Total bill amount" oninput="recalculate()">
+                <input type="number" id="baseAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
               </div>
             </div>
             <div class="form-group">
-              <label>Calculated Fee</label>
-              <input type="text" id="percentFee" readonly style="background: var(--gray-50); font-weight: 600;">
+              <label>Markup Percentage</label>
+              <select id="percentType" onchange="updatePercentRate()">
+                <option value="">Select rate...</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Custom Rate (if selected)</label>
+              <input type="number" id="percentRate" value="" placeholder="0.00" min="0" step="0.1" onchange="recalculate()">
+            </div>
+            <div class="form-group">
+              <label>Markup Fee</label>
+              <input type="text" id="percentFee" value="$0.00" readonly style="background: var(--gray-50); color: var(--gray-500);">
             </div>
           </div>
         </div>
 
-        <!-- Manual billing fields -->
+        <!-- MANUAL -->
         <div id="billing-manual" class="hidden">
           <div class="form-row">
             <div class="form-group">
-              <label>Currency &amp; Custom Charge</label>
+              <label>Enter Total Amount</label>
               <div class="currency-row">
                 <select id="manualCurrency" onchange="recalculate()">
                   <option value="USD">USD</option>
                   <option value="XCD">XCD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
+                  <option value="BBD">BBD</option>
                 </select>
-                <input type="number" id="manualAmount" step="0.01" placeholder="0.00" oninput="recalculate()">
+                <input type="number" id="manualAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
               </div>
             </div>
+          </div>
+          <div class="form-row single">
             <div class="form-group">
-              <label>Reason / Override Note</label>
-              <input type="text" id="manualNote" placeholder="Explain custom charge...">
+              <label>Reason for Manual Override</label>
+              <textarea id="manualNote" placeholder="Why is a manual amount being used? (Client adjustment, special rate, etc.)"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Additional fees -->
-        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
-          <label style="margin-bottom: 8px; display: block;">Additional Fees</label>
-          <div class="form-row three">
+        <!-- BILLING TYPE SELECTOR -->
+        <div style="margin-top: 16px; padding: 16px 0; border-top: 1px solid var(--gray-200);">
+          <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Select Billing Method</label>
+          <div class="billing-type-selector">
+            <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
+              <div class="icon">&#x23F1;</div>
+              <div class="label">Hourly</div>
+            </button>
+            <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
+              <div class="icon">&#x1F4B8;</div>
+              <div class="label">Fixed Price</div>
+            </button>
+            <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
+              <div class="icon">&#x1F4C8;</div>
+              <div class="label">Percentage Fee</div>
+            </button>
+            <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
+              <div class="icon">&#x270D;</div>
+              <div class="label">Manual Entry</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- FEE ADDITIONS -->
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+          <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Additional Charges</label>
+          <div class="form-row">
             <div class="form-group">
               <label>Agency Fee</label>
-              <input type="number" id="agencyFee" step="0.01" value="0" oninput="recalculate()">
+              <input type="number" id="agencyFee" value="0" min="0" step="1" onchange="recalculate()">
             </div>
             <div class="form-group">
               <label>Disbursement Fee</label>
-              <input type="number" id="disbursementFee" step="0.01" value="0" oninput="recalculate()">
+              <input type="number" id="disbursementFee" value="0" min="0" step="1" onchange="recalculate()">
             </div>
+          </div>
+          <div class="form-row single">
             <div class="form-group">
               <label>Other Charges</label>
-              <input type="number" id="otherCharges" step="0.01" value="0" oninput="recalculate()">
+              <input type="number" id="otherCharges" value="0" min="0" step="1" onchange="recalculate()">
             </div>
           </div>
         </div>
 
-        <!-- Calculation summary -->
-        <div class="calc-summary" id="calcSummary">
-          <div class="calc-row"><span class="calc-label">Base Charge</span><span class="calc-value" id="calcBase">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Additional Crew</span><span class="calc-value" id="calcCrew">$0.00</span></div>
+        <!-- CALCULATION SUMMARY -->
+        <div class="calc-summary">
+          <div class="calc-row"><span class="calc-label">Service Charge</span><span class="calc-value" id="calcBase">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Crew Charges</span><span class="calc-value" id="calcCrew">$0.00</span></div>
           <div class="calc-row"><span class="calc-label">Agency Fee</span><span class="calc-value" id="calcAgency">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Disbursement Fee</span><span class="calc-value" id="calcDisbursement">$0.00</span></div>
+          <div class="calc-row"><span class="calc-label">Disbursement</span><span class="calc-value" id="calcDisbursement">$0.00</span></div>
           <div class="calc-row"><span class="calc-label">Other Charges</span><span class="calc-value" id="calcOther">$0.00</span></div>
-          <div class="calc-row total"><span class="calc-label">Total Charge</span><span class="calc-value" id="calcTotal">$0.00</span></div>
+          <div class="calc-row total"><span class="calc-label">Total</span><span class="calc-value" id="calcTotal">$0.00</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- RECEIPTS & ATTACHMENTS -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4C4; Receipts &amp; Attachments</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+          <div class="icon">&#x1F4CE;</div>
+          <div class="text">Upload receipts, invoices, or documents</div>
+          <div class="hint">PNG, JPG, PDF — click or drag files here</div>
+          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
+        </div>
+        <div id="receiptPreview" class="receipt-preview"></div>
       </div>
     </div>
 
     <!-- NOTES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4DD; Notes</h2>
+        <h2>&#x1F4DD; Notes &amp; Comments</h2>
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Requests / Special Notes</label>
-            <textarea id="specialNotes" placeholder="Any special requests from the vessel or crew..."></textarea>
+            <label>Special Requests / Notes</label>
+            <textarea id="specialNotes" placeholder="Any special notes or requests for this service..."></textarea>
           </div>
         </div>
-        <div class="form-row">
+        <div class="form-row single">
           <div class="form-group">
-            <label>Internal Notes</label>
-            <textarea id="internalNotes" placeholder="For team eyes only..." style="min-height: 60px;"></textarea>
+            <label>Internal Notes (Team Only)</label>
+            <textarea id="internalNotes" placeholder="Notes visible only to your team..."></textarea>
           </div>
+        </div>
+        <div class="form-row single">
           <div class="form-group">
             <label>Client-Facing Notes</label>
-            <textarea id="clientNotes" placeholder="Notes visible on invoice..." style="min-height: 60px;"></textarea>
+            <textarea id="clientNotes" placeholder="Notes that can be shared with the yacht/client..."></textarea>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- RECEIPTS -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4F7; Receipts &amp; Uploads</h2>
-        <span class="chevron">&#9660;</span>
-      </div>
-      <div class="section-body">
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-          <div class="icon">&#x1F4F8;</div>
-          <div class="text">Tap to upload receipt photos or documents</div>
-          <div class="hint">JPG, PNG, PDF — up to 10MB each</div>
-        </div>
-        <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(event)">
-        <div class="receipt-preview" id="receiptPreview"></div>
-        <div id="receiptDetails"></div>
-      </div>
-    </div>
-
-    <div class="duplicate-warning hidden" id="duplicateWarning">
-      <span class="warn-icon">&#9888;&#65039;</span>
-      <div class="warn-text">
-        <strong>Possible duplicate detected.</strong><br>
-        A similar entry for this vessel, service type, and date may already exist.
       </div>
     </div>
   </div>
 
   <!-- =============================== -->
-  <!-- VIEW: SERVICE LOG                -->
+  <!-- VIEW: SERVICE LOG               -->
   <!-- =============================== -->
   <div id="view-log" class="hidden">
     <div class="section-card">
+      <div class="section-header"><h2>Search &amp; Filter</h2></div>
       <div class="section-body">
         <div class="search-bar">
-          <input type="text" id="logSearch" placeholder="Search vessel, service, notes..." oninput="renderLog()">
+          <input type="text" id="logSearch" placeholder="Search entries..." onkeyup="renderLog()">
           <select id="logStatusFilter" onchange="renderLog()">
             <option value="">All Statuses</option>
             <option value="planned">Planned</option>
@@ -814,90 +893,90 @@
             <option value="">All Vessels</option>
           </select>
         </div>
-        <div style="overflow-x: auto;">
-          <table class="log-table">
-            <thead>
-              <tr>
-                <th>ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Total</th><th>Staff</th>
-              </tr>
-            </thead>
-            <tbody id="logTableBody">
-              <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet. Submit a service entry to get started.</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
+
     <div class="section-card">
       <div class="section-header"><h2>Running Totals by Vessel</h2></div>
       <div class="section-body">
-        <div class="calc-summary" id="runningTotals">
-          <div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>
+        <div id="runningTotals"></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header"><h2>All Entries</h2></div>
+      <div class="section-body" style="padding:0;">
+        <table class="log-table">
+          <thead>
+            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Amount</th><th>Staff</th></tr>
+          </thead>
+          <tbody id="logTableBody">
+            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- VIEW: TIMELINE                  -->
+  <!-- =============================== -->
+  <div id="view-timeline" class="hidden">
+    <div class="section-card">
+      <div class="section-header"><h2>Timeline Filters</h2></div>
+      <div class="section-body">
+        <div class="timeline-filters">
+          <button class="timeline-filter-btn active" onclick="filterTimeline('all')">All</button>
+          <button class="timeline-filter-btn" onclick="filterTimeline('week')">This Week</button>
+          <button class="timeline-filter-btn" onclick="filterTimeline('month')">This Month</button>
+          <button class="timeline-filter-btn" onclick="filterTimeline('upcoming')">Upcoming</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header"><h2>Service Timeline</h2></div>
+      <div class="section-body">
+        <div class="timeline-container" id="timelineBody">
+          <div style="text-align:center; padding:30px; color:var(--gray-500);">No entries in timeline.</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- =============================== -->
-  <!-- VIEW: TIMELINE                   -->
-  <!-- =============================== -->
-  <div id="view-timeline" class="hidden">
-    <div class="section-card">
-      <div class="section-header">
-        <h2>Upcoming Movements &amp; Tasks</h2>
-        <span class="badge">Next 14 days</span>
-      </div>
-      <div class="section-body" style="padding: 8px 20px;" id="timelineBody">
-        <div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =============================== -->
-  <!-- VIEW: STAFF MANAGEMENT           -->
+  <!-- VIEW: STAFF MANAGEMENT          -->
   <!-- =============================== -->
   <div id="view-staff" class="hidden">
     <div class="section-card">
-      <div class="section-header">
-        <h2>&#x1F465; Staff Members</h2>
-        <span class="badge" id="staffCount">0</span>
-      </div>
+      <div class="section-header"><h2>Add New Staff Member</h2></div>
       <div class="section-body">
         <div class="form-row">
           <div class="form-group">
-            <label>Full Name <span class="required">*</span></label>
-            <input type="text" id="newStaffName" placeholder="e.g. Keisha Thomas">
+            <label>Name <span class="required">*</span></label>
+            <input type="text" id="newStaffName" placeholder="Full name">
           </div>
           <div class="form-group">
             <label>Role</label>
-            <select id="newStaffRole">
-              <option value="">Select role...</option>
-              <option>Concierge Agent</option>
-              <option>Logistics Coordinator</option>
-              <option>Customs Broker</option>
-              <option>Provisioning Lead</option>
-              <option>Operations Manager</option>
-              <option>Admin / Support</option>
-            </select>
+            <input type="text" id="newStaffRole" placeholder="e.g. Concierge, Agent">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Phone</label>
-            <input type="tel" id="newStaffPhone" placeholder="+1 268 ...">
+            <input type="tel" id="newStaffPhone" placeholder="+1 (555) 000-0000">
           </div>
           <div class="form-group">
             <label>Email</label>
-            <input type="email" id="newStaffEmail" placeholder="name@anchorconcierge.com">
+            <input type="email" id="newStaffEmail" placeholder="name@example.com">
           </div>
         </div>
-        <div style="text-align:right; margin-top:8px;">
-          <button class="btn-submit" onclick="addStaffMember()" style="padding:10px 24px; font-size:14px;">+ Add Staff Member</button>
-        </div>
+        <button class="btn-submit" onclick="addStaffMember()" style="margin-top: 8px;">Add Staff Member</button>
       </div>
     </div>
+
     <div class="section-card">
-      <div class="section-header"><h2>Current Team</h2></div>
+      <div class="section-header"><h2>Current Team <span class="badge" id="staffCount">0</span></h2></div>
       <div class="section-body" style="padding:0;">
         <table class="log-table" id="staffTable">
           <thead>
@@ -912,32 +991,62 @@
   </div>
 
   <!-- =============================== -->
-  <!-- VIEW: SETTINGS                   -->
+  <!-- VIEW: BUDGET MANAGEMENT         -->
   <!-- =============================== -->
-  <div id="view-settings" class="hidden">
+  <div id="view-budget" class="hidden">
+    <!-- Budget Overview -->
     <div class="section-card">
-      <div class="section-header">
-        <h2>&#9881; Google Sheets Integration</h2>
-        <span id="syncStatusBadge" class="sync-status sync-pending"><span class="sync-dot pending"></span>Not connected</span>
-      </div>
+      <div class="section-header"><h2>Budget Overview</h2></div>
       <div class="section-body">
-        <div class="settings-panel">
-          <label>Google Apps Script Web App URL</label>
-          <div class="hint">Deploy your Google Apps Script as a web app and paste the URL here. All data will sync automatically.</div>
-          <input type="url" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" value="">
-          <div style="display:flex; gap:8px;">
-            <button class="btn-submit" onclick="saveAndTestConnection()" style="padding:10px 20px; font-size:14px;">Save &amp; Test Connection</button>
-            <button class="btn-secondary" onclick="syncAllToSheets()" style="padding:10px 20px; font-size:14px;">Sync All Data Now</button>
+        <div class="budget-overview">
+          <div class="budget-stat">
+            <div class="label">Total Spend (All Vessels)</div>
+            <div class="value" id="budgetTotalSpend">$0.00</div>
+          </div>
+          <div class="budget-stat">
+            <div class="label">Active Vessels</div>
+            <div class="value" id="budgetVesselCount">0</div>
           </div>
         </div>
-        <div class="settings-panel" style="margin-top:16px;">
-          <label>Data Management</label>
-          <div class="hint">Your data is stored locally in your browser and synced to Google Sheets when connected.</div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="btn-secondary" onclick="exportLocalData()" style="padding:8px 16px; font-size:13px;">Export Local Data (JSON)</button>
-            <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="padding:8px 16px; font-size:13px;">Import Data</button>
-            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importLocalData(event)">
-          </div>
+      </div>
+    </div>
+
+    <!-- Per-Vessel Budget -->
+    <div class="section-card">
+      <div class="section-header"><h2>Per-Vessel Budget Status</h2></div>
+      <div class="section-body" style="padding:0;">
+        <table class="budget-vessel-table" id="budgetTable">
+          <thead>
+            <tr><th>Vessel</th><th>Budget Limit</th><th>Spent</th><th>Remaining</th><th>Usage</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="budgetTableBody">
+            <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray-500);">No vessels with spend yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Monthly Breakdown -->
+    <div class="section-card">
+      <div class="section-header"><h2>Last 6 Months Spending</h2></div>
+      <div class="section-body">
+        <div id="monthlyChart" class="monthly-chart"></div>
+      </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Export &amp; Data Management</h2>
+        <span class="toggle" onclick="toggleCollapsible(event)">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="budget-actions">
+          <button class="btn-submit" onclick="downloadExcelSpreadsheet()" style="padding: 12px 20px;">Download Spreadsheet (Excel)</button>
+          <button class="btn-secondary" onclick="downloadCsvExport()" style="padding: 12px 20px;">Download as CSV</button>
+          <button class="btn-secondary" onclick="exportLocalData()" style="padding: 12px 20px;">Export Data (JSON)</button>
+          <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="padding: 12px 20px;">Import Data</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importLocalData(event)">
         </div>
       </div>
     </div>
@@ -972,12 +1081,27 @@
   </div>
 </div>
 
+<!-- Budget Modal -->
+<div class="modal-overlay hidden" id="budgetModal">
+  <div class="modal">
+    <h3>Set Budget for <span id="budgetModalVessel"></span></h3>
+    <div class="form-group">
+      <label>Budget Limit (USD)</label>
+      <input type="number" id="budgetModalAmount" placeholder="0.00" min="0" step="1">
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeBudgetModal()">Cancel</button>
+      <button class="confirm" onclick="saveBudgetLimit()">Save Budget</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast hidden" id="toast">Entry submitted successfully!</div>
 
 <script>
 // ============================================================
-// DATA LAYER — localStorage persistence + Google Sheets sync
+// DATA LAYER — localStorage persistence
 // ============================================================
 const DB = {
   _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
@@ -992,8 +1116,8 @@ const DB = {
   get vessels() { return this._get('anchorVessels', []); },
   set vessels(v) { this._set('anchorVessels', v); },
 
-  get sheetsUrl() { return localStorage.getItem('anchorSheetsUrl') || ''; },
-  set sheetsUrl(v) { localStorage.setItem('anchorSheetsUrl', v); },
+  get budgets() { return this._get('anchorBudgets', {}); },
+  set budgets(v) { this._set('anchorBudgets', v); },
 
   get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
   set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
@@ -1006,126 +1130,11 @@ const DB = {
 };
 
 // ============================================================
-// GOOGLE SHEETS SYNC
-// ============================================================
-async function sheetsPost(payload) {
-  const url = DB.sheetsUrl;
-  if (!url) return { success: false, error: 'No Sheets URL configured' };
-  try {
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
-    return await resp.json();
-  } catch (e) {
-    console.error('Sheets sync error:', e);
-    return { success: false, error: e.message };
-  }
-}
-
-async function syncEntryToSheets(entry) {
-  if (!DB.sheetsUrl) return;
-  updateSyncStatus('pending', 'Syncing...');
-  const result = await sheetsPost({ action: 'submitEntry', entry });
-  if (result.success) {
-    updateSyncStatus('ok', 'Synced');
-  } else {
-    updateSyncStatus('error', 'Sync failed');
-    console.error('Sync failed:', result.error);
-  }
-}
-
-async function syncStaffToSheets(action, staff) {
-  if (!DB.sheetsUrl) return;
-  if (action === 'add') {
-    await sheetsPost({ action: 'addStaff', staff });
-  } else if (action === 'remove') {
-    await sheetsPost({ action: 'removeStaff', staffName: staff.name });
-  }
-}
-
-async function syncVesselToSheets(action, vesselName) {
-  if (!DB.sheetsUrl) return;
-  if (action === 'add') {
-    await sheetsPost({ action: 'addVessel', vessel: { name: vesselName } });
-  } else if (action === 'remove') {
-    await sheetsPost({ action: 'removeVessel', vesselName });
-  }
-}
-
-async function syncAllToSheets() {
-  if (!DB.sheetsUrl) { showToast('Set your Google Sheets URL in Settings first.'); return; }
-  updateSyncStatus('pending', 'Syncing all...');
-  showToast('Syncing all data to Google Sheets...');
-
-  // Sync staff and vessels
-  const result = await sheetsPost({
-    action: 'syncAll',
-    staff: DB.staff,
-    vessels: DB.vessels.map(v => typeof v === 'string' ? v : v.name || v)
-  });
-
-  // Sync all entries one by one
-  const entries = DB.entries;
-  for (const entry of entries) {
-    await sheetsPost({ action: 'submitEntry', entry });
-  }
-
-  if (result.success) {
-    updateSyncStatus('ok', 'All synced');
-    showToast('All data synced to Google Sheets!');
-  } else {
-    updateSyncStatus('error', 'Sync failed');
-    showToast('Sync error: ' + (result.error || 'Unknown'));
-  }
-}
-
-async function saveAndTestConnection() {
-  const url = document.getElementById('sheetsUrl').value.trim();
-  DB.sheetsUrl = url;
-  if (!url) {
-    updateSyncStatus('error', 'No URL');
-    showToast('Please enter a Google Apps Script URL.');
-    return;
-  }
-  updateSyncStatus('pending', 'Testing...');
-  showToast('Testing connection...');
-  try {
-    const resp = await fetch(url + '?action=getData');
-    const data = await resp.json();
-    if (data.success) {
-      updateSyncStatus('ok', 'Connected');
-      showToast('Connected to Google Sheets successfully!');
-    } else {
-      updateSyncStatus('error', 'Error');
-      showToast('Connection test failed: ' + (data.error || 'Unknown error'));
-    }
-  } catch (e) {
-    updateSyncStatus('error', 'Failed');
-    showToast('Could not connect: ' + e.message);
-  }
-}
-
-function updateSyncStatus(status, text) {
-  const badge = document.getElementById('syncStatusBadge');
-  if (!badge) return;
-  badge.className = 'sync-status sync-' + status;
-  badge.innerHTML = '<span class="sync-dot ' + status + '"></span>' + text;
-}
-
-// ============================================================
 // INITIALIZATION
 // ============================================================
 const now = new Date();
 document.getElementById('submissionDateTime').value = now.toISOString().slice(0, 16);
 document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
-
-// Load saved Sheets URL
-if (DB.sheetsUrl) {
-  document.getElementById('sheetsUrl').value = DB.sheetsUrl;
-  updateSyncStatus('ok', 'Configured');
-}
 
 // ============================================================
 // SERVICE TYPE MAPPING
@@ -1154,20 +1163,18 @@ function updateServiceTypes() {
 // ============================================================
 // VIEW SWITCHING
 // ============================================================
+let currentTimelineFilter = 'all';
+
 function showView(view) {
   document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
   document.getElementById('view-' + view).classList.remove('hidden');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
   if (tabBtn) tabBtn.classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const labels = { form: '+ New', log: 'Log', timeline: 'Timeline', staff: 'Staff', settings: '\u2699' };
-  document.querySelectorAll('.nav-btn').forEach(b => {
-    if (b.textContent.trim() === labels[view]) b.classList.add('active');
-  });
   document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
   if (view === 'log') renderLog();
   if (view === 'timeline') renderTimeline();
+  if (view === 'budget') renderBudgetView();
 }
 
 // ============================================================
@@ -1176,6 +1183,12 @@ function showView(view) {
 function toggleSection(header) {
   header.classList.toggle('collapsed');
   header.nextElementSibling.classList.toggle('collapsed');
+}
+
+function toggleCollapsible(event) {
+  const header = event.currentTarget;
+  header.classList.toggle('expanded');
+  header.parentElement.nextElementSibling.classList.toggle('expanded');
 }
 
 // ============================================================
@@ -1333,12 +1346,10 @@ function confirmAdd() {
   const val = document.getElementById('modalInput').value.trim();
   if (!val) return;
   if (modalType === 'vessel') {
-    // Save vessel to DB
     const vessels = DB.vessels;
     if (!vessels.includes(val)) {
       vessels.push(val);
       DB.vessels = vessels;
-      syncVesselToSheets('add', val);
     }
     populateVesselDropdowns();
     document.getElementById('vesselSelect').value = val;
@@ -1351,6 +1362,26 @@ function confirmAdd() {
   }
   closeModal();
   showToast(val + ' added!');
+}
+
+// Budget Modal Functions
+function showBudgetModal(vessel) {
+  const budgets = DB.budgets;
+  document.getElementById('budgetModalVessel').textContent = vessel;
+  document.getElementById('budgetModalAmount').value = (budgets[vessel] || '');
+  document.getElementById('budgetModal').classList.remove('hidden');
+  document.getElementById('budgetModalAmount').focus();
+}
+function closeBudgetModal() { document.getElementById('budgetModal').classList.add('hidden'); }
+function saveBudgetLimit() {
+  const vessel = document.getElementById('budgetModalVessel').textContent;
+  const amount = parseFloat(document.getElementById('budgetModalAmount').value) || 0;
+  const budgets = DB.budgets;
+  budgets[vessel] = amount;
+  DB.budgets = budgets;
+  closeBudgetModal();
+  renderBudgetView();
+  showToast('Budget updated for ' + vessel);
 }
 
 // ============================================================
@@ -1438,17 +1469,12 @@ function submitEntry() {
   entry.entryId = entryId;
   entry.createdAt = new Date().toISOString();
 
-  // Save to localStorage
   const entries = DB.entries;
   entries.push(entry);
   DB.entries = entries;
 
-  // Ensure vessel is saved
   const vessels = DB.vessels;
   if (!vessels.includes(vessel)) { vessels.push(vessel); DB.vessels = vessels; }
-
-  // Sync to Google Sheets
-  syncEntryToSheets(entry);
 
   showToast('Entry ' + entryId + ' submitted and saved!');
   resetForm();
@@ -1544,10 +1570,7 @@ function renderLog() {
     }).join('');
   }
 
-  // Update running totals
   renderRunningTotals(entries.filter(e => e.status !== 'draft'));
-
-  // Update vessel filter dropdown
   updateVesselFilterDropdown();
 }
 
@@ -1589,12 +1612,40 @@ function updateVesselFilterDropdown() {
 // ============================================================
 // RENDER TIMELINE
 // ============================================================
-function renderTimeline() {
-  const entries = DB.entries.filter(e => e.futureTask || e.eta || e.etd || e.status === 'planned');
-  const container = document.getElementById('timelineBody');
+function filterTimeline(filter) {
+  currentTimelineFilter = filter;
+  document.querySelectorAll('.timeline-filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTimeline();
+}
 
+function renderTimeline() {
+  const now = new Date();
+  const allEntries = DB.entries.filter(e => e.status !== 'draft');
+  let entries = allEntries;
+
+  if (currentTimelineFilter === 'upcoming') {
+    entries = entries.filter(e => {
+      const date = new Date(e.eta || e.etd || e.serviceDate || 0);
+      return date >= now;
+    });
+  } else if (currentTimelineFilter === 'week') {
+    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    entries = entries.filter(e => {
+      const date = new Date(e.eta || e.etd || e.serviceDate || 0);
+      return date >= now && date <= weekFromNow;
+    });
+  } else if (currentTimelineFilter === 'month') {
+    const monthFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    entries = entries.filter(e => {
+      const date = new Date(e.eta || e.etd || e.serviceDate || 0);
+      return date >= now && date <= monthFromNow;
+    });
+  }
+
+  const container = document.getElementById('timelineBody');
   if (entries.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gray-500);">No upcoming movements or tasks.</div>';
+    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gray-500);">No entries in this timeline.</div>';
     return;
   }
 
@@ -1604,24 +1655,237 @@ function renderTimeline() {
     return dateA.localeCompare(dateB);
   });
 
-  container.innerHTML = sorted.map(e => {
+  const isUpcoming = (entry) => {
+    const date = new Date(entry.eta || entry.etd || entry.serviceDate || 0);
+    return date > now;
+  };
+
+  container.innerHTML = '<div class="timeline-vertical-line"></div>' + sorted.map(e => {
     const date = new Date(e.eta || e.etd || e.serviceDate || Date.now());
-    const day = date.getDate();
     const month = date.toLocaleString('en', { month: 'short' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const statusDotClass = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
+    const hasPulse = isUpcoming(e) ? 'pulse' : '';
     const details = [];
     if (e.serviceType) details.push(e.serviceType);
     if (e.eta) details.push('ETA: ' + new Date(e.eta).toLocaleString());
     if (e.etd) details.push('ETD: ' + new Date(e.etd).toLocaleString());
-    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' \u2192 ' + (e.clearedOut || ''));
+    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' → ' + (e.clearedOut || ''));
 
     return '<div class="timeline-item">' +
-      '<div class="timeline-date"><div class="day">' + day + '</div><div class="month">' + month + '</div></div>' +
-      '<div class="timeline-body">' +
+      '<div class="timeline-dot ' + statusDotClass + ' ' + hasPulse + '"></div>' +
+      '<div class="timeline-content">' +
       '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
-      '<div class="event">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
-      '<div class="meta">' + details.join(' | ') + '</div>' +
+      '<div class="service">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
+      '<div class="meta">' + month + ' ' + day + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
       '</div></div>';
   }).join('');
+}
+
+// ============================================================
+// BUDGET MANAGEMENT
+// ============================================================
+function renderBudgetView() {
+  const entries = DB.entries.filter(e => e.status !== 'draft');
+  const budgets = DB.budgets;
+
+  // Calculate totals by vessel
+  const vesselSpend = {};
+  entries.forEach(e => {
+    const v = e.vessel || 'Unknown';
+    if (!vesselSpend[v]) vesselSpend[v] = 0;
+    vesselSpend[v] += (e.totalCharge || 0);
+  });
+
+  // Update overview
+  const totalSpend = Object.values(vesselSpend).reduce((a, b) => a + b, 0);
+  document.getElementById('budgetTotalSpend').textContent = '$' + totalSpend.toFixed(2);
+  document.getElementById('budgetVesselCount').textContent = Object.keys(vesselSpend).length;
+
+  // Render per-vessel budget table
+  const tbody = document.getElementById('budgetTableBody');
+  const vessels = Object.keys(vesselSpend).sort();
+
+  if (vessels.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray-500);">No vessels with spend yet.</td></tr>';
+  } else {
+    tbody.innerHTML = vessels.map(vessel => {
+      const spent = vesselSpend[vessel];
+      const budget = budgets[vessel] || 0;
+      const remaining = Math.max(0, budget - spent);
+      const percent = budget > 0 ? (spent / budget) * 100 : 0;
+      let progressClass = 'under-70';
+      if (percent >= 90) progressClass = 'over-90';
+      else if (percent >= 70) progressClass = 'under-90';
+
+      return '<tr>' +
+        '<td><strong>' + vessel + '</strong></td>' +
+        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : '—') + '</td>' +
+        '<td>$' + spent.toFixed(2) + '</td>' +
+        '<td>$' + remaining.toFixed(2) + '</td>' +
+        '<td>' +
+          '<div class="progress-bar-container">' +
+            '<div class="progress-bar ' + progressClass + '" style="width:' + Math.min(100, percent) + '%"></div>' +
+          '</div>' +
+          '<span style="font-size:11px; color:var(--gray-600);">' + percent.toFixed(0) + '%</span>' +
+        '</td>' +
+        '<td><button class="btn-secondary" onclick="showBudgetModal(\'' + vessel + '\')" style="padding: 6px 12px; font-size: 12px;">Edit</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // Render monthly chart
+  const now = new Date();
+  const monthlyData = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    monthlyData[key] = 0;
+  }
+
+  entries.forEach(e => {
+    const d = new Date(e.serviceDate || e.submissionDate || 0);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (monthlyData.hasOwnProperty(key)) monthlyData[key] += (e.totalCharge || 0);
+  });
+
+  const maxValue = Math.max(...Object.values(monthlyData), 1);
+  const chartHTML = Object.entries(monthlyData).map(([key, value]) => {
+    const [year, month] = key.split('-');
+    const monthName = new Date(year, parseInt(month) - 1).toLocaleString('en', { month: 'short' });
+    const height = (value / maxValue) * 100;
+    return '<div class="chart-bar-wrapper">' +
+      '<div class="chart-bar" style="height:' + height + '%"></div>' +
+      '<div class="chart-label">' + monthName + '</div>' +
+      '<div class="chart-value">$' + value.toFixed(0) + '</div>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('monthlyChart').innerHTML = chartHTML;
+}
+
+// ============================================================
+// EXPORT FUNCTIONS
+// ============================================================
+function downloadExcelSpreadsheet() {
+  const entries = DB.entries.filter(e => e.status !== 'draft');
+  const vesselSpend = {};
+  const monthlyData = {};
+
+  entries.forEach(e => {
+    const v = e.vessel || 'Unknown';
+    if (!vesselSpend[v]) vesselSpend[v] = 0;
+    vesselSpend[v] += (e.totalCharge || 0);
+
+    const d = new Date(e.serviceDate || e.submissionDate || 0);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!monthlyData[key]) monthlyData[key] = 0;
+    monthlyData[key] += (e.totalCharge || 0);
+  });
+
+  // Service Log Sheet
+  const serviceLogData = entries.map(e => ({
+    'Entry ID': e.entryId,
+    'Date': e.serviceDate,
+    'Vessel': e.vessel,
+    'Staff': e.staffMember,
+    'Category': e.category,
+    'Service Type': e.serviceType,
+    'Status': e.status,
+    'Total': e.totalCharge,
+    'Currency': e.currency || 'USD',
+    'Description': e.description
+  }));
+
+  // Vessel Summary Sheet
+  const vesselSummaryData = Object.entries(vesselSpend).map(([vessel, total]) => ({
+    'Vessel': vessel,
+    'Total Spend': total,
+    'Budget Limit': DB.budgets[vessel] || 0,
+    'Remaining': Math.max(0, (DB.budgets[vessel] || 0) - total)
+  }));
+
+  // Monthly Summary Sheet
+  const monthlySummaryData = Object.entries(monthlyData).map(([month, total]) => ({
+    'Month': month,
+    'Total Spend': total
+  }));
+
+  // Staff Sheet
+  const staffData = DB.staff.map(s => ({
+    'Name': s.name,
+    'Role': s.role,
+    'Phone': s.phone,
+    'Email': s.email
+  }));
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(serviceLogData), 'Service Log');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(vesselSummaryData), 'Vessel Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthlySummaryData), 'Monthly Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(staffData), 'Staff');
+
+  XLSX.writeFile(wb, 'anchor-concierge-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+  showToast('Excel spreadsheet downloaded!');
+}
+
+function downloadCsvExport() {
+  const entries = DB.entries.filter(e => e.status !== 'draft');
+  if (entries.length === 0) { showToast('No entries to export.'); return; }
+
+  const headers = ['Entry ID', 'Date', 'Vessel', 'Staff', 'Category', 'Service Type', 'Status', 'Total', 'Currency', 'Description'];
+  const rows = entries.map(e => [
+    e.entryId, e.serviceDate, e.vessel, e.staffMember, e.category, e.serviceType,
+    e.status, e.totalCharge, e.currency || 'USD', e.description
+  ]);
+
+  let csv = headers.join(',') + '\n' + rows.map(row => row.map(cell => '"' + (cell || '') + '"').join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'anchor-concierge-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  showToast('CSV file downloaded!');
+}
+
+function exportLocalData() {
+  const data = {
+    entries: DB.entries,
+    staff: DB.staff,
+    vessels: DB.vessels,
+    budgets: DB.budgets,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'anchor-concierge-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  showToast('Data exported!');
+}
+
+function importLocalData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.entries) DB.entries = data.entries;
+      if (data.staff) DB.staff = data.staff;
+      if (data.vessels) DB.vessels = data.vessels;
+      if (data.budgets) DB.budgets = data.budgets;
+      renderStaffTable();
+      populateVesselDropdowns();
+      showToast('Data imported! ' + (data.entries || []).length + ' entries loaded.');
+    } catch (err) {
+      showToast('Import error: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // ============================================================
@@ -1638,9 +1902,9 @@ function renderStaffTable() {
   } else {
     tbody.innerHTML = staffMembers.map((s, i) =>
       '<tr><td><strong>' + s.name + '</strong></td>' +
-      '<td>' + (s.role || '\u2014') + '</td>' +
-      '<td>' + (s.phone || '\u2014') + '</td>' +
-      '<td>' + (s.email || '\u2014') + '</td>' +
+      '<td>' + (s.role || '—') + '</td>' +
+      '<td>' + (s.phone || '—') + '</td>' +
+      '<td>' + (s.email || '—') + '</td>' +
       '<td><button onclick="removeStaff(' + i + ')" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">Remove</button></td></tr>'
     ).join('');
   }
@@ -1669,8 +1933,6 @@ function addStaffMember() {
   staff.push(member);
   DB.staff = staff;
 
-  syncStaffToSheets('add', member);
-
   document.getElementById('newStaffName').value = '';
   document.getElementById('newStaffRole').value = '';
   document.getElementById('newStaffPhone').value = '';
@@ -1685,7 +1947,6 @@ function removeStaff(index) {
   if (confirm('Remove ' + member.name + ' from the team?')) {
     staff.splice(index, 1);
     DB.staff = staff;
-    syncStaffToSheets('remove', member);
     renderStaffTable();
     showToast(member.name + ' removed.');
   }
@@ -1705,45 +1966,6 @@ function populateVesselDropdowns() {
     if (v === currentVal) opt.selected = true;
     sel.appendChild(opt);
   });
-}
-
-// ============================================================
-// DATA EXPORT / IMPORT
-// ============================================================
-function exportLocalData() {
-  const data = {
-    entries: DB.entries,
-    staff: DB.staff,
-    vessels: DB.vessels,
-    exportedAt: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'anchor-concierge-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  showToast('Data exported!');
-}
-
-function importLocalData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data.entries) DB.entries = data.entries;
-      if (data.staff) DB.staff = data.staff;
-      if (data.vessels) DB.vessels = data.vessels;
-      renderStaffTable();
-      populateVesselDropdowns();
-      showToast('Data imported! ' + (data.entries || []).length + ' entries loaded.');
-    } catch (err) {
-      showToast('Import error: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
 }
 
 // ============================================================
