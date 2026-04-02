@@ -1116,6 +1116,30 @@ async function syncBudgetToCloud(vessel, limit) { return await apiPost({ action:
 
 
 // ============================================================
+
+const DB = {
+  _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
+  _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
+
+  get entries() { return this._get('anchorEntries', []); },
+  set entries(v) { this._set('anchorEntries', v); },
+
+  get vessels() { return this._get('anchorVessels', []); },
+  set vessels(v) { this._set('anchorVessels', v); },
+
+  get budgets() { return this._get('anchorBudgets', {}); },
+  set budgets(v) { this._set('anchorBudgets', v); },
+
+  get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
+  set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
+
+  nextEntryId() {
+    let c = this.entryCounter + 1;
+    this.entryCounter = c;
+    return 'AC-' + String(c).padStart(4, '0');
+  }
+};
+
 // INITIALIZATION
 // ============================================================
 const now = new Date();
