@@ -391,7 +391,11 @@
       <span class="anchor-icon">&#9875;</span>
       <div>
         <h1>Anchor Concierge</h1>
-        <div class="subtitle">Super Yacht Services</div>
+
+<div style="display:flex;align-items:center;gap:8px;">
+  <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
+  <button onclick="syncFromCloud().then(()=>showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">&#8635; Sync</button>
+</div>        <div class="subtitle">Super Yacht Services</div>
       </div>
     </div>
   </div>
@@ -1046,31 +1050,70 @@
 
 <script>
 // ============================================================
+// GOOGLE SHEETS BACKEND + LOCAL CACHE
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3TAKTviq2tu3NB1jDhT13mHDnO-hvEb0GrzvXNsdFq5O0aSFd8CieKxY04-u055TUKQ/exec';
+let syncStatus = 'offline';
+
+function updateSyncBadge() {
+  const badge = document.getElementById('syncBadge');
+  if (!badge) return;
+  if (syncStatus === 'online') { badge.textContent = 'Synced'; badge.style.background = 'var(--green)'; }
+  else if (syncStatus === 'syncing') { badge.textContent = 'Syncing...'; badge.style.background = 'var(--orange)'; }
+  else { badge.textContent = 'Offline'; badge.style.background = 'var(--red)'; }
+}
+
+async function apiGet() {
+  try {
+    syncStatus = 'syncing'; updateSyncBadge();
+    const resp = await fetch(API_URL);
+    const data = await resp.json();
+    if (data.success) { syncStatus = 'online'; updateSyncBadge(); return data; }
+    throw new Error(data.error || 'Unknown error');
+  } catch(err) { console.error('API GET failed:', err); syncStatus = 'offline'; updateSyncBadge(); return null; }
+}
+
+async function apiPost(payload) {
+  try {
+    syncStatus = 'syncing'; updateSyncBadge();
+    const resp = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.success) { syncStatus = 'online'; updateSyncBadge(); return data; }
+    throw new Error(data.error || 'Unknown error');
+  } catch(err) { console.error('API POST failed:', err); syncStatus = 'offline'; updateSyncBadge(); return null; }
+}
+
+// ============================================================
 // DATA LAYER — localStorage persistence
 // ============================================================
-const DB = {
-  _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
-  _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-
-  get entries() { return this._get('anchorEntries', []); },
-  set entries(v) { this._set('anchorEntries', v); },
-
-
-  get vessels() { return this._get('anchorVessels', []); },
-  set vessels(v) { this._set('anchorVessels', v); },
-
-  get budgets() { return this._get('anchorBudgets', {}); },
-  set budgets(v) { this._set('anchorBudgets', v); },
-
-  get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
-  set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
-
-  nextEntryId() {
-    let c = this.entryCounter + 1;
-    this.entryCounter = c;
-    return 'AC-' + String(c).padStart(4, '0');
+// LOCAL DB (localStorage cache + Google Sheets sync)
+// Load all data from Google Sheets into localStorage
+async function syncFromCloud() {
+  const data = await apiGet();
+  if (data) {
+    DB.entries = data.entries || [];
+    DB.vessels = data.vessels || [];
+    DB.budgets = data.budgets || {};
+    if (data.entryCounter) DB.entryCounter = data.entryCounter;
+    populateVesselDropdowns();
+    const activeView = document.querySelector('.tab-btn.active');
+    if (activeView) {
+      const view = activeView.getAttribute('data-view');
+      if (view === 'log') renderLog();
+      if (view === 'timeline') renderTimeline();
+      if (view === 'budget') renderBudgetView();
+    }
+    return true;
   }
-};
+  return false;
+}
+
+async function syncEntryToCloud(entry) { return await apiPost({ action: 'addEntry', entry: entry }); }
+async function syncUpdateToCloud(entry) { return await apiPost({ action: 'updateEntry', entry: entry }); }
+async function syncDeleteFromCloud(entryId) { return await apiPost({ action: 'deleteEntry', entryId: entryId }); }
+async function syncVesselToCloud(vessel) { return await apiPost({ action: 'addVessel', vessel: vessel }); }
+async function syncBudgetToCloud(vessel, limit) { return await apiPost({ action: 'setBudget', vessel: vessel, limit: limit }); }
+
 
 // ============================================================
 // INITIALIZATION
@@ -1292,7 +1335,7 @@ function confirmAdd() {
     const vessels = DB.vessels;
     if (!vessels.includes(val)) {
       vessels.push(val);
-      DB.vessels = vessels;
+      DB.vessels = vessels; syncVesselToCloud(val);
     }
     populateVesselDropdowns();
     document.getElementById('vesselSelect').value = val;
@@ -1316,12 +1359,14 @@ function showBudgetModal(vessel) {
   document.getElementById('budgetModalAmount').focus();
 }
 function closeBudgetModal() { document.getElementById('budgetModal').classList.add('hidden'); }
-function saveBudgetLimit() {
+async function saveBudgetLimit() {
   const vessel = document.getElementById('budgetModalVessel').textContent;
   const amount = parseFloat(document.getElementById('budgetModalAmount').value) || 0;
   const budgets = DB.budgets;
   budgets[vessel] = amount;
   DB.budgets = budgets;
+  const result = await syncBudgetToCloud(vessel, amount);
+  if (result) { showToast("Budget updated & synced for " + vessel); } else { showToast("Budget saved locally for " + vessel); }
   closeBudgetModal();
   renderBudgetView();
   showToast('Budget updated for ' + vessel);
@@ -1400,7 +1445,7 @@ function collectFormData() {
 // ============================================================
 // SUBMIT ENTRY
 // ============================================================
-function submitEntry() {
+async function submitEntry() {
   const vessel = document.getElementById('vesselSelect').value;
   const staff = document.getElementById('staffSelect').value;
   if (!vessel || !staff) { showToast('Please select a vessel and staff member.'); return; }
@@ -1413,9 +1458,11 @@ function submitEntry() {
   const entries = DB.entries;
   entries.push(entry);
   DB.entries = entries;
+  const cloudResult = await syncEntryToCloud(entry);
+  if (cloudResult) { showToast("Entry " + entryId + " saved & synced!"); } else { showToast("Entry " + entryId + " saved locally."); }
 
   const vessels = DB.vessels;
-  if (!vessels.includes(vessel)) { vessels.push(vessel); DB.vessels = vessels; }
+  if (!vessels.includes(vessel)) { vessels.push(vessel); DB.vessels = vessels; syncVesselToCloud(vessel); }
 
   showToast('Entry ' + entryId + ' submitted and saved!');
   resetForm();
@@ -1882,6 +1929,17 @@ function showToast(msg) {
 populateStaffDropdown();
 populateVesselDropdowns();
 recalculate();
+
+// ============================================================
+// CLOUD INITIALIZATION
+// ============================================================
+(async function initCloud() {
+  updateSyncBadge();
+  const ok = await syncFromCloud();
+  if (ok) { console.log('Data loaded from Google Sheets'); }
+  else { console.log('Using local data (offline mode)'); }
+})();
+
 </script>
 </body>
 </html>
