@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<title>Anchor Concierge &amp; Super Yacht Services â Service Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
@@ -223,7 +223,34 @@
     padding: 14px 20px; border-radius: var(--radius); cursor: pointer;
     font-size: 14px; font-weight: 500; transition: all 0.2s;
   }
-  .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .btn-delete {
+    background: var(--red-light, #fff5f5); color: var(--red); border: 1px solid var(--red);
+    padding: 5px 10px; border-radius: var(--radius); cursor: pointer;
+    font-size: 11px; font-weight: 500; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-delete:hover { background: var(--red); color: var(--white); }
+  .confirm-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center;
+    justify-content: center; z-index: 10000;
+  }
+  .confirm-dialog {
+    background: white; border-radius: 12px; padding: 30px; max-width: 400px;
+    width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
+  }
+  .confirm-dialog h3 { margin: 0 0 10px; color: var(--navy); }
+  .confirm-dialog p { margin: 0 0 20px; color: var(--gray-600); font-size: 14px; }
+  .confirm-dialog .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+  .confirm-dialog .btn-cancel {
+    background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300);
+    padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 500;
+  }
+  .confirm-dialog .btn-confirm-delete {
+    background: var(--red); color: white; border: none;
+    padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 500;
+  }
+  .confirm-dialog .btn-confirm-delete:hover { background: #a93226; }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .log-table th {
     background: var(--navy); color: var(--white); padding: 10px 12px;
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -832,7 +859,7 @@
         <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
           <div class="icon">&#x1F4CE;</div>
           <div class="text">Upload receipts, invoices, or documents</div>
-          <div class="hint">PNG, JPG, PDF — click or drag files here</div>
+          <div class="hint">PNG, JPG, PDF â click or drag files here</div>
           <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
         </div>
         <div id="receiptPreview" class="receipt-preview"></div>
@@ -902,10 +929,10 @@
       <div class="section-body" style="padding:0;">
         <table class="log-table">
           <thead>
-            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Amount</th><th>Staff</th></tr>
+            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Amount</th><th>Staff</th><th>Actions</th></tr>
           </thead>
           <tbody id="logTableBody">
-            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
+            <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1084,7 +1111,7 @@ async function apiPost(payload) {
 }
 
 // ============================================================
-// DATA LAYER — localStorage persistence
+// DATA LAYER â localStorage persistence
 // ============================================================
 // LOCAL DB (localStorage cache + Google Sheets sync)
 // Load all data from Google Sheets into localStorage
@@ -1150,15 +1177,15 @@ document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
 // SERVICE TYPE MAPPING
 // ============================================================
 const serviceTypes = {
-  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off — Immigration','Clearance Outside Falmouth/English Harbour'],
-  'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
-  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
+  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off â Immigration','Clearance Outside Falmouth/English Harbour'],
+  'Provisioning & Sourcing': ['Provisioning â Local Sourcing','Provisioning â Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
+  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement â Inbound','Container Movement â Outbound','Trucking / Land Transport'],
   'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
   'Berth & Marina': ['Berth Booking','National Parks Fees & Dockage','Marina Coordination','Anchorage Arrangement'],
   'Consulting & Admin': ['General Agency Services (Hourly)','Overtime Agency Services','Warrant & Entry Documentation','Phytosanitary Certificate','Vessel Registration Assistance'],
   'Airport & Transport': ['Airport Meet & Greet','Airport Transfer','VIP Lounge Arrangement','Private Charter Coordination'],
-  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage — General'],
-  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
+  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage â General'],
+  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other â See Notes']
 };
 
 function updateServiceTypes() {
@@ -1563,19 +1590,19 @@ function renderLog() {
   if (vesselFilter) filtered = filtered.filter(e => e.vessel === vesselFilter);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td><td><button class="btn-delete" onclick="confirmDeleteEntry('" + e.entryId + "')">Delete</button></td></tr>';
   } else {
     tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
       const statusClass = e.status === 'planned' ? 'status-planned' : e.status === 'progress' ? 'status-inprogress' : 'status-completed';
       const statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
       return '<tr>' +
-        '<td><strong>' + (e.entryId || '—') + '</strong></td>' +
-        '<td>' + (e.serviceDate || '—') + '</td>' +
-        '<td>' + (e.vessel || '—') + '</td>' +
-        '<td>' + (e.serviceType || e.category || '—') + '</td>' +
+        '<td><strong>' + (e.entryId || 'â') + '</strong></td>' +
+        '<td>' + (e.serviceDate || 'â') + '</td>' +
+        '<td>' + (e.vessel || 'â') + '</td>' +
+        '<td>' + (e.serviceType || e.category || 'â') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
         '<td>' + formatCurrency(e.totalCharge || 0, e.currency || 'USD') + '</td>' +
-        '<td>' + (e.staffMember || '—') + '</td>' +
+        '<td>' + (e.staffMember || 'â') + '</td>' +
         '</tr>';
     }).join('');
   }
@@ -1584,6 +1611,43 @@ function renderLog() {
   updateVesselFilterDropdown();
 }
 
+
+function confirmDeleteEntry(entryId) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = '<div class="confirm-dialog">' +
+    '<h3>Delete Entry</h3>' +
+    '<p>Are you sure you want to delete entry <strong>' + entryId + '</strong>? This action cannot be undone.</p>' +
+    '<div class="confirm-btns">' +
+    '<button class="btn-cancel" onclick="this.closest(\'.confirm-overlay\').remove()">Cancel</button>' +
+    '<button class="btn-confirm-delete" onclick="performDelete(\'' + entryId + '\', this)">Delete</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(ev) { if (ev.target === overlay) overlay.remove(); });
+}
+
+async function performDelete(entryId, btn) {
+  btn.textContent = 'Deleting...';
+  btn.disabled = true;
+  try {
+    const result = await syncDeleteFromCloud(entryId);
+    if (result) {
+      let entries = DB.entries;
+      entries = entries.filter(e => e.entryId !== entryId);
+      DB.entries = entries;
+      showToast('Entry ' + entryId + ' deleted successfully', 'success');
+      renderLog();
+      renderTimeline();
+      renderBudgetView();
+    } else {
+      showToast('Failed to delete entry from cloud', 'error');
+    }
+  } catch(err) {
+    console.error('Delete failed:', err);
+    showToast('Delete failed: ' + err.message, 'error');
+  }
+  document.querySelector('.confirm-overlay')?.remove();
+}
 function renderRunningTotals(entries) {
   const totals = {};
   entries.forEach(e => {
@@ -1680,13 +1744,13 @@ function renderTimeline() {
     if (e.serviceType) details.push(e.serviceType);
     if (e.eta) details.push('ETA: ' + new Date(e.eta).toLocaleString());
     if (e.etd) details.push('ETD: ' + new Date(e.etd).toLocaleString());
-    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' → ' + (e.clearedOut || ''));
+    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' â ' + (e.clearedOut || ''));
 
     return '<div class="timeline-item">' +
       '<div class="timeline-dot ' + statusDotClass + ' ' + hasPulse + '"></div>' +
       '<div class="timeline-content">' +
       '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
-      '<div class="service">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
+      '<div class="service">' + (e.category || '') + (e.serviceType ? ' â ' + e.serviceType : '') + '</div>' +
       '<div class="meta">' + month + ' ' + day + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
       '</div></div>';
   }).join('');
@@ -1730,7 +1794,7 @@ function renderBudgetView() {
 
       return '<tr>' +
         '<td><strong>' + vessel + '</strong></td>' +
-        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : '—') + '</td>' +
+        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : 'â') + '</td>' +
         '<td>$' + spent.toFixed(2) + '</td>' +
         '<td>$' + remaining.toFixed(2) + '</td>' +
         '<td>' +
