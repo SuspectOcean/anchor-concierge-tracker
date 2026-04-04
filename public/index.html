@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<title>Anchor Concierge &amp; Super Yacht Services â Service Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
@@ -888,7 +888,7 @@
         <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
           <div class="icon">&#x1F4CE;</div>
           <div class="text">Upload receipts, invoices, or documents</div>
-          <div class="hint">PNG, JPG, PDF — click or drag files here</div>
+          <div class="hint">PNG, JPG, PDF â click or drag files here</div>
           <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
         </div>
         <div id="receiptPreview" class="receipt-preview"></div>
@@ -1192,7 +1192,7 @@ async function apiPost(payload) {
 }
 
 // ============================================================
-// DATA LAYER — localStorage persistence
+// DATA LAYER â localStorage persistence
 // ============================================================
 // LOCAL DB (localStorage cache + Google Sheets sync)
 // Load all data from Google Sheets into localStorage
@@ -1258,15 +1258,15 @@ document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
 // SERVICE TYPE MAPPING
 // ============================================================
 const serviceTypes = {
-  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off — Immigration','Clearance Outside Falmouth/English Harbour'],
-  'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
-  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
+  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off â Immigration','Clearance Outside Falmouth/English Harbour'],
+  'Provisioning & Sourcing': ['Provisioning â Local Sourcing','Provisioning â Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
+  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement â Inbound','Container Movement â Outbound','Trucking / Land Transport'],
   'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
   'Berth & Marina': ['Berth Booking','National Parks Fees & Dockage','Marina Coordination','Anchorage Arrangement'],
   'Consulting & Admin': ['General Agency Services (Hourly)','Overtime Agency Services','Warrant & Entry Documentation','Phytosanitary Certificate','Vessel Registration Assistance'],
   'Airport & Transport': ['Airport Meet & Greet','Airport Transfer','VIP Lounge Arrangement','Private Charter Coordination'],
-  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage — General'],
-  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
+  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage â General'],
+  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other â See Notes']
 };
 
 function updateServiceTypes() {
@@ -1685,7 +1685,8 @@ function openEditModal(entryId) {
   const staffOpts = [];
   document.querySelectorAll('#staffSelect option').forEach(opt => { if (opt.value) staffOpts.push(opt.value); });
   staffSel.innerHTML = staffOpts.map(s => '<option value="' + s + '"' + (s === entry.staffMember ? ' selected' : '') + '>' + s + '</option>').join('');
-  document.getElementById('editServiceDate').value = entry.serviceDate || '';
+  const sd = entry.serviceDate || '';
+  document.getElementById('editServiceDate').value = sd.length > 10 ? sd.slice(0, 10) : sd;
   document.getElementById('editCategory').value = entry.category || '';
   document.getElementById('editServiceType').value = entry.serviceType || '';
   document.getElementById('editDescription').value = entry.description || '';
@@ -1982,13 +1983,13 @@ function renderTimeline() {
     if (e.serviceType) details.push(e.serviceType);
     if (e.eta) details.push('ETA: ' + new Date(e.eta).toLocaleString());
     if (e.etd) details.push('ETD: ' + new Date(e.etd).toLocaleString());
-    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' — ' + (e.clearedOut || ''));
+    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' â ' + (e.clearedOut || ''));
 
     return '<div class="timeline-item">' +
       '<div class="timeline-dot ' + statusDotClass + ' ' + hasPulse + '"></div>' +
       '<div class="timeline-content">' +
       '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
-      '<div class="service">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
+      '<div class="service">' + (e.category || '') + (e.serviceType ? ' â ' + e.serviceType : '') + '</div>' +
       '<div class="meta">' + friendlyDate + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
       '</div></div>';
   }).join('');
@@ -2032,7 +2033,7 @@ function renderBudgetView() {
 
       return '<tr>' +
         '<td><strong>' + vessel + '</strong></td>' +
-        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : '—') + '</td>' +
+        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : 'â') + '</td>' +
         '<td>$' + spent.toFixed(2) + '</td>' +
         '<td>$' + remaining.toFixed(2) + '</td>' +
         '<td>' +
