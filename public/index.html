@@ -1657,7 +1657,8 @@ function resetForm() {
 // ============================================================
 function formatFriendlyDate(dateStr) {
   if (!dateStr) return '\u2014';
-  const d = new Date(dateStr + 'T00:00:00');
+  const clean = String(dateStr).slice(0, 10);
+  const d = new Date(clean + 'T12:00:00');
   if (isNaN(d.getTime())) return dateStr;
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
