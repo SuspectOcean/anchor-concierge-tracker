@@ -386,6 +386,35 @@
     background: var(--white); border-radius: var(--radius-lg); padding: 24px;
     max-width: 440px; width: 100%; box-shadow: var(--shadow-lg);
   }
+  .modal.modal-wide {
+    max-width: 600px; max-height: 85vh; overflow-y: auto;
+  }
+  .modal .edit-form-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .modal .edit-form-grid .full-width { grid-column: 1 / -1; }
+  .modal .edit-form-grid label { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 2px; display: block; }
+  .modal .edit-form-grid input, .modal .edit-form-grid select, .modal .edit-form-grid textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px;
+  }
+  .modal .edit-form-grid textarea { resize: vertical; min-height: 50px; }
+  .edit-status-pills { display: flex; gap: 6px; margin-top: 4px; }
+  .edit-status-pills button {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-300); background: var(--white);
+    font-size: 12px; cursor: pointer; font-weight: 500;
+  }
+  .edit-status-pills button.active-planned { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
+  .edit-status-pills button.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+  .edit-status-pills button.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .log-table .action-btns { display: flex; gap: 4px; }
+  .log-table .action-btns button {
+    padding: 4px 10px; border-radius: 4px; border: 1px solid var(--gray-300); background: var(--white);
+    cursor: pointer; font-size: 11px; font-weight: 500;
+  }
+  .log-table .action-btns .edit-btn { color: var(--teal); border-color: var(--teal); }
+  .log-table .action-btns .edit-btn:hover { background: var(--teal-light); }
+  .log-table .action-btns .delete-btn { color: var(--red); border-color: var(--red); }
+  .log-table .action-btns .delete-btn:hover { background: var(--red-light); }
   .modal h3 { font-size: 17px; color: var(--navy); margin-bottom: 12px; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
   .modal-actions button {
@@ -948,9 +977,11 @@
       <div class="section-body">
         <div class="timeline-filters">
           <button class="timeline-filter-btn active" onclick="filterTimeline('all')">All</button>
+          <button class="timeline-filter-btn" onclick="filterTimeline('past')">Past</button>
           <button class="timeline-filter-btn" onclick="filterTimeline('week')">This Week</button>
           <button class="timeline-filter-btn" onclick="filterTimeline('month')">This Month</button>
           <button class="timeline-filter-btn" onclick="filterTimeline('upcoming')">Upcoming</button>
+          <button class="timeline-filter-btn" onclick="filterTimeline('incomplete')">Incomplete</button>
         </div>
       </div>
     </div>
@@ -1068,6 +1099,56 @@
     <div class="modal-actions">
       <button class="cancel" onclick="closeBudgetModal()">Cancel</button>
       <button class="confirm" onclick="saveBudgetLimit()">Save Budget</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Entry Modal -->
+<div class="modal-overlay hidden" id="editModal">
+  <div class="modal modal-wide">
+    <h3>Edit Entry <span id="editModalEntryId"></span></h3>
+    <div class="edit-form-grid">
+      <div><label>Vessel</label><select id="editVessel"></select></div>
+      <div><label>Staff Member</label><select id="editStaff"></select></div>
+      <div><label>Service Date</label><input type="date" id="editServiceDate"></div>
+      <div><label>Category</label><input type="text" id="editCategory" readonly></div>
+      <div class="full-width"><label>Service Type</label><input type="text" id="editServiceType" readonly></div>
+      <div class="full-width"><label>Description</label><textarea id="editDescription" rows="2"></textarea></div>
+      <div class="full-width"><label>Status</label>
+        <div class="edit-status-pills" id="editStatusPills">
+          <button onclick="setEditStatus(this,'planned')" class="active-planned">Planned</button>
+          <button onclick="setEditStatus(this,'progress')">In Progress</button>
+          <button onclick="setEditStatus(this,'completed')">Completed</button>
+        </div>
+      </div>
+      <div><label>Billing Type</label>
+        <select id="editBillingType" onchange="toggleEditBillingFields()">
+          <option value="hourly">Hourly</option><option value="fixed">Fixed</option>
+          <option value="percentage">Percentage</option><option value="manual">Manual</option>
+        </select>
+      </div>
+      <div><label>Currency</label>
+        <select id="editCurrency">
+          <option value="USD">USD ($)</option><option value="XCD">XCD (EC$)</option>
+          <option value="EUR">EUR</option><option value="GBP">GBP</option><option value="BBD">BBD</option>
+        </select>
+      </div>
+      <div id="editHourlyFields"><label>Hours Worked</label><input type="number" id="editHours" min="0" step="0.5" onchange="recalcEditTotal()"></div>
+      <div id="editHourlyRateField"><label>Hourly Rate</label><input type="number" id="editRate" min="0" step="1" onchange="recalcEditTotal()"></div>
+      <div id="editFixedFields" style="display:none"><label>Fixed Amount</label><input type="number" id="editFixedAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
+      <div id="editFixedQtyField" style="display:none"><label>Quantity</label><input type="number" id="editFixedQty" min="1" step="1" value="1" onchange="recalcEditTotal()"></div>
+      <div id="editPercentFields" style="display:none"><label>Base Amount</label><input type="number" id="editBaseAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
+      <div id="editPercentRateField" style="display:none"><label>Percent Rate (%)</label><input type="number" id="editPctRate" min="0" step="0.5" onchange="recalcEditTotal()"></div>
+      <div id="editManualField" style="display:none" class="full-width"><label>Manual Amount</label><input type="number" id="editManualAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
+      <div><label>Agency Fee</label><input type="number" id="editAgency" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
+      <div><label>Disbursement Fee</label><input type="number" id="editDisbursement" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
+      <div><label>Other Charges</label><input type="number" id="editOther" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
+      <div><label>Total Charge</label><input type="text" id="editTotalDisplay" readonly style="font-weight:700; color:var(--navy); background:var(--gray-50);"></div>
+      <div class="full-width"><label>Special Notes</label><textarea id="editSpecialNotes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="confirm" onclick="saveEditEntry()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1480,6 +1561,12 @@ function collectFormData() {
     billingType: currentBillingType,
     billable: billable,
     currency: currency,
+    hoursWorked: currentBillingType === 'hourly' ? (parseFloat(document.getElementById('hoursWorked').value) || 0) : undefined,
+    hourlyRate: currentBillingType === 'hourly' ? (parseFloat(document.getElementById('hourlyRate').value) || 0) : undefined,
+    fixedAmount: currentBillingType === 'fixed' ? (parseFloat(document.getElementById('fixedAmount').value) || 0) : undefined,
+    fixedQty: currentBillingType === 'fixed' ? (parseInt(document.getElementById('fixedQty').value) || 1) : undefined,
+    percentBase: currentBillingType === 'percentage' ? (parseFloat(document.getElementById('baseAmount').value) || 0) : undefined,
+    percentRate: currentBillingType === 'percentage' ? (parseFloat(document.getElementById('percentRate').value) || 0) : undefined,
     baseCharge: base,
     crewCharge: crewCharge,
     agencyFee: agency,
@@ -1566,6 +1653,138 @@ function resetForm() {
 }
 
 // ============================================================
+// FRIENDLY DATE FORMATTER: "Monday 18th May 2026"
+// ============================================================
+function formatFriendlyDate(dateStr) {
+  if (!dateStr) return '\u2014';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const day = d.getDate();
+  const suffix = (day === 1 || day === 21 || day === 31) ? 'st' : (day === 2 || day === 22) ? 'nd' : (day === 3 || day === 23) ? 'rd' : 'th';
+  return days[d.getDay()] + ' ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// ============================================================
+// EDIT ENTRY MODAL
+// ============================================================
+let editingEntryId = null;
+let editStatus = 'planned';
+
+function openEditModal(entryId) {
+  const entry = DB.entries.find(e => e.entryId === entryId);
+  if (!entry) { showToast('Entry not found.'); return; }
+  editingEntryId = entryId;
+  editStatus = entry.status || 'planned';
+  document.getElementById('editModalEntryId').textContent = entryId;
+  const vesselSel = document.getElementById('editVessel');
+  vesselSel.innerHTML = DB.vessels.map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+  const staffSel = document.getElementById('editStaff');
+  const staffOpts = [];
+  document.querySelectorAll('#staffSelect option').forEach(opt => { if (opt.value) staffOpts.push(opt.value); });
+  staffSel.innerHTML = staffOpts.map(s => '<option value="' + s + '"' + (s === entry.staffMember ? ' selected' : '') + '>' + s + '</option>').join('');
+  document.getElementById('editServiceDate').value = entry.serviceDate || '';
+  document.getElementById('editCategory').value = entry.category || '';
+  document.getElementById('editServiceType').value = entry.serviceType || '';
+  document.getElementById('editDescription').value = entry.description || '';
+  setEditStatusUI(editStatus);
+  document.getElementById('editBillingType').value = entry.billingType || 'hourly';
+  document.getElementById('editCurrency').value = entry.currency || 'USD';
+  document.getElementById('editHours').value = entry.hoursWorked || '';
+  document.getElementById('editRate').value = entry.hourlyRate || '';
+  document.getElementById('editFixedAmt').value = entry.fixedAmount || entry.baseCharge || '';
+  document.getElementById('editFixedQty').value = entry.fixedQty || '1';
+  document.getElementById('editBaseAmt').value = entry.percentBase || '';
+  document.getElementById('editPctRate').value = entry.percentRate || '';
+  document.getElementById('editManualAmt').value = entry.billingType === 'manual' ? (entry.baseCharge || entry.totalCharge || '') : '';
+  document.getElementById('editAgency').value = entry.agencyFee || 0;
+  document.getElementById('editDisbursement').value = entry.disbursementFee || 0;
+  document.getElementById('editOther').value = entry.otherCharges || 0;
+  document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
+  toggleEditBillingFields();
+  recalcEditTotal();
+  document.getElementById('editModal').classList.remove('hidden');
+}
+function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); editingEntryId = null; }
+function setEditStatus(btn, status) { editStatus = status; setEditStatusUI(status); }
+function setEditStatusUI(status) {
+  document.querySelectorAll('#editStatusPills button').forEach(b => b.className = '');
+  const pills = document.querySelectorAll('#editStatusPills button');
+  if (status === 'planned' && pills[0]) pills[0].className = 'active-planned';
+  if (status === 'progress' && pills[1]) pills[1].className = 'active-progress';
+  if (status === 'completed' && pills[2]) pills[2].className = 'active-completed';
+}
+function toggleEditBillingFields() {
+  const type = document.getElementById('editBillingType').value;
+  document.getElementById('editHourlyFields').style.display = type === 'hourly' ? '' : 'none';
+  document.getElementById('editHourlyRateField').style.display = type === 'hourly' ? '' : 'none';
+  document.getElementById('editFixedFields').style.display = type === 'fixed' ? '' : 'none';
+  document.getElementById('editFixedQtyField').style.display = type === 'fixed' ? '' : 'none';
+  document.getElementById('editPercentFields').style.display = type === 'percentage' ? '' : 'none';
+  document.getElementById('editPercentRateField').style.display = type === 'percentage' ? '' : 'none';
+  document.getElementById('editManualField').style.display = type === 'manual' ? '' : 'none';
+  recalcEditTotal();
+}
+function recalcEditTotal() {
+  const type = document.getElementById('editBillingType').value;
+  const currency = document.getElementById('editCurrency').value;
+  let base = 0;
+  if (type === 'hourly') base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
+  else if (type === 'fixed') base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
+  else if (type === 'percentage') base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
+  else if (type === 'manual') base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  const agency = parseFloat(document.getElementById('editAgency').value) || 0;
+  const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
+  const other = parseFloat(document.getElementById('editOther').value) || 0;
+  document.getElementById('editTotalDisplay').value = currencySymbol(currency) + (base + agency + disbursement + other).toFixed(2);
+}
+async function saveEditEntry() {
+  if (!editingEntryId) return;
+  const entries = DB.entries;
+  const idx = entries.findIndex(e => e.entryId === editingEntryId);
+  if (idx === -1) { showToast('Entry not found.'); return; }
+  const type = document.getElementById('editBillingType').value;
+  const currency = document.getElementById('editCurrency').value;
+  let base = 0;
+  if (type === 'hourly') base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
+  else if (type === 'fixed') base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
+  else if (type === 'percentage') base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
+  else if (type === 'manual') base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  const agency = parseFloat(document.getElementById('editAgency').value) || 0;
+  const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
+  const other = parseFloat(document.getElementById('editOther').value) || 0;
+  entries[idx].vessel = document.getElementById('editVessel').value;
+  entries[idx].staffMember = document.getElementById('editStaff').value;
+  entries[idx].serviceDate = document.getElementById('editServiceDate').value;
+  entries[idx].description = document.getElementById('editDescription').value;
+  entries[idx].status = editStatus;
+  entries[idx].workCompleted = editStatus === 'completed';
+  entries[idx].billingType = type;
+  entries[idx].currency = currency;
+  entries[idx].baseCharge = base;
+  entries[idx].agencyFee = agency;
+  entries[idx].disbursementFee = disbursement;
+  entries[idx].otherCharges = other;
+  entries[idx].totalCharge = base + agency + disbursement + other;
+  entries[idx].specialNotes = document.getElementById('editSpecialNotes').value;
+  DB.entries = entries;
+  const result = await syncUpdateToCloud(entries[idx]);
+  if (result) showToast('Entry ' + editingEntryId + ' updated & synced!');
+  else showToast('Entry ' + editingEntryId + ' updated locally (cloud sync pending).');
+  closeEditModal(); renderLog(); renderTimeline();
+}
+async function confirmDeleteEntry(entryId) {
+  if (!confirm('Are you sure you want to delete entry ' + entryId + '? This cannot be undone.')) return;
+  const entries = DB.entries.filter(e => e.entryId !== entryId);
+  DB.entries = entries;
+  const result = await syncDeleteFromCloud(entryId);
+  if (result) showToast('Entry ' + entryId + ' deleted & removed from cloud.');
+  else showToast('Entry ' + entryId + ' deleted locally (cloud sync pending).');
+  renderLog(); renderTimeline();
+}
+
+// ============================================================
 // RENDER SERVICE LOG
 // ============================================================
 function renderLog() {
@@ -1595,15 +1814,19 @@ function renderLog() {
     tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
       const statusClass = e.status === 'planned' ? 'status-planned' : e.status === 'progress' ? 'status-inprogress' : 'status-completed';
       const statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
+      const eid = (e.entryId || '').replace(/'/g, "\\'");
       return '<tr>' +
-        '<td><strong>' + (e.entryId || '—') + '</strong></td>' +
-        '<td>' + (e.serviceDate || '—') + '</td>' +
-        '<td>' + (e.vessel || '—') + '</td>' +
-        '<td>' + (e.serviceType || e.category || '—') + '</td>' +
+        '<td><strong>' + (e.entryId || '\u2014') + '</strong></td>' +
+        '<td>' + formatFriendlyDate(e.serviceDate) + '</td>' +
+        '<td>' + (e.vessel || '\u2014') + '</td>' +
+        '<td>' + (e.serviceType || e.category || '\u2014') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
         '<td>' + formatCurrency(e.totalCharge || 0, e.currency || 'USD') + '</td>' +
-        '<td>' + (e.staffMember || '—') + '</td>' +
-        '<td><button class="btn-delete" onclick="confirmDeleteEntry(\'' + e.entryId + '\')">Delete</button></td>' +
+        '<td>' + (e.staffMember || '\u2014') + '</td>' +
+        '<td><div class="action-btns">' +
+          '<button class="edit-btn" onclick="openEditModal(\'' + eid + '\')">Edit</button>' +
+          '<button class="delete-btn" onclick="confirmDeleteEntry(\'' + eid + '\')">Delete</button>' +
+        '</div></td>' +
         '</tr>';
     }).join('');
   }
@@ -1699,23 +1922,36 @@ function renderTimeline() {
   const allEntries = DB.entries.filter(e => e.status !== 'draft');
   let entries = allEntries;
 
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   if (currentTimelineFilter === 'upcoming') {
     entries = entries.filter(e => {
       const date = new Date(e.eta || e.etd || e.serviceDate || 0);
-      return date >= now;
+      return date >= today;
+    });
+  } else if (currentTimelineFilter === 'past') {
+    entries = entries.filter(e => {
+      const date = new Date(e.eta || e.etd || e.serviceDate || 0);
+      return date < today;
     });
   } else if (currentTimelineFilter === 'week') {
-    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
     entries = entries.filter(e => {
       const date = new Date(e.eta || e.etd || e.serviceDate || 0);
-      return date >= now && date <= weekFromNow;
+      return date >= startOfWeek && date <= endOfWeek;
     });
   } else if (currentTimelineFilter === 'month') {
-    const monthFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     entries = entries.filter(e => {
       const date = new Date(e.eta || e.etd || e.serviceDate || 0);
-      return date >= now && date <= monthFromNow;
+      return date >= startOfMonth && date <= endOfMonth;
     });
+  } else if (currentTimelineFilter === 'incomplete') {
+    entries = entries.filter(e => e.status !== 'completed');
   }
 
   const container = document.getElementById('timelineBody');
@@ -1736,9 +1972,9 @@ function renderTimeline() {
   };
 
   container.innerHTML = '<div class="timeline-vertical-line"></div>' + sorted.map(e => {
-    const date = new Date(e.eta || e.etd || e.serviceDate || Date.now());
-    const month = date.toLocaleString('en', { month: 'short' });
-    const day = String(date.getDate()).padStart(2, '0');
+    const rawDate = e.eta || e.etd || e.serviceDate || '';
+    const date = new Date(rawDate || Date.now());
+    const friendlyDate = rawDate ? formatFriendlyDate(rawDate.slice(0,10)) : date.toLocaleDateString();
     const statusDotClass = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
     const hasPulse = isUpcoming(e) ? 'pulse' : '';
     const details = [];
@@ -1752,7 +1988,7 @@ function renderTimeline() {
       '<div class="timeline-content">' +
       '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
       '<div class="service">' + (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : '') + '</div>' +
-      '<div class="meta">' + month + ' ' + day + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
+      '<div class="meta">' + friendlyDate + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
       '</div></div>';
   }).join('');
 }
