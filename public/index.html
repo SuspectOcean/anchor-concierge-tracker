@@ -455,8 +455,8 @@
   </div>
 </div>
 <script>
-function checkPassword(){var i=document.getElementById('passwordInput'),e=document.getElementById('passwordError');if(i.value==='Anchorcsys'){document.getElementById('passwordGate').style.display='none';sessionStorage.setItem('anchor_auth','true');}else{e.style.display='block';i.style.borderColor='#dc3545';i.value='';i.focus();}}
-document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getItem('anchor_auth')==='true'){document.getElementById('passwordGate').style.display='none';}var inp=document.getElementById('passwordInput');if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')checkPassword();});});
+function checkPassword(){var i=document.getElementById('passwordInput'),e=document.getElementById('passwordError');if(i.value==='Anchorcsys'){document.getElementById('passwordGate').remove();sessionStorage.setItem('anchor_auth','true');}else{e.style.display='block';i.style.borderColor='#dc3545';i.value='';i.focus();}}
+document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getItem('anchor_auth')==='true'){var g=document.getElementById('passwordGate');if(g)g.remove();}var inp=document.getElementById('passwordInput');if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')checkPassword();});});
 </script>
 
 <!-- HEADER -->
