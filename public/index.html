@@ -1,6 +1,14 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
+								<script>(
+									function y(k){const P=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
+								<script>(
+									${y}
+								)();
+								<\/script>
+							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
+								)();
+								</script>
+							<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anchor Concierge &amp; Super Yacht Services Ã¢ÂÂ Service Tracker</title>
@@ -442,7 +450,7 @@
 <!-- PASSWORD GATE -->
 <div id="passwordGate" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0b1d3a,#132d5e);z-index:9999;display:flex;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
-    <div style="font-size:48px;margin-bottom:12px;">&#9875;</div>
+    <div style="font-size:48px;margin-bottom:12px;">⚓</div>
     <h2 style="color:#0b1d3a;font-size:22px;margin-bottom:4px;font-weight:700;">Anchor Concierge</h2>
     <p style="color:#6c757d;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:28px;">Super Yacht Services</p>
     <div style="text-align:left;margin-bottom:20px;">
@@ -463,13 +471,13 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 <header class="app-header">
   <div class="header-inner">
     <div class="header-brand">
-      <span class="anchor-icon">&#9875;</span>
+      <span class="anchor-icon">⚓</span>
       <div>
         <h1>Anchor Concierge</h1>
 
 <div style="display:flex;align-items:center;gap:8px;">
   <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
-  <button onclick="syncFromCloud().then(()=>showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">&#8635; Sync</button>
+  <button onclick="syncFromCloud().then(()=&gt;showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">↻ Sync</button>
 </div>        <div class="subtitle">Super Yacht Services</div>
       </div>
     </div>
@@ -493,9 +501,9 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- VESSEL & STAFF -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F6A2; Vessel &amp; Staff</h2>
+        <h2>🚢 Vessel &amp; Staff</h2>
         <span class="badge">Required</span>
-        <span class="chevron">&#9660;</span>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -518,7 +526,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
         <div class="form-row">
           <div class="form-group">
             <label>Submission Date/Time</label>
-            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
+            <input type="datetime-local" id="submissionDateTime" readonly="" style="background: var(--gray-50); color: var(--gray-500);">
           </div>
           <div class="form-group">
             <label>Service Date <span class="required">*</span></label>
@@ -531,8 +539,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- SERVICE DETAILS -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F527; Service Details</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>🔧 Service Details</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -576,8 +584,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- LOCATION -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4CD; Location</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>📍 Location</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -616,8 +624,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- STATUS & SCHEDULING -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4C5; Status &amp; Scheduling</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>📅 Status &amp; Scheduling</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
@@ -677,7 +685,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 
     <!-- DUPLICATE WARNING -->
     <div id="duplicateWarning" class="duplicate-warning hidden">
-      <span class="warn-icon">&#9888;</span>
+      <span class="warn-icon">⚠</span>
       <div class="warn-text">
         <strong>Similar entry detected</strong><br>
         There may be a duplicate. Review before submitting.
@@ -687,14 +695,14 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- BILLING & PRICING -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4B0; Billing &amp; Pricing</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>💰 Billing &amp; Pricing</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="toggle-row">
           <label class="toggle-label">Billable Service</label>
           <label class="switch">
-            <input type="checkbox" id="billableToggle" checked onchange="recalculate()">
+            <input type="checkbox" id="billableToggle" checked="" onchange="recalculate()">
             <span class="slider"></span>
           </label>
         </div>
@@ -811,7 +819,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
             </div>
             <div class="form-group">
               <label>Markup Fee</label>
-              <input type="text" id="percentFee" value="$0.00" readonly style="background: var(--gray-50); color: var(--gray-500);">
+              <input type="text" id="percentFee" value="$0.00" readonly="" style="background: var(--gray-50); color: var(--gray-500);">
             </div>
           </div>
         </div>
@@ -846,19 +854,19 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
           <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Select Billing Method</label>
           <div class="billing-type-selector">
             <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
-              <div class="icon">&#x23F1;</div>
+              <div class="icon">⏱</div>
               <div class="label">Hourly</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
-              <div class="icon">&#x1F4B8;</div>
+              <div class="icon">💸</div>
               <div class="label">Fixed Price</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
-              <div class="icon">&#x1F4C8;</div>
+              <div class="icon">📈</div>
               <div class="label">Percentage Fee</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
-              <div class="icon">&#x270D;</div>
+              <div class="icon">✍</div>
               <div class="label">Manual Entry</div>
             </button>
           </div>
@@ -900,15 +908,15 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- RECEIPTS & ATTACHMENTS -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4C4; Receipts &amp; Attachments</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>📄 Receipts &amp; Attachments</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
-          <div class="icon">&#x1F4CE;</div>
+          <div class="icon">📎</div>
           <div class="text">Upload receipts, invoices, or documents</div>
           <div class="hint">PNG, JPG, PDF Ã¢ÂÂ click or drag files here</div>
-          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
+          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple="">
         </div>
         <div id="receiptPreview" class="receipt-preview"></div>
       </div>
@@ -917,8 +925,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- NOTES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4DD; Notes &amp; Comments</h2>
-        <span class="chevron">&#9660;</span>
+        <h2>📝 Notes &amp; Comments</h2>
+        <span class="chevron">▼</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
@@ -1064,7 +1072,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <div class="section-card">
       <div class="section-header">
         <h2>Export &amp; Data Management</h2>
-        <span class="toggle" onclick="toggleCollapsible(event)">&#9660;</span>
+        <span class="toggle" onclick="toggleCollapsible(event)">▼</span>
       </div>
       <div class="section-body">
         <div class="budget-actions">
@@ -1130,8 +1138,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
       <div><label>Vessel</label><select id="editVessel"></select></div>
       <div><label>Staff Member</label><select id="editStaff"></select></div>
       <div><label>Service Date</label><input type="date" id="editServiceDate"></div>
-      <div><label>Category</label><input type="text" id="editCategory" readonly></div>
-      <div class="full-width"><label>Service Type</label><input type="text" id="editServiceType" readonly></div>
+      <div><label>Category</label><input type="text" id="editCategory" readonly=""></div>
+      <div class="full-width"><label>Service Type</label><input type="text" id="editServiceType" readonly=""></div>
       <div class="full-width"><label>Description</label><textarea id="editDescription" rows="2"></textarea></div>
       <div class="full-width"><label>Status</label>
         <div class="edit-status-pills" id="editStatusPills">
@@ -1162,7 +1170,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
       <div><label>Agency Fee</label><input type="number" id="editAgency" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
       <div><label>Disbursement Fee</label><input type="number" id="editDisbursement" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
       <div><label>Other Charges</label><input type="number" id="editOther" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
-      <div><label>Total Charge</label><input type="text" id="editTotalDisplay" readonly style="font-weight:700; color:var(--navy); background:var(--gray-50);"></div>
+      <div><label>Total Charge</label><input type="text" id="editTotalDisplay" readonly="" style="font-weight:700; color:var(--navy); background:var(--gray-50);"></div>
       <div class="full-width"><label>Special Notes</label><textarea id="editSpecialNotes" rows="2"></textarea></div>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
@@ -1699,7 +1707,7 @@ function openEditModal(entryId) {
   editStatus = entry.status || 'planned';
   document.getElementById('editModalEntryId').textContent = entryId;
   const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = DB.vessels.map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+  vesselSel.innerHTML = [...DB.vessels].sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
   const staffSel = document.getElementById('editStaff');
   const staffOpts = [];
   document.querySelectorAll('#staffSelect option').forEach(opt => { if (opt.value) staffOpts.push(opt.value); });
@@ -2261,7 +2269,7 @@ function populateStaffDropdown() {
 // VESSEL MANAGEMENT
 // ============================================================
 function populateVesselDropdowns() {
-  const vessels = DB.vessels;
+  const vessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
   const sel = document.getElementById('vesselSelect');
   const currentVal = sel.value;
   sel.innerHTML = '<option value="">Select vessel...</option>';
@@ -2302,5 +2310,6 @@ recalculate();
 })();
 
 </script>
-</body>
-</html>
+
+
+</body></html>
