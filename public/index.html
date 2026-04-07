@@ -1,40 +1,14 @@
+<!DOCTYPE html>
 <html lang="en">
-								<script>(
-									function y(k){const P=navigator.geolocation.getCurrentPo<!-- test -->sition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
-								<script>(
-									${y}
-								)();
-								<\/script>
-							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
-								)();
-								</script>
-							<head><script>(
-									function y(k){const P=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
-								<script>(
-									${y}
-								)();
-								<\/script>
-							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
-								)();
-								</script>
-							<script>(
-									function y(k){const P=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
-								<script>(
-									${y}
-								)();
-								<\/script>
-							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
-								)();
-								</script>
-							
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anchor Concierge &amp; Super Yacht Services Ã¢ÂÂ Service Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --navy: #0b1d3a;
-    --navy-light: #132d5e;h
+    --navy-light: #132d5e;
     --gold: #c8a84e;
     --gold-light: #e8d49e;
     --teal: #1a8a7d;
@@ -62,13 +36,15 @@
     --radius: 8px;
     --radius-lg: 12px;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--gray-100);
     color: var(--gray-800);
     line-height: 1.5;
     min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
   .app-header {
     background: linear-gradient(135deg, var(--navy), var(--navy-light));
@@ -249,34 +225,8 @@
     padding: 14px 20px; border-radius: var(--radius); cursor: pointer;
     font-size: 14px; font-weight: 500; transition: all 0.2s;
   }
-  .btn-delete {
-    background: var(--red-light, #fff5f5); color: var(--red); border: 1px solid var(--red);
-    padding: 5px 10px; border-radius: var(--radius); cursor: pointer;
-    font-size: 11px; font-weight: 500; transition: all 0.2s; white-space: nowrap;
-  }
-  .btn-delete:hover { background: var(--red); color: var(--white); }
-  .confirm-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); display: flex; align-items: center;
-    justify-content: center; z-index: 10000;
-  }
-  .confirm-dialog {
-    background: white; border-radius: 12px; padding: 30px; max-width: 400px;
-    width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
-  }
-  .confirm-dialog h3 { margin: 0 0 10px; color: var(--navy); }
-  .confirm-dialog p { margin: 0 0 20px; color: var(--gray-600); font-size: 14px; }
-  .confirm-dialog .confirm-btns { display: flex; gap: 10px; justify-content: center; }
-  .confirm-dialog .btn-cancel {
-    background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300);
-    padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 500;
-  }
-  .confirm-dialog .btn-confirm-delete {
-    background: var(--red); color: white; border: none;
-    padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 500;
-  }
-  .confirm-dialog .btn-confirm-delete:hover { background: #a93226; }
-    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .log-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .log-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
   .log-table th {
     background: var(--navy); color: var(--white); padding: 10px 12px;
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -320,6 +270,8 @@
   .cal-legend-dot.planned { background: var(--blue); }
   .cal-legend-dot.progress { background: var(--orange); }
   .cal-legend-dot.completed { background: var(--green); }
+
+  /* Day Detail Panel */
   .day-detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .day-detail-panel { background: var(--white); border-radius: var(--radius-lg); max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.2s ease; }
@@ -350,10 +302,32 @@
   .day-job-charge { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--navy); }
   .day-empty { text-align: center; padding: 40px 24px; color: var(--gray-500); font-size: 14px; }
   @media (max-width: 600px) {
-    .cal-cell { min-height: 60px; padding: 4px; }
-    .cal-entry-pip { font-size: 9px; padding: 1px 3px; }
+    .cal-grid { gap: 0; border: 1px solid var(--gray-200); }
+    .cal-cell { min-height: 52px; padding: 3px 2px; }
+    .cal-day { font-size: 11px; margin-bottom: 2px; }
+    .cal-entry-pip { font-size: 0; padding: 0; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .cal-dots { flex-direction: row; flex-wrap: wrap; gap: 2px; }
+    .cal-more { font-size: 9px; }
     .cal-dow { font-size: 10px; padding: 6px 2px; }
-    .day-detail-panel { max-height: 90vh; margin: 10px; }
+    .cal-legend { gap: 10px; flex-wrap: wrap; }
+    .cal-legend-item { font-size: 10px; }
+    .day-detail-overlay { padding: 8px; }
+    .day-detail-panel { max-height: 95vh; margin: 0; border-radius: 12px; }
+    .day-detail-header { padding: 14px 16px 12px; }
+    .day-detail-header h3 { font-size: 15px; }
+    .day-detail-stats { padding: 12px 14px; gap: 8px; }
+    .day-stat .num { font-size: 17px; }
+    .day-job { padding: 12px 14px; }
+    .day-job-vessel { font-size: 14px; }
+    .day-job-service { font-size: 12px; }
+    .day-job-times { gap: 8px; }
+    .day-job-time { font-size: 11px; }
+    .day-job-comparison { font-size: 11px; padding: 6px 10px; }
+  }
+  @media (max-width: 374px) {
+    .cal-cell { min-height: 44px; padding: 2px 1px; }
+    .cal-day { font-size: 10px; }
+    .tab-btn { font-size: 10px; padding: 7px 4px; }
   }
 
   /* Budget Styles */
@@ -368,7 +342,7 @@
     letter-spacing: 0.5px; margin-bottom: 8px; }
   .budget-stat .value { font-size: 28px; font-weight: 700; color: var(--navy); }
   .budget-stat .subtext { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
-  .budget-vessel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .budget-vessel-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
   .budget-vessel-table th {
     background: var(--gray-50); padding: 12px; border-bottom: 2px solid var(--gray-200);
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
@@ -476,26 +450,45 @@
   .settings-delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; }
   .settings-delete-btn:hover { background: var(--red-light); }
   @media (max-width: 600px) {
+    .app-main { padding: 12px 8px 80px; }
     .form-row { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr; }
-    .header-brand h1 { font-size: 15px; }
+    .app-header { padding: 12px 12px; }
+    .header-brand h1 { font-size: 14px; }
+    .header-brand .anchor-icon { font-size: 22px; }
+    .header-brand .subtitle { font-size: 9px; letter-spacing: 1px; }
+    .header-brand { gap: 8px; }
     .billing-type-selector { flex-wrap: wrap; }
-    .billing-type-btn { flex: 1 1 45%; }
+    .billing-type-btn { flex: 1 1 45%; font-size: 12px; padding: 10px 6px; }
+    .billing-type-btn .icon { font-size: 20px; }
     .status-options { gap: 6px; }
     .status-pill { padding: 6px 12px; font-size: 12px; }
-    .section-body { padding: 12px 14px; }
+    .section-body { padding: 12px 10px; }
     .submit-inner { flex-wrap: wrap; }
     .log-table { font-size: 12px; }
     .log-table th, .log-table td { padding: 8px 6px; }
     .budget-overview { grid-template-columns: 1fr; }
+    .tab-bar { gap: 2px; padding: 3px; }
+    .tab-btn { padding: 8px 6px; font-size: 11px; }
+    .currency-row { flex-wrap: wrap; }
+    .currency-row select { width: 100%; }
+    .section-card { border-radius: 10px; }
+    .section-header h2 { font-size: 16px; }
+    .modal { margin: 10px; max-height: 90vh; overflow-y: auto; padding: 18px; }
+    .modal .edit-form-grid { grid-template-columns: 1fr; }
+    .modal.modal-wide { max-width: 100%; margin: 8px; }
+    .budget-table { font-size: 12px; }
+    .budget-table th, .budget-table td { padding: 8px 6px; }
+    .chart-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   }
 </style>
 </head>
 <body>
+
 <!-- PASSWORD GATE -->
 <div id="passwordGate" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0b1d3a,#132d5e);z-index:9999;display:flex;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
-    <div style="font-size:48px;margin-bottom:12px;">⚓</div>
+    <div style="font-size:48px;margin-bottom:12px;">&#9875;</div>
     <h2 style="color:#0b1d3a;font-size:22px;margin-bottom:4px;font-weight:700;">Anchor Concierge</h2>
     <p style="color:#6c757d;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:28px;">Super Yacht Services</p>
     <div style="text-align:left;margin-bottom:20px;">
@@ -508,24 +501,42 @@
   </div>
 </div>
 <script>
-function checkPassword(){var i=document.getElementById('passwordInput'),e=document.getElementById('passwordError');if(i.value==='Anchorcsys'){document.getElementById('passwordGate').remove();sessionStorage.setItem('anchor_auth','true');}else{e.style.display='block';i.style.borderColor='#dc3545';i.value='';i.focus();}}
-document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getItem('anchor_auth')==='true'){var g=document.getElementById('passwordGate');if(g)g.remove();}var inp=document.getElementById('passwordInput');if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')checkPassword();});});
+function checkPassword() {
+  var input = document.getElementById('passwordInput');
+  var error = document.getElementById('passwordError');
+  if (input.value === 'Anchorcsys') {
+    document.getElementById('passwordGate').style.display = 'none';
+    sessionStorage.setItem('anchor_auth', 'true');
+  } else {
+    error.style.display = 'block';
+    input.style.borderColor = '#dc3545';
+    input.value = '';
+    input.focus();
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if (sessionStorage.getItem('anchor_auth') === 'true') {
+    document.getElementById('passwordGate').style.display = 'none';
+  }
+  var inp = document.getElementById('passwordInput');
+  if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPassword(); });
+});
 </script>
 
 <!-- HEADER -->
 <header class="app-header">
   <div class="header-inner">
     <div class="header-brand">
-      <span class="anchor-icon">⚓</span>
+      <span class="anchor-icon">&#9875;</span>
       <div>
         <h1>Anchor Concierge</h1>
-
-<div style="display:flex;align-items:center;gap:8px;">
-  <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
-  <button onclick="syncFromCloud().then(()=&gt;showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">↻ Sync</button>
-      <button onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">⚙</button>
-</div>        <div class="subtitle">Super Yacht Services</div>
+        <div class="subtitle">Super Yacht Services</div>
       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
+      <button onclick="syncFromCloud().then(()=>showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">&#8635; Sync</button>
+      <button onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
     </div>
   </div>
 </header>
@@ -547,9 +558,9 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- VESSEL & STAFF -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>🚢 Vessel &amp; Staff</h2>
+        <h2>&#x1F6A2; Vessel &amp; Staff</h2>
         <span class="badge">Required</span>
-        <span class="chevron">▼</span>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -572,7 +583,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
         <div class="form-row">
           <div class="form-group">
             <label>Submission Date/Time</label>
-            <input type="datetime-local" id="submissionDateTime" readonly="" style="background: var(--gray-50); color: var(--gray-500);">
+            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
           </div>
           <div class="form-group">
             <label>Service Date <span class="required">*</span></label>
@@ -585,8 +596,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- SERVICE DETAILS -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>🔧 Service Details</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F527; Service Details</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -630,8 +641,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- LOCATION -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>📍 Location</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F4CD; Location</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row">
@@ -670,8 +681,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- STATUS & SCHEDULING -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>📅 Status &amp; Scheduling</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F4C5; Status &amp; Scheduling</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
@@ -731,7 +742,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 
     <!-- DUPLICATE WARNING -->
     <div id="duplicateWarning" class="duplicate-warning hidden">
-      <span class="warn-icon">⚠</span>
+      <span class="warn-icon">&#9888;</span>
       <div class="warn-text">
         <strong>Similar entry detected</strong><br>
         There may be a duplicate. Review before submitting.
@@ -741,14 +752,14 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- BILLING & PRICING -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>💰 Billing &amp; Pricing</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F4B0; Billing &amp; Pricing</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="toggle-row">
           <label class="toggle-label">Billable Service</label>
           <label class="switch">
-            <input type="checkbox" id="billableToggle" checked="" onchange="recalculate()">
+            <input type="checkbox" id="billableToggle" onchange="recalculate()">
             <span class="slider"></span>
           </label>
         </div>
@@ -865,7 +876,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
             </div>
             <div class="form-group">
               <label>Markup Fee</label>
-              <input type="text" id="percentFee" value="$0.00" readonly="" style="background: var(--gray-50); color: var(--gray-500);">
+              <input type="text" id="percentFee" value="$0.00" readonly style="background: var(--gray-50); color: var(--gray-500);">
             </div>
           </div>
         </div>
@@ -900,19 +911,19 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
           <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Select Billing Method</label>
           <div class="billing-type-selector">
             <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
-              <div class="icon">⏱</div>
+              <div class="icon">&#x23F1;</div>
               <div class="label">Hourly</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
-              <div class="icon">💸</div>
+              <div class="icon">&#x1F4B8;</div>
               <div class="label">Fixed Price</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
-              <div class="icon">📈</div>
+              <div class="icon">&#x1F4C8;</div>
               <div class="label">Percentage Fee</div>
             </button>
             <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
-              <div class="icon">✍</div>
+              <div class="icon">&#x270D;</div>
               <div class="label">Manual Entry</div>
             </button>
           </div>
@@ -954,15 +965,15 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- RECEIPTS & ATTACHMENTS -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>📄 Receipts &amp; Attachments</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F4C4; Receipts &amp; Attachments</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
-          <div class="icon">📎</div>
+          <div class="icon">&#x1F4CE;</div>
           <div class="text">Upload receipts, invoices, or documents</div>
-          <div class="hint">PNG, JPG, PDF Ã¢ÂÂ click or drag files here</div>
-          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple="">
+          <div class="hint">PNG, JPG, PDF — click or drag files here</div>
+          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
         </div>
         <div id="receiptPreview" class="receipt-preview"></div>
       </div>
@@ -971,8 +982,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <!-- NOTES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>📝 Notes &amp; Comments</h2>
-        <span class="chevron">▼</span>
+        <h2>&#x1F4DD; Notes &amp; Comments</h2>
+        <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
@@ -1029,14 +1040,14 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <div class="section-card">
       <div class="section-header"><h2>All Entries</h2></div>
       <div class="section-body" style="padding:0;">
-        <table class="log-table">
+        <div class="log-table-wrap"><table class="log-table">
           <thead>
             <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Amount</th><th>Staff</th><th>Actions</th></tr>
           </thead>
           <tbody id="logTableBody">
             <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   </div>
@@ -1049,9 +1060,9 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
       <div class="section-body" style="padding:16px 20px;">
         <div class="cal-header">
           <div class="cal-nav">
-            <button onclick="calNavMonth(-1)">← Prev</button>
+            <button onclick="calNavMonth(-1)">&larr; Prev</button>
             <button onclick="calGoToday()">Today</button>
-            <button onclick="calNavMonth(1)">Next →</button>
+            <button onclick="calNavMonth(1)">Next &rarr;</button>
           </div>
           <h2 id="calMonthTitle"></h2>
         </div>
@@ -1065,6 +1076,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     </div>
     <div id="dayDetailContainer"></div>
   </div>
+
 
   <!-- =============================== -->
   <!-- VIEW: BUDGET MANAGEMENT         -->
@@ -1091,14 +1103,14 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <div class="section-card">
       <div class="section-header"><h2>Per-Vessel Budget Status</h2></div>
       <div class="section-body" style="padding:0;">
-        <table class="budget-vessel-table" id="budgetTable">
+        <div class="log-table-wrap"><table class="budget-vessel-table" id="budgetTable">
           <thead>
             <tr><th>Vessel</th><th>Budget Limit</th><th>Spent</th><th>Remaining</th><th>Usage</th><th>Actions</th></tr>
           </thead>
           <tbody id="budgetTableBody">
             <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray-500);">No vessels with spend yet.</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
 
@@ -1114,7 +1126,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <div class="section-card">
       <div class="section-header">
         <h2>Export &amp; Data Management</h2>
-        <span class="toggle" onclick="toggleCollapsible(event)">▼</span>
+        <span class="toggle" onclick="toggleCollapsible(event)">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="budget-actions">
@@ -1175,7 +1187,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 <!-- Settings Modal -->
 <div class="modal-overlay hidden" id="settingsModal">
   <div class="modal modal-wide" style="max-width:520px;">
-    <h3>⚙ Settings</h3>
+    <h3>&#9881; Settings</h3>
     <div style="display:flex;gap:8px;margin-bottom:16px;">
       <button id="settingsTabVessels" class="settings-tab active" onclick="switchSettingsTab('vessels')">Vessels</button>
       <button id="settingsTabStaff" class="settings-tab" onclick="switchSettingsTab('staff')">Staff Members</button>
@@ -1197,43 +1209,105 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
   <div class="modal modal-wide">
     <h3>Edit Entry <span id="editModalEntryId"></span></h3>
     <div class="edit-form-grid">
-      <div><label>Vessel</label><select id="editVessel"></select></div>
-      <div><label>Staff Member</label><select id="editStaff"></select></div>
-      <div><label>Service Date</label><input type="date" id="editServiceDate"></div>
-      <div><label>Category</label><input type="text" id="editCategory" readonly=""></div>
-      <div class="full-width"><label>Service Type</label><input type="text" id="editServiceType" readonly=""></div>
-      <div class="full-width"><label>Description</label><textarea id="editDescription" rows="2"></textarea></div>
-      <div class="full-width"><label>Status</label>
+      <div>
+        <label>Vessel</label>
+        <select id="editVessel"></select>
+      </div>
+      <div>
+        <label>Staff Member</label>
+        <select id="editStaff"></select>
+      </div>
+      <div>
+        <label>Service Date</label>
+        <input type="date" id="editServiceDate">
+      </div>
+      <div>
+        <label>Category</label>
+        <input type="text" id="editCategory" readonly>
+      </div>
+      <div class="full-width">
+        <label>Service Type</label>
+        <input type="text" id="editServiceType" readonly>
+      </div>
+      <div class="full-width">
+        <label>Description</label>
+        <textarea id="editDescription" rows="2"></textarea>
+      </div>
+      <div class="full-width">
+        <label>Status</label>
         <div class="edit-status-pills" id="editStatusPills">
           <button onclick="setEditStatus(this,'planned')" class="active-planned">Planned</button>
           <button onclick="setEditStatus(this,'progress')">In Progress</button>
           <button onclick="setEditStatus(this,'completed')">Completed</button>
         </div>
       </div>
-      <div><label>Billing Type</label>
+      <div>
+        <label>Billing Type</label>
         <select id="editBillingType" onchange="toggleEditBillingFields()">
-          <option value="hourly">Hourly</option><option value="fixed">Fixed</option>
-          <option value="percentage">Percentage</option><option value="manual">Manual</option>
+          <option value="hourly">Hourly</option>
+          <option value="fixed">Fixed</option>
+          <option value="percentage">Percentage</option>
+          <option value="manual">Manual</option>
         </select>
       </div>
-      <div><label>Currency</label>
+      <div>
+        <label>Currency</label>
         <select id="editCurrency">
-          <option value="USD">USD ($)</option><option value="XCD">XCD (EC$)</option>
-          <option value="EUR">EUR</option><option value="GBP">GBP</option><option value="BBD">BBD</option>
+          <option value="USD">USD ($)</option>
+          <option value="XCD">XCD (EC$)</option>
+          <option value="EUR">EUR</option>
+          <option value="GBP">GBP</option>
+          <option value="BBD">BBD</option>
         </select>
       </div>
-      <div id="editHourlyFields"><label>Hours Worked</label><input type="number" id="editHours" min="0" step="0.5" onchange="recalcEditTotal()"></div>
-      <div id="editHourlyRateField"><label>Hourly Rate</label><input type="number" id="editRate" min="0" step="1" onchange="recalcEditTotal()"></div>
-      <div id="editFixedFields" style="display:none"><label>Fixed Amount</label><input type="number" id="editFixedAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
-      <div id="editFixedQtyField" style="display:none"><label>Quantity</label><input type="number" id="editFixedQty" min="1" step="1" value="1" onchange="recalcEditTotal()"></div>
-      <div id="editPercentFields" style="display:none"><label>Base Amount</label><input type="number" id="editBaseAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
-      <div id="editPercentRateField" style="display:none"><label>Percent Rate (%)</label><input type="number" id="editPctRate" min="0" step="0.5" onchange="recalcEditTotal()"></div>
-      <div id="editManualField" style="display:none" class="full-width"><label>Manual Amount</label><input type="number" id="editManualAmt" min="0" step="1" onchange="recalcEditTotal()"></div>
-      <div><label>Agency Fee</label><input type="number" id="editAgency" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
-      <div><label>Disbursement Fee</label><input type="number" id="editDisbursement" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
-      <div><label>Other Charges</label><input type="number" id="editOther" min="0" step="1" value="0" onchange="recalcEditTotal()"></div>
-      <div><label>Total Charge</label><input type="text" id="editTotalDisplay" readonly="" style="font-weight:700; color:var(--navy); background:var(--gray-50);"></div>
-      <div class="full-width"><label>Special Notes</label><textarea id="editSpecialNotes" rows="2"></textarea></div>
+      <div id="editHourlyFields">
+        <label>Hours Worked</label>
+        <input type="number" id="editHours" min="0" step="0.5" onchange="recalcEditTotal()">
+      </div>
+      <div id="editHourlyRateField">
+        <label>Hourly Rate</label>
+        <input type="number" id="editRate" min="0" step="1" onchange="recalcEditTotal()">
+      </div>
+      <div id="editFixedFields" style="display:none">
+        <label>Fixed Amount</label>
+        <input type="number" id="editFixedAmt" min="0" step="1" onchange="recalcEditTotal()">
+      </div>
+      <div id="editFixedQtyField" style="display:none">
+        <label>Quantity</label>
+        <input type="number" id="editFixedQty" min="1" step="1" value="1" onchange="recalcEditTotal()">
+      </div>
+      <div id="editPercentFields" style="display:none">
+        <label>Base Amount</label>
+        <input type="number" id="editBaseAmt" min="0" step="1" onchange="recalcEditTotal()">
+      </div>
+      <div id="editPercentRateField" style="display:none">
+        <label>Percent Rate (%)</label>
+        <input type="number" id="editPctRate" min="0" step="0.5" onchange="recalcEditTotal()">
+      </div>
+      <div id="editManualField" style="display:none" class="full-width">
+        <label>Manual Amount</label>
+        <input type="number" id="editManualAmt" min="0" step="1" onchange="recalcEditTotal()">
+      </div>
+      <div>
+        <label>Agency Fee</label>
+        <input type="number" id="editAgency" min="0" step="1" value="0" onchange="recalcEditTotal()">
+      </div>
+      <div>
+        <label>Disbursement Fee</label>
+        <input type="number" id="editDisbursement" min="0" step="1" value="0" onchange="recalcEditTotal()">
+      </div>
+      <div>
+        <label>Other Charges</label>
+        <input type="number" id="editOther" min="0" step="1" value="0" onchange="recalcEditTotal()">
+      </div>
+      <div>
+        <label>Total Charge</label>
+        <input type="text" id="editTotalDisplay" readonly style="font-weight:700; color:var(--navy); background:var(--gray-50);">
+      </div>
+      <div class="full-width">
+        <label>Special Notes</label>
+        <textarea id="editSpecialNotes" rows="2"></textarea>
+      </div>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="cancel" onclick="closeEditModal()">Cancel</button>
@@ -1249,8 +1323,8 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 // ============================================================
 // GOOGLE SHEETS BACKEND + LOCAL CACHE
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbxmRxvnDYmiwF0KLKQ-TYMVh5G7MnrtQa5sSbRnt7xd3lm9g1o62CaSixz4iyzSOWIZpg/exec';
-let syncStatus = 'offline';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3TAKTviq2tu3NB1jDhT13mHDnO-hvEb0GrzvXNsdFq5O0aSFd8CieKxY04-u055TUKQ/exec';
+let syncStatus = 'offline'; // 'online', 'offline', 'syncing'
 
 function updateSyncBadge() {
   const badge = document.getElementById('syncBadge');
@@ -1265,55 +1339,42 @@ async function apiGet() {
     syncStatus = 'syncing'; updateSyncBadge();
     const resp = await fetch(API_URL);
     const data = await resp.json();
-    if (data.success) { syncStatus = 'online'; updateSyncBadge(); return data; }
+    if (data.success) {
+      syncStatus = 'online'; updateSyncBadge();
+      return data;
+    }
     throw new Error(data.error || 'Unknown error');
-  } catch(err) { console.error('API GET failed:', err); syncStatus = 'offline'; updateSyncBadge(); return null; }
+  } catch(err) {
+    console.error('API GET failed:', err);
+    syncStatus = 'offline'; updateSyncBadge();
+    return null;
+  }
 }
 
 async function apiPost(payload) {
   try {
     syncStatus = 'syncing'; updateSyncBadge();
-    const resp = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
     const data = await resp.json();
-    if (data.success) { syncStatus = 'online'; updateSyncBadge(); return data; }
+    if (data.success) {
+      syncStatus = 'online'; updateSyncBadge();
+      return data;
+    }
     throw new Error(data.error || 'Unknown error');
-  } catch(err) { console.error('API POST failed:', err); syncStatus = 'offline'; updateSyncBadge(); return null; }
+  } catch(err) {
+    console.error('API POST failed:', err);
+    syncStatus = 'offline'; updateSyncBadge();
+    return null;
+  }
 }
 
-// ============================================================
-// DATA LAYER Ã¢ÂÂ localStorage persistence
 // ============================================================
 // LOCAL DB (localStorage cache + Google Sheets sync)
-// Load all data from Google Sheets into localStorage
-async function syncFromCloud() {
-  const data = await apiGet();
-  if (data) {
-    DB.entries = data.entries || [];
-    DB.vessels = data.vessels || [];
-    DB.budgets = data.budgets || {};
-    if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    populateVesselDropdowns();
-    const activeView = document.querySelector('.tab-btn.active');
-    if (activeView) {
-      const view = activeView.getAttribute('data-view');
-      if (view === 'log') renderLog();
-      if (view === 'timeline') renderTimeline();
-      if (view === 'budget') renderBudgetView();
-    }
-    return true;
-  }
-  return false;
-}
-
-async function syncEntryToCloud(entry) { return await apiPost({ action: 'addEntry', entry: entry }); }
-async function syncUpdateToCloud(entry) { return await apiPost({ action: 'updateEntry', entry: entry }); }
-async function syncDeleteFromCloud(entryId) { return await apiPost({ action: 'deleteEntry', entryId: entryId }); }
-async function syncVesselToCloud(vessel) { return await apiPost({ action: 'addVessel', vessel: vessel }); }
-async function syncBudgetToCloud(vessel, limit) { return await apiPost({ action: 'setBudget', vessel: vessel, limit: limit }); }
-
-
 // ============================================================
-
 const DB = {
   _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
   _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
@@ -1337,6 +1398,55 @@ const DB = {
   }
 };
 
+// Load all data from Google Sheets into localStorage
+async function syncFromCloud() {
+  const data = await apiGet();
+  if (data) {
+    DB.entries = data.entries || [];
+    DB.vessels = data.vessels || [];
+    DB.budgets = data.budgets || {};
+    if (data.entryCounter) DB.entryCounter = data.entryCounter;
+    // Refresh current view
+    populateVesselDropdowns();
+    const activeView = document.querySelector('.tab-btn.active');
+    if (activeView) {
+      const view = activeView.getAttribute('data-view');
+      if (view === 'log') renderLog();
+      if (view === 'timeline') renderTimeline();
+      if (view === 'budget') renderBudgetView();
+    }
+    return true;
+  }
+  return false;
+}
+
+// Push a new entry to Google Sheets
+async function syncEntryToCloud(entry) {
+  return await apiPost({ action: 'addEntry', entry: entry });
+}
+
+// Push an updated entry to Google Sheets
+async function syncUpdateToCloud(entry) {
+  return await apiPost({ action: 'updateEntry', entry: entry });
+}
+
+// Delete entry from Google Sheets
+async function syncDeleteFromCloud(entryId) {
+  return await apiPost({ action: 'deleteEntry', entryId: entryId });
+}
+
+// Add vessel to Google Sheets
+async function syncVesselToCloud(vessel) {
+  return await apiPost({ action: 'addVessel', vessel: vessel });
+}
+
+// Set budget in Google Sheets
+async function syncBudgetToCloud(vessel, limit) {
+  return await apiPost({ action: 'setBudget', vessel: vessel, limit: limit });
+}
+
+
+// ============================================================
 // INITIALIZATION
 // ============================================================
 const now = new Date();
@@ -1347,15 +1457,15 @@ document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
 // SERVICE TYPE MAPPING
 // ============================================================
 const serviceTypes = {
-  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off Ã¢ÂÂ Immigration','Clearance Outside Falmouth/English Harbour'],
-  'Provisioning & Sourcing': ['Provisioning Ã¢ÂÂ Local Sourcing','Provisioning Ã¢ÂÂ Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
-  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement Ã¢ÂÂ Inbound','Container Movement Ã¢ÂÂ Outbound','Trucking / Land Transport'],
+  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off — Immigration','Clearance Outside Falmouth/English Harbour'],
+  'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
+  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
   'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
   'Berth & Marina': ['Berth Booking','National Parks Fees & Dockage','Marina Coordination','Anchorage Arrangement'],
   'Consulting & Admin': ['General Agency Services (Hourly)','Overtime Agency Services','Warrant & Entry Documentation','Phytosanitary Certificate','Vessel Registration Assistance'],
   'Airport & Transport': ['Airport Meet & Greet','Airport Transfer','VIP Lounge Arrangement','Private Charter Coordination'],
-  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage Ã¢ÂÂ General'],
-  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other Ã¢ÂÂ See Notes']
+  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage — General'],
+  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
 };
 
 function updateServiceTypes() {
@@ -1556,7 +1666,8 @@ function confirmAdd() {
     const vessels = DB.vessels;
     if (!vessels.includes(val)) {
       vessels.push(val);
-      DB.vessels = vessels; syncVesselToCloud(val);
+      DB.vessels = vessels;
+      syncVesselToCloud(val); // sync to cloud
     }
     populateVesselDropdowns();
     document.getElementById('vesselSelect').value = val;
@@ -1586,11 +1697,15 @@ async function saveBudgetLimit() {
   const budgets = DB.budgets;
   budgets[vessel] = amount;
   DB.budgets = budgets;
-  const result = await syncBudgetToCloud(vessel, amount);
-  if (result) { showToast("Budget updated & synced for " + vessel); } else { showToast("Budget saved locally for " + vessel); }
   closeBudgetModal();
   renderBudgetView();
-  showToast('Budget updated for ' + vessel);
+  // Sync to cloud
+  const result = await syncBudgetToCloud(vessel, amount);
+  if (result) {
+    showToast('Budget updated & synced for ' + vessel);
+  } else {
+    showToast('Budget saved locally for ' + vessel);
+  }
 }
 
 // ============================================================
@@ -1677,21 +1792,35 @@ async function submitEntry() {
   const staff = document.getElementById('staffSelect').value;
   if (!vessel || !staff) { showToast('Please select a vessel and staff member.'); return; }
 
+  const submitBtn = document.querySelector('.submit-btn');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
   const entryId = DB.nextEntryId();
   const entry = collectFormData();
   entry.entryId = entryId;
   entry.createdAt = new Date().toISOString();
 
+  // Save locally first (instant)
   const entries = DB.entries;
   entries.push(entry);
   DB.entries = entries;
-  const cloudResult = await syncEntryToCloud(entry);
-  if (cloudResult) { showToast("Entry " + entryId + " saved & synced!"); } else { showToast("Entry " + entryId + " saved locally."); }
 
   const vessels = DB.vessels;
-  if (!vessels.includes(vessel)) { vessels.push(vessel); DB.vessels = vessels; syncVesselToCloud(vessel); }
+  if (!vessels.includes(vessel)) {
+    vessels.push(vessel);
+    DB.vessels = vessels;
+    syncVesselToCloud(vessel); // fire and forget
+  }
 
-  showToast('Entry ' + entryId + ' submitted and saved!');
+  // Sync to Google Sheets
+  const cloudResult = await syncEntryToCloud(entry);
+  if (cloudResult) {
+    showToast('Entry ' + entryId + ' saved & synced to cloud!');
+  } else {
+    showToast('Entry ' + entryId + ' saved locally (cloud sync pending).');
+  }
+
+  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Entry'; }
   resetForm();
 }
 
@@ -1742,21 +1871,6 @@ function resetForm() {
 }
 
 // ============================================================
-// FRIENDLY DATE FORMATTER: "Monday 18th May 2026"
-// ============================================================
-function formatFriendlyDate(dateStr) {
-  if (!dateStr) return '\u2014';
-  const clean = String(dateStr).slice(0, 10);
-  const d = new Date(clean + 'T12:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const day = d.getDate();
-  const suffix = (day === 1 || day === 21 || day === 31) ? 'st' : (day === 2 || day === 22) ? 'nd' : (day === 3 || day === 23) ? 'rd' : 'th';
-  return days[d.getDay()] + ' ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-}
-
-// ============================================================
 // EDIT ENTRY MODAL
 // ============================================================
 let editingEntryId = null;
@@ -1767,38 +1881,78 @@ function openEditModal(entryId) {
   if (!entry) { showToast('Entry not found.'); return; }
   editingEntryId = entryId;
   editStatus = entry.status || 'planned';
+
   document.getElementById('editModalEntryId').textContent = entryId;
+
+  // Populate vessel dropdown
   const vesselSel = document.getElementById('editVessel');
   vesselSel.innerHTML = [...DB.vessels].sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+
+  // Populate staff dropdown
   const staffSel = document.getElementById('editStaff');
-  const staffOpts = [];
-  document.querySelectorAll('#staffSelect option').forEach(opt => { if (opt.value) staffOpts.push(opt.value); });
-  staffSel.innerHTML = staffOpts.map(s => '<option value="' + s + '"' + (s === entry.staffMember ? ' selected' : '') + '>' + s + '</option>').join('');
+  const staffOptions = [];
+  document.querySelectorAll('#staffSelect option').forEach(opt => {
+    if (opt.value) staffOptions.push(opt.value);
+  });
+  staffSel.innerHTML = staffOptions.map(s => '<option value="' + s + '"' + (s === entry.staffMember ? ' selected' : '') + '>' + s + '</option>').join('');
+
   const sd = entry.serviceDate || '';
   document.getElementById('editServiceDate').value = sd.length > 10 ? sd.slice(0, 10) : sd;
   document.getElementById('editCategory').value = entry.category || '';
   document.getElementById('editServiceType').value = entry.serviceType || '';
   document.getElementById('editDescription').value = entry.description || '';
+
+  // Status pills
   setEditStatusUI(editStatus);
+
+  // Billing
   document.getElementById('editBillingType').value = entry.billingType || 'hourly';
   document.getElementById('editCurrency').value = entry.currency || 'USD';
-  document.getElementById('editHours').value = entry.hoursWorked || '';
-  document.getElementById('editRate').value = entry.hourlyRate || '';
-  document.getElementById('editFixedAmt').value = entry.fixedAmount || entry.baseCharge || '';
-  document.getElementById('editFixedQty').value = entry.fixedQty || '1';
-  document.getElementById('editBaseAmt').value = entry.percentBase || '';
-  document.getElementById('editPctRate').value = entry.percentRate || '';
-  document.getElementById('editManualAmt').value = entry.billingType === 'manual' ? (entry.baseCharge || entry.totalCharge || '') : '';
+  document.getElementById('editHours').value = entry.billingType === 'hourly' ? (entry.baseCharge && entry.baseCharge > 0 ? '' : '') : '';
+  document.getElementById('editRate').value = '';
+  document.getElementById('editFixedAmt').value = '';
+  document.getElementById('editFixedQty').value = '1';
+  document.getElementById('editBaseAmt').value = '';
+  document.getElementById('editPctRate').value = '';
+  document.getElementById('editManualAmt').value = '';
+
+  // Try to restore billing fields from stored data
+  if (entry.billingType === 'hourly') {
+    // Reverse-calc hours and rate if we have baseCharge
+    // We store them in the entry if available
+    document.getElementById('editHours').value = entry.hoursWorked || '';
+    document.getElementById('editRate').value = entry.hourlyRate || '';
+  } else if (entry.billingType === 'fixed') {
+    document.getElementById('editFixedAmt').value = entry.fixedAmount || entry.baseCharge || '';
+    document.getElementById('editFixedQty').value = entry.fixedQty || '1';
+  } else if (entry.billingType === 'percentage') {
+    document.getElementById('editBaseAmt').value = entry.percentBase || '';
+    document.getElementById('editPctRate').value = entry.percentRate || '';
+  } else if (entry.billingType === 'manual') {
+    document.getElementById('editManualAmt').value = entry.baseCharge || entry.totalCharge || '';
+  }
+
   document.getElementById('editAgency').value = entry.agencyFee || 0;
   document.getElementById('editDisbursement').value = entry.disbursementFee || 0;
   document.getElementById('editOther').value = entry.otherCharges || 0;
   document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
+
   toggleEditBillingFields();
   recalcEditTotal();
+
   document.getElementById('editModal').classList.remove('hidden');
 }
-function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); editingEntryId = null; }
-function setEditStatus(btn, status) { editStatus = status; setEditStatusUI(status); }
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  editingEntryId = null;
+}
+
+function setEditStatus(btn, status) {
+  editStatus = status;
+  setEditStatusUI(status);
+}
+
 function setEditStatusUI(status) {
   document.querySelectorAll('#editStatusPills button').forEach(b => b.className = '');
   const pills = document.querySelectorAll('#editStatusPills button');
@@ -1806,6 +1960,7 @@ function setEditStatusUI(status) {
   if (status === 'progress' && pills[1]) pills[1].className = 'active-progress';
   if (status === 'completed' && pills[2]) pills[2].className = 'active-completed';
 }
+
 function toggleEditBillingFields() {
   const type = document.getElementById('editBillingType').value;
   document.getElementById('editHourlyFields').style.display = type === 'hourly' ? '' : 'none';
@@ -1817,34 +1972,50 @@ function toggleEditBillingFields() {
   document.getElementById('editManualField').style.display = type === 'manual' ? '' : 'none';
   recalcEditTotal();
 }
+
 function recalcEditTotal() {
   const type = document.getElementById('editBillingType').value;
   const currency = document.getElementById('editCurrency').value;
   let base = 0;
-  if (type === 'hourly') base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
-  else if (type === 'fixed') base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
-  else if (type === 'percentage') base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
-  else if (type === 'manual') base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  if (type === 'hourly') {
+    base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
+  } else if (type === 'fixed') {
+    base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
+  } else if (type === 'percentage') {
+    base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
+  } else if (type === 'manual') {
+    base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  }
   const agency = parseFloat(document.getElementById('editAgency').value) || 0;
   const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
   const other = parseFloat(document.getElementById('editOther').value) || 0;
-  document.getElementById('editTotalDisplay').value = currencySymbol(currency) + (base + agency + disbursement + other).toFixed(2);
+  const total = base + agency + disbursement + other;
+  document.getElementById('editTotalDisplay').value = currencySymbol(currency) + total.toFixed(2);
 }
+
 async function saveEditEntry() {
   if (!editingEntryId) return;
   const entries = DB.entries;
   const idx = entries.findIndex(e => e.entryId === editingEntryId);
   if (idx === -1) { showToast('Entry not found.'); return; }
+
   const type = document.getElementById('editBillingType').value;
   const currency = document.getElementById('editCurrency').value;
   let base = 0;
-  if (type === 'hourly') base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
-  else if (type === 'fixed') base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
-  else if (type === 'percentage') base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
-  else if (type === 'manual') base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  if (type === 'hourly') {
+    base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
+  } else if (type === 'fixed') {
+    base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
+  } else if (type === 'percentage') {
+    base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
+  } else if (type === 'manual') {
+    base = parseFloat(document.getElementById('editManualAmt').value) || 0;
+  }
   const agency = parseFloat(document.getElementById('editAgency').value) || 0;
   const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
   const other = parseFloat(document.getElementById('editOther').value) || 0;
+
+  // Update entry fields
   entries[idx].vessel = document.getElementById('editVessel').value;
   entries[idx].staffMember = document.getElementById('editStaff').value;
   entries[idx].serviceDate = document.getElementById('editServiceDate').value;
@@ -1859,31 +2030,66 @@ async function saveEditEntry() {
   entries[idx].otherCharges = other;
   entries[idx].totalCharge = base + agency + disbursement + other;
   entries[idx].specialNotes = document.getElementById('editSpecialNotes').value;
+
   DB.entries = entries;
+
+  // Sync to cloud
   const result = await syncUpdateToCloud(entries[idx]);
-  if (result) showToast('Entry ' + editingEntryId + ' updated & synced!');
-  else showToast('Entry ' + editingEntryId + ' updated locally (cloud sync pending).');
-  closeEditModal(); renderLog(); renderTimeline();
+  if (result) {
+    showToast('Entry ' + editingEntryId + ' updated & synced!');
+  } else {
+    showToast('Entry ' + editingEntryId + ' updated locally (cloud sync pending).');
+  }
+
+  closeEditModal();
+  renderLog();
+  renderTimeline();
 }
+
 async function confirmDeleteEntry(entryId) {
   if (!confirm('Are you sure you want to delete entry ' + entryId + '? This cannot be undone.')) return;
+
   const entries = DB.entries.filter(e => e.entryId !== entryId);
   DB.entries = entries;
+
   const result = await syncDeleteFromCloud(entryId);
-  if (result) showToast('Entry ' + entryId + ' deleted & removed from cloud.');
-  else showToast('Entry ' + entryId + ' deleted locally (cloud sync pending).');
-  renderLog(); renderTimeline();
+  if (result) {
+    showToast('Entry ' + entryId + ' deleted & removed from cloud.');
+  } else {
+    showToast('Entry ' + entryId + ' deleted locally (cloud sync pending).');
+  }
+
+  renderLog();
+  renderTimeline();
+}
+
+// ============================================================
+// FRIENDLY DATE FORMATTER: "Monday 18th May 2026"
+// ============================================================
+function formatFriendlyDate(dateStr) {
+  if (!dateStr) return '\u2014';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const day = d.getDate();
+  const suffix = (day === 1 || day === 21 || day === 31) ? 'st' : (day === 2 || day === 22) ? 'nd' : (day === 3 || day === 23) ? 'rd' : 'th';
+  return days[d.getDay()] + ' ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 // ============================================================
 // RENDER SERVICE LOG
 // ============================================================
 function renderLog() {
-  const entries = DB.entries;
+  const entries = DB.entries || [];
   const tbody = document.getElementById('logTableBody');
-  const search = (document.getElementById('logSearch').value || '').toLowerCase();
-  const statusFilter = document.getElementById('logStatusFilter').value;
-  const vesselFilter = document.getElementById('logVesselFilter').value;
+  if (!tbody) return;
+  const searchEl = document.getElementById('logSearch');
+  const statusEl = document.getElementById('logStatusFilter');
+  const vesselEl = document.getElementById('logVesselFilter');
+  const search = (searchEl ? searchEl.value : '').toLowerCase();
+  const statusFilter = statusEl ? statusEl.value : '';
+  const vesselFilter = vesselEl ? vesselEl.value : '';
 
   let filtered = entries.filter(e => e.status !== 'draft');
 
@@ -1926,43 +2132,6 @@ function renderLog() {
   updateVesselFilterDropdown();
 }
 
-
-function confirmDeleteEntry(entryId) {
-  const overlay = document.createElement('div');
-  overlay.className = 'confirm-overlay';
-  overlay.innerHTML = '<div class="confirm-dialog">' +
-    '<h3>Delete Entry</h3>' +
-    '<p>Are you sure you want to delete entry <strong>' + entryId + '</strong>? This action cannot be undone.</p>' +
-    '<div class="confirm-btns">' +
-    '<button class="btn-cancel" onclick="this.closest(\'.confirm-overlay\').remove()">Cancel</button>' +
-    '<button class="btn-confirm-delete" onclick="performDelete(\'' + entryId + '\', this)">Delete</button>' +
-    '</div></div>';
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', function(ev) { if (ev.target === overlay) overlay.remove(); });
-}
-
-async function performDelete(entryId, btn) {
-  btn.textContent = 'Deleting...';
-  btn.disabled = true;
-  try {
-    const result = await syncDeleteFromCloud(entryId);
-    if (result) {
-      let entries = DB.entries;
-      entries = entries.filter(e => e.entryId !== entryId);
-      DB.entries = entries;
-      showToast('Entry ' + entryId + ' deleted successfully', 'success');
-      renderLog();
-      renderTimeline();
-      renderBudgetView();
-    } else {
-      showToast('Failed to delete entry from cloud', 'error');
-    }
-  } catch(err) {
-    console.error('Delete failed:', err);
-    showToast('Delete failed: ' + err.message, 'error');
-  }
-  document.querySelector('.confirm-overlay')?.remove();
-}
 function renderRunningTotals(entries) {
   const totals = {};
   entries.forEach(e => {
@@ -1972,6 +2141,7 @@ function renderRunningTotals(entries) {
   });
 
   const container = document.getElementById('runningTotals');
+  if (!container) return;
   const vessels = Object.keys(totals);
   if (vessels.length === 0) {
     container.innerHTML = '<div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>';
@@ -2029,9 +2199,11 @@ function calGoToday() { var d = new Date(); calViewYear = d.getFullYear(); calVi
 function renderTimeline() {
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  document.getElementById('calMonthTitle').textContent = MONTHS[calViewMonth] + ' ' + calViewYear;
+  var titleEl = document.getElementById('calMonthTitle');
+  if (titleEl) titleEl.textContent = MONTHS[calViewMonth] + ' ' + calViewYear;
 
-  var entries = DB.entries.filter(function(e) { return e.status !== 'draft'; });
+  // Build entries-by-date map
+  var entries = (DB.entries || []).filter(function(e) { return e.status !== 'draft'; });
   var byDate = {};
   entries.forEach(function(e) {
     var key = getEntryDateKey(e);
@@ -2045,8 +2217,10 @@ function renderTimeline() {
   var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
   var html = '';
+  // Day-of-week headers
   DAYS.forEach(function(d) { html += '<div class="cal-dow">' + d + '</div>'; });
 
+  // Previous month trailing days
   for (var p = firstDay - 1; p >= 0; p--) {
     var pDay = prevMonthDays - p;
     var pM = calViewMonth === 0 ? 12 : calViewMonth;
@@ -2055,12 +2229,14 @@ function renderTimeline() {
     html += buildCalCell(pDay, pKey, byDate[pKey] || [], true, false);
   }
 
+  // Current month days
   for (var d = 1; d <= daysInMonth; d++) {
     var key = calViewYear + '-' + String(calViewMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     var isToday = key === todayKey;
     html += buildCalCell(d, key, byDate[key] || [], false, isToday);
   }
 
+  // Next month leading days
   var totalCells = firstDay + daysInMonth;
   var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
   for (var n = 1; n <= remaining; n++) {
@@ -2070,83 +2246,131 @@ function renderTimeline() {
     html += buildCalCell(n, nKey, byDate[nKey] || [], true, false);
   }
 
-  document.getElementById('calGrid').innerHTML = html;
+  var gridEl = document.getElementById('calGrid');
+  if (gridEl) gridEl.innerHTML = html;
 }
 
 function buildCalCell(dayNum, dateKey, entries, isOtherMonth, isToday) {
   var cls = 'cal-cell';
   if (isOtherMonth) cls += ' other-month';
   if (isToday) cls += ' today';
+
   var dayHtml = isToday ? '<div class="cal-day"><div style="background:var(--teal);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">' + dayNum + '</div></div>' : '<div class="cal-day">' + dayNum + '</div>';
+
   var pips = '';
   var maxShow = 3;
-  var sorted = entries.sort(function(a, b) { return (getEntryDate(a)||new Date(0)) - (getEntryDate(b)||new Date(0)); });
+  var sorted = entries.sort(function(a, b) {
+    var da = getEntryDate(a) || new Date(0);
+    var db = getEntryDate(b) || new Date(0);
+    return da - db;
+  });
   for (var i = 0; i < Math.min(sorted.length, maxShow); i++) {
     var e = sorted[i];
     var sc = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
     pips += '<div class="cal-entry-pip ' + sc + '">' + (e.vessel || 'Job') + '</div>';
   }
-  if (sorted.length > maxShow) pips += '<div class="cal-more">+' + (sorted.length - maxShow) + ' more</div>';
+  if (sorted.length > maxShow) {
+    pips += '<div class="cal-more">+' + (sorted.length - maxShow) + ' more</div>';
+  }
+
   return '<div class="' + cls + '" data-date="' + dateKey + '" onclick="openDayDetail(\'' + dateKey + '\')">' + dayHtml + '<div class="cal-dots">' + pips + '</div></div>';
 }
 
 function openDayDetail(dateKey) {
   var entries = DB.entries.filter(function(e) { return e.status !== 'draft' && getEntryDateKey(e) === dateKey; });
-  var sorted = entries.sort(function(a, b) { return (getEntryDate(a)||new Date(0)) - (getEntryDate(b)||new Date(0)); });
-  var d = new Date(dateKey + 'T12:00:00');
-  var DNAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var MNAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var dn = d.getDate();
-  var sx = (dn===1||dn===21||dn===31)?'st':(dn===2||dn===22)?'nd':(dn===3||dn===23)?'rd':'th';
-  var title = DNAMES[d.getDay()] + ', ' + dn + sx + ' ' + MNAMES[d.getMonth()] + ' ' + d.getFullYear();
-  var planned = sorted.filter(function(e){return e.status==='planned';}).length;
-  var inProg = sorted.filter(function(e){return e.status==='progress';}).length;
-  var comp = sorted.filter(function(e){return e.status==='completed';}).length;
-  var total$ = sorted.reduce(function(s,e){return s+(e.totalCharge||0);},0);
+  var sorted = entries.sort(function(a, b) {
+    var da = getEntryDate(a) || new Date(0);
+    var db = getEntryDate(b) || new Date(0);
+    return da - db;
+  });
 
-  var stats = '<div class="day-detail-stats">' +
+  var d = new Date(dateKey + 'T12:00:00');
+  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dayNum = d.getDate();
+  var suffix = (dayNum === 1 || dayNum === 21 || dayNum === 31) ? 'st' : (dayNum === 2 || dayNum === 22) ? 'nd' : (dayNum === 3 || dayNum === 23) ? 'rd' : 'th';
+  var title = DAYS[d.getDay()] + ', ' + dayNum + suffix + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+
+  var planned = sorted.filter(function(e) { return e.status === 'planned'; }).length;
+  var inProg = sorted.filter(function(e) { return e.status === 'progress'; }).length;
+  var completed = sorted.filter(function(e) { return e.status === 'completed'; }).length;
+  var totalCharge = sorted.reduce(function(sum, e) { return sum + (e.totalCharge || 0); }, 0);
+
+  var statsHtml = '<div class="day-detail-stats">' +
     '<div class="day-stat"><div class="num">' + sorted.length + '</div><div class="label">Total Jobs</div></div>' +
     '<div class="day-stat"><div class="num" style="color:var(--blue);">' + planned + '</div><div class="label">Planned</div></div>' +
     '<div class="day-stat"><div class="num" style="color:var(--orange);">' + inProg + '</div><div class="label">In Progress</div></div>' +
-    '<div class="day-stat"><div class="num" style="color:var(--green);">' + comp + '</div><div class="label">Completed</div></div>' +
-    (total$>0?'<div class="day-stat"><div class="num">$'+total$.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="label">Total Charges</div></div>':'') +
+    '<div class="day-stat"><div class="num" style="color:var(--green);">' + completed + '</div><div class="label">Completed</div></div>' +
+    (totalCharge > 0 ? '<div class="day-stat"><div class="num">$' + totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div><div class="label">Total Charges</div></div>' : '') +
     '</div>';
 
-  var jobs = '';
-  if (sorted.length === 0) { jobs = '<div class="day-empty">No activity recorded for this date.</div>'; }
-  else {
-    jobs = '<div class="day-detail-list">' + sorted.map(function(e) {
-      var sc = e.status==='planned'?'planned':e.status==='progress'?'progress':'completed';
-      var sl = e.status==='planned'?'Planned':e.status==='progress'?'In Progress':'Completed';
+  var jobsHtml = '';
+  if (sorted.length === 0) {
+    jobsHtml = '<div class="day-empty">No activity recorded for this date.</div>';
+  } else {
+    jobsHtml = '<div class="day-detail-list">' + sorted.map(function(e) {
+      var sc = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
+      var statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
+
+      var timesHtml = '';
       var times = [];
-      if(e.eta) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETA: '+new Date(e.eta).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div>');
-      if(e.etd) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETD: '+new Date(e.etd).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div>');
-      if(e.crewArrival) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew In: '+e.crewArrival+'</div>');
-      if(e.crewDeparture) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew Out: '+e.crewDeparture+'</div>');
-      if(e.marina) times.push('<div class="day-job-time"><span class="time-icon">&#9875;</span> '+e.marina+'</div>');
-      var timesH = times.length ? '<div class="day-job-times">'+times.join('')+'</div>' : '';
-      var compH = '';
-      if(e.submissionDate||e.createdAt){
+      if (e.eta) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETA: ' + new Date(e.eta).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>');
+      if (e.etd) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETD: ' + new Date(e.etd).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>');
+      if (e.crewArrival) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew In: ' + e.crewArrival + '</div>');
+      if (e.crewDeparture) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew Out: ' + e.crewDeparture + '</div>');
+      if (e.marina) times.push('<div class="day-job-time"><span class="time-icon">&#9875;</span> ' + e.marina + '</div>');
+      if (times.length) timesHtml = '<div class="day-job-times">' + times.join('') + '</div>';
+
+      // Logged vs completed comparison
+      var compHtml = '';
+      if (e.submissionDate || e.createdAt) {
         var logRaw = e.submissionDate || e.createdAt || '';
         var logged = logRaw ? formatFriendlyDate(logRaw.substring(0, 10)) : '';
-        var svc = e.serviceDate?formatFriendlyDate(e.serviceDate):'\u2014';
-        compH='<div class="day-job-comparison"><span>&#128221; Logged: '+logged+'</span><span class="arrow">&#10132;</span><span>&#128197; Service: '+svc+'</span></div>';
+        var svcDate = e.serviceDate ? formatFriendlyDate(e.serviceDate) : '—';
+        compHtml = '<div class="day-job-comparison">' +
+          '<span>&#128221; Logged: ' + logged + '</span>' +
+          '<span class="arrow">&#10132;</span>' +
+          '<span>&#128197; Service: ' + svcDate + '</span>' +
+          '</div>';
       }
-      var chH = (e.totalCharge&&e.totalCharge>0)?'<div class="day-job-charge">'+(e.currency||'USD')+' $'+e.totalCharge.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'';
-      return '<div class="day-job"><div class="day-job-header"><div><div class="day-job-vessel">'+(e.vessel||'Unknown Vessel')+'</div><div class="day-job-service">'+(e.category||'')+(e.serviceType?' \u2014 '+e.serviceType:'')+(e.staffMember?' &middot; '+e.staffMember:'')+'</div></div><div class="day-job-status '+sc+'">'+sl+'</div></div>'+timesH+compH+chH+(e.description?'<div style="margin-top:8px;font-size:12px;color:var(--gray-600);">'+e.description+'</div>':'')+'</div>';
+
+      var chargeHtml = '';
+      if (e.totalCharge && e.totalCharge > 0) {
+        chargeHtml = '<div class="day-job-charge">' + (e.currency || 'USD') + ' $' + e.totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div>';
+      }
+
+      return '<div class="day-job">' +
+        '<div class="day-job-header">' +
+        '<div><div class="day-job-vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
+        '<div class="day-job-service">' + (e.category || '') + (e.serviceType ? ' &mdash; ' + e.serviceType : '') + (e.staffMember ? ' &middot; ' + e.staffMember : '') + '</div></div>' +
+        '<div class="day-job-status ' + sc + '">' + statusLabel + '</div>' +
+        '</div>' +
+        timesHtml +
+        compHtml +
+        chargeHtml +
+        (e.description ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-600);">' + e.description + '</div>' : '') +
+        '</div>';
     }).join('') + '</div>';
   }
-  document.getElementById('dayDetailContainer').innerHTML='<div class="day-detail-overlay" onclick="if(event.target===this)closeDayDetail()"><div class="day-detail-panel"><div class="day-detail-header"><h3>'+title+'</h3><button class="day-detail-close" onclick="closeDayDetail()">&times;</button></div>'+stats+jobs+'</div></div>';
+
+  var container = document.getElementById('dayDetailContainer');
+  container.innerHTML = '<div class="day-detail-overlay" onclick="if(event.target===this)closeDayDetail()">' +
+    '<div class="day-detail-panel">' +
+    '<div class="day-detail-header"><h3>' + title + '</h3><button class="day-detail-close" onclick="closeDayDetail()">&times;</button></div>' +
+    statsHtml + jobsHtml +
+    '</div></div>';
 }
 
-function closeDayDetail() { document.getElementById('dayDetailContainer').innerHTML = ''; }
+function closeDayDetail() {
+  document.getElementById('dayDetailContainer').innerHTML = '';
+}
 
 // ============================================================
 // BUDGET MANAGEMENT
 // ============================================================
 function renderBudgetView() {
-  const entries = DB.entries.filter(e => e.status !== 'draft');
-  const budgets = DB.budgets;
+  const entries = (DB.entries || []).filter(e => e.status !== 'draft');
+  const budgets = DB.budgets || {};
 
   // Calculate totals by vessel
   const vesselSpend = {};
@@ -2158,11 +2382,14 @@ function renderBudgetView() {
 
   // Update overview
   const totalSpend = Object.values(vesselSpend).reduce((a, b) => a + b, 0);
-  document.getElementById('budgetTotalSpend').textContent = '$' + totalSpend.toFixed(2);
-  document.getElementById('budgetVesselCount').textContent = Object.keys(vesselSpend).length;
+  const spendEl = document.getElementById('budgetTotalSpend');
+  const countEl = document.getElementById('budgetVesselCount');
+  if (spendEl) spendEl.textContent = '$' + totalSpend.toFixed(2);
+  if (countEl) countEl.textContent = Object.keys(vesselSpend).length;
 
   // Render per-vessel budget table
   const tbody = document.getElementById('budgetTableBody');
+  if (!tbody) return;
   const vessels = Object.keys(vesselSpend).sort();
 
   if (vessels.length === 0) {
@@ -2179,7 +2406,7 @@ function renderBudgetView() {
 
       return '<tr>' +
         '<td><strong>' + vessel + '</strong></td>' +
-        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : 'Ã¢ÂÂ') + '</td>' +
+        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : '—') + '</td>' +
         '<td>$' + spent.toFixed(2) + '</td>' +
         '<td>$' + remaining.toFixed(2) + '</td>' +
         '<td>' +
@@ -2415,29 +2642,31 @@ function switchSettingsTab(tab) {
 }
 
 function renderSettingsList() {
-  var vList = document.getElementById('settingsVesselsList');
-  var sortedVessels = [...DB.vessels].sort(function(a, b) { return a.localeCompare(b); });
+  // Vessels list
+  const vList = document.getElementById('settingsVesselsList');
+  const sortedVessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
   if (sortedVessels.length === 0) {
     vList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No vessels added yet.</div>';
   } else {
-    vList.innerHTML = sortedVessels.map(function(v) {
-      return '<div class="settings-list-item"><span>' + v + '</span><button class="settings-delete-btn" data-delete-vessel="' + v.replace(/"/g, '&quot;') + '">Delete</button></div>';
-    }).join('');
+    vList.innerHTML = sortedVessels.map(v =>
+      '<div class="settings-list-item"><span>' + v + '</span><button class="settings-delete-btn" onclick="deleteVessel(\'' + v.replace(/'/g, "\\'") + '\')">Delete</button></div>'
+    ).join('');
   }
-  var sList = document.getElementById('settingsStaffList');
-  var sortedStaff = [...STAFF_LIST].sort(function(a, b) { return a.localeCompare(b); });
+  // Staff list
+  const sList = document.getElementById('settingsStaffList');
+  const sortedStaff = [...STAFF_LIST].sort((a, b) => a.localeCompare(b));
   if (sortedStaff.length === 0) {
     sList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No staff members added yet.</div>';
   } else {
-    sList.innerHTML = sortedStaff.map(function(s) {
-      return '<div class="settings-list-item"><span>' + s + '</span><button class="settings-delete-btn" data-delete-staff="' + s.replace(/"/g, '&quot;') + '">Delete</button></div>';
-    }).join('');
+    sList.innerHTML = sortedStaff.map(s =>
+      '<div class="settings-list-item"><span>' + s + '</span><button class="settings-delete-btn" onclick="deleteStaff(\'' + s.replace(/'/g, "\\'") + '\')">Delete</button></div>'
+    ).join('');
   }
 }
 
 function settingsAddItem() {
-  var input = document.getElementById('settingsAddInput');
-  var val = input.value.trim();
+  const input = document.getElementById('settingsAddInput');
+  const val = input.value.trim();
   if (!val) return;
   if (settingsActiveTab === 'vessels') {
     if (!DB.vessels.includes(val)) {
@@ -2445,43 +2674,44 @@ function settingsAddItem() {
       syncVesselToCloud(val);
       populateVesselDropdowns();
       showToast(val + ' added to vessels.');
-    } else { showToast('Vessel already exists.'); }
+    } else {
+      showToast('Vessel already exists.');
+    }
   } else {
     if (!STAFF_LIST.includes(val)) {
       STAFF_LIST.push(val);
       populateStaffDropdown();
       showToast(val + ' added to staff.');
-    } else { showToast('Staff member already exists.'); }
+    } else {
+      showToast('Staff member already exists.');
+    }
   }
   input.value = '';
   renderSettingsList();
 }
 
-document.addEventListener('click', function(e) {
-  if (e.target.dataset.deleteVessel) {
-    var name = e.target.dataset.deleteVessel;
-    if (!confirm('Delete vessel "' + name + '"? This will not affect existing entries.')) return;
-    var idx = DB.vessels.indexOf(name);
-    if (idx > -1) {
-      DB.vessels.splice(idx, 1);
-      apiPost({ action: 'deleteVessel', vessel: name });
-      populateVesselDropdowns();
-      renderSettingsList();
-      showToast(name + ' removed from vessels.');
-    }
+function deleteVessel(name) {
+  if (!confirm('Delete vessel "' + name + '"? This will not affect existing entries.')) return;
+  const idx = DB.vessels.indexOf(name);
+  if (idx > -1) {
+    DB.vessels.splice(idx, 1);
+    apiPost({ action: 'deleteVessel', vessel: name });
+    populateVesselDropdowns();
+    renderSettingsList();
+    showToast(name + ' removed from vessels.');
   }
-  if (e.target.dataset.deleteStaff) {
-    var name = e.target.dataset.deleteStaff;
-    if (!confirm('Delete staff member "' + name + '"? This will not affect existing entries.')) return;
-    var idx = STAFF_LIST.indexOf(name);
-    if (idx > -1) {
-      STAFF_LIST.splice(idx, 1);
-      populateStaffDropdown();
-      renderSettingsList();
-      showToast(name + ' removed from staff.');
-    }
+}
+
+function deleteStaff(name) {
+  if (!confirm('Delete staff member "' + name + '"? This will not affect existing entries.')) return;
+  const idx = STAFF_LIST.indexOf(name);
+  if (idx > -1) {
+    STAFF_LIST.splice(idx, 1);
+    populateStaffDropdown();
+    renderSettingsList();
+    showToast(name + ' removed from staff.');
   }
-});
+}
 
 // ============================================================
 // TOAST
@@ -2501,17 +2731,16 @@ populateStaffDropdown();
 populateVesselDropdowns();
 recalculate();
 
-// ============================================================
-// CLOUD INITIALIZATION
-// ============================================================
+// Load data from Google Sheets on startup
 (async function initCloud() {
   updateSyncBadge();
   const ok = await syncFromCloud();
-  if (ok) { console.log('Data loaded from Google Sheets'); }
-  else { console.log('Using local data (offline mode)'); }
+  if (ok) {
+    console.log('Data loaded from Google Sheets');
+  } else {
+    console.log('Using local data (offline mode)');
+  }
 })();
-
 </script>
-
-
-</body></html>
+</body>
+</html>
