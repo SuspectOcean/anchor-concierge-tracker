@@ -1400,16 +1400,20 @@ const DB = {
 // Load all data from Google Sheets into localStorage
 // Fix double-encoded UTF-8 strings from Google Sheets
 function fixEncoding(str) {
-  if (typeof str !== 'string') return str;
-  try {
-    if (/[\xC3][\x80-\xBF]/.test(str)) {
-      const bytes = new Uint8Array([...str].map(c => c.charCodeAt(0)));
-      const decoded = new TextDecoder('utf-8').decode(bytes);
-      if (!decoded.includes('\uFFFD') && decoded.length < str.length) return decoded;
+      if (typeof str !== 'string') return str;
+      try {
+        let result = str;
+        for (let i = 0; i < 3; i++) {
+          if (!/[\x80-\xFF]/.test(result)) break;
+          const bytes = new Uint8Array([...result].map(c => c.charCodeAt(0)));
+          const decoded = new TextDecoder('utf-8').decode(bytes);
+          if (decoded === result || decoded.includes('\uFFFD')) break;
+          result = decoded;
+        }
+        return result;
+      } catch(e) {}
+      return str;
     }
-  } catch(e) {}
-  return str;
-}
 
 // Map Google Sheets header names to frontend camelCase keys
 function mapEntryFromSheet(raw) {
