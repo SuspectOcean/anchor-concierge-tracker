@@ -2127,7 +2127,8 @@ function openDayDetail(dateKey) {
       var timesH = times.length ? '<div class="day-job-times">'+times.join('')+'</div>' : '';
       var compH = '';
       if(e.submissionDate||e.createdAt){
-        var logged = e.submissionDate||(e.createdAt?new Date(e.createdAt).toLocaleString():'');
+        var logRaw = e.submissionDate || e.createdAt || '';
+        var logged = logRaw ? formatFriendlyDate(logRaw.substring(0, 10)) : '';
         var svc = e.serviceDate?formatFriendlyDate(e.serviceDate):'\u2014';
         compH='<div class="day-job-comparison"><span>&#128221; Logged: '+logged+'</span><span class="arrow">&#10132;</span><span>&#128197; Service: '+svc+'</span></div>';
       }
