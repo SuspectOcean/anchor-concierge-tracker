@@ -1323,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // GOOGLE SHEETS BACKEND + LOCAL CACHE
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbw3TAKTviq2tu3NB1jDhT13mHDnO-hvEb0GrzvXNsdFq5O0aSFd8CieKxY04-u055TUKQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzbLCEGwkKCNn8GD2Wv9MAm6dvqIf6fH3FL_zm102148l96FLhJNtdaeIiI5Uef0QcD4g/exec';
 let syncStatus = 'offline'; // 'online', 'offline', 'syncing'
 
 function updateSyncBadge() {
@@ -1399,25 +1399,60 @@ const DB = {
 };
 
 // Load all data from Google Sheets into localStorage
+// Map Google Sheets header names to frontend camelCase keys
+function mapEntryFromSheet(raw) {
+  return {
+    entryId: raw['Entry ID'] || '',
+    submissionDate: raw['Submission Date'] || '',
+    serviceDate: raw['Service Date'] || '',
+    vessel: raw['Vessel'] || '',
+    staffMember: raw['Staff Member'] || '',
+    category: raw['Category'] || '',
+    serviceType: raw['Service Type'] || '',
+    description: raw['Description'] || '',
+    status: (raw['Status'] || 'planned').toLowerCase(),
+    workCompleted: raw['Work Completed'] || '',
+    clearedIn: raw['Location - Cleared In'] || '',
+    clearedOut: raw['Location - Cleared Out'] || '',
+    marina: raw['Marina/Berth/Port'] || '',
+    country: raw['Country/Island'] || '',
+    jurisdiction: raw['Jurisdiction'] || '',
+    futureTask: raw['Future Task'] || '',
+    eta: raw['ETA'] || '',
+    etd: raw['ETD'] || '',
+    crewArrival: raw['Crew Arrival'] || '',
+    crewDeparture: raw['Crew Departure'] || '',
+    billingType: raw['Billing Type'] || '',
+    billable: raw['Billable'] || '',
+    currency: raw['Currency'] || 'USD',
+    baseCharge: raw['Base Charge'] || 0,
+    additionalCrewCharge: raw['Additional Crew Charge'] || 0,
+    agencyFee: raw['Agency Fee'] || 0,
+    disbursementFee: raw['Disbursement Fee'] || 0,
+    otherCharges: raw['Other Charges'] || 0,
+    totalCharge: raw['Total Charge'] || 0,
+    specialNotes: raw['Special Notes'] || '',
+    internalNotes: raw['Internal Notes'] || '',
+    clientNotes: raw['Client Notes'] || '',
+    overrideNote: raw['Override Note'] || '',
+    syncedAt: raw['Synced At'] || ''
+  };
+}
+
 async function syncFromCloud() {
   const data = await apiGet();
   if (data) {
-    DB.entries = data.entries || [];
-    DB.vessels = data.vessels || [];
+    const rawEntries = data.entries || [];
+    DB.entries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
+    const rawVessels = data.vessels || [];
+    DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
     DB.budgets = data.budgets || {};
     if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    // Refresh current view
-    populateVesselDropdowns();
-    const activeView = document.querySelector('.tab-btn.active');
-    if (activeView) {
-      const view = activeView.getAttribute('data-view');
-      if (view === 'log') renderLog();
-      if (view === 'timeline') renderTimeline();
-      if (view === 'budget') renderBudgetView();
-    }
-    return true;
+    syncStatus = 'online';
+  } else {
+    syncStatus = 'offline';
   }
-  return false;
+  updateSyncBadge();
 }
 
 // Push a new entry to Google Sheets
