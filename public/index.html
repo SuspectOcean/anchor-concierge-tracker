@@ -1528,7 +1528,7 @@ async function syncFromCloud() {
 
 // Push a new entry to Google Sheets
 async function syncEntryToCloud(entry) {
-  return await apiPost({ action: 'addEntry', entry: entry });
+  return await apiPost({ action: 'submitEntry', entry: entry });
 }
 
 // Push an updated entry to Google Sheets
