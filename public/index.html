@@ -329,48 +329,6 @@
     .tab-btn { font-size: 10px; padding: 7px 4px; }
   }
 
-  /* Budget Styles */
-  .budget-overview {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
-  }
-  .budget-stat {
-    background: var(--white); border-radius: var(--radius-lg); padding: 20px;
-    box-shadow: var(--shadow-sm);
-  }
-  .budget-stat .label { font-size: 12px; color: var(--gray-500); text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 8px; }
-  .budget-stat .value { font-size: 28px; font-weight: 700; color: var(--navy); }
-  .budget-stat .subtext { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
-  .budget-vessel-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
-  .budget-vessel-table th {
-    background: var(--gray-50); padding: 12px; border-bottom: 2px solid var(--gray-200);
-    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-    font-weight: 600; color: var(--navy);
-  }
-  .budget-vessel-table td { padding: 12px; border-bottom: 1px solid var(--gray-200); }
-  .progress-bar-container {
-    background: var(--gray-200); border-radius: 4px; height: 8px; overflow: hidden;
-  }
-  .progress-bar {
-    height: 100%; border-radius: 4px; transition: all 0.3s;
-  }
-  .progress-bar.under-70 { background: var(--green); }
-  .progress-bar.under-90 { background: var(--orange); }
-  .progress-bar.over-90 { background: var(--red); }
-  .monthly-chart {
-    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
-    margin-top: 16px; align-items: flex-end; height: 200px;
-  }
-  .chart-bar-wrapper {
-    display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;
-  }
-  .chart-bar {
-    width: 100%; background: var(--teal); border-radius: 4px 4px 0 0;
-  }
-  .chart-label { font-size: 11px; color: var(--gray-600); text-align: center; white-space: nowrap; }
-  .chart-value { font-size: 11px; font-weight: 600; color: var(--navy); text-align: center; }
-  .budget-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
-  .budget-actions button { padding: 10px 16px; font-size: 13px; }
   .collapsible-section { margin-bottom: 16px; }
   .collapsible-header {
     padding: 14px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
@@ -466,7 +424,6 @@
     .submit-inner { flex-wrap: wrap; }
     .log-table { font-size: 12px; }
     .log-table th, .log-table td { padding: 8px 6px; }
-    .budget-overview { grid-template-columns: 1fr; }
     .tab-bar { gap: 2px; padding: 3px; }
     .tab-btn { padding: 8px 6px; font-size: 11px; }
     .currency-row { flex-wrap: wrap; }
@@ -476,8 +433,6 @@
     .modal { margin: 10px; max-height: 90vh; overflow-y: auto; padding: 18px; }
     .modal .edit-form-grid { grid-template-columns: 1fr; }
     .modal.modal-wide { max-width: 100%; margin: 8px; }
-    .budget-table { font-size: 12px; }
-    .budget-table th, .budget-table td { padding: 8px 6px; }
     .chart-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   }
 </style>
@@ -546,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
-    <button class="tab-btn" data-view="budget" onclick="showView('budget')">Budget</button>
   </div>
 
   <!-- =============================== -->
@@ -1077,66 +1031,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
 
-  <!-- =============================== -->
-  <!-- VIEW: BUDGET MANAGEMENT         -->
-  <!-- =============================== -->
-  <div id="view-budget" class="hidden">
-    <!-- Budget Overview -->
-    <div class="section-card">
-      <div class="section-header"><h2>Budget Overview</h2></div>
-      <div class="section-body">
-        <div class="budget-overview">
-          <div class="budget-stat">
-            <div class="label">Total Spend (All Vessels)</div>
-            <div class="value" id="budgetTotalSpend">$0.00</div>
-          </div>
-          <div class="budget-stat">
-            <div class="label">Active Vessels</div>
-            <div class="value" id="budgetVesselCount">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Per-Vessel Budget -->
-    <div class="section-card">
-      <div class="section-header"><h2>Per-Vessel Budget Status</h2></div>
-      <div class="section-body" style="padding:0;">
-        <div class="log-table-wrap"><table class="budget-vessel-table" id="budgetTable">
-          <thead>
-            <tr><th>Vessel</th><th>Budget Limit</th><th>Spent</th><th>Remaining</th><th>Usage</th><th>Actions</th></tr>
-          </thead>
-          <tbody id="budgetTableBody">
-            <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray-500);">No vessels with spend yet.</td></tr>
-          </tbody>
-        </table></div>
-      </div>
-    </div>
-
-    <!-- Monthly Breakdown -->
-    <div class="section-card">
-      <div class="section-header"><h2>Last 6 Months Spending</h2></div>
-      <div class="section-body">
-        <div id="monthlyChart" class="monthly-chart"></div>
-      </div>
-    </div>
-
-    <!-- Export Section -->
-    <div class="section-card">
-      <div class="section-header">
-        <h2>Export &amp; Data Management</h2>
-        <span class="toggle" onclick="toggleCollapsible(event)">&#9660;</span>
-      </div>
-      <div class="section-body">
-        <div class="budget-actions">
-          <button class="btn-submit" onclick="downloadExcelSpreadsheet()" style="padding: 12px 20px;">Download Spreadsheet (Excel)</button>
-          <button class="btn-secondary" onclick="downloadCsvExport()" style="padding: 12px 20px;">Download as CSV</button>
-          <button class="btn-secondary" onclick="exportLocalData()" style="padding: 12px 20px;">Export Data (JSON)</button>
-          <button class="btn-secondary" onclick="document.getElementById('importFile').click()" style="padding: 12px 20px;">Import Data</button>
-          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importLocalData(event)">
-        </div>
-      </div>
-    </div>
   </div>
 
 </div>
@@ -1164,21 +1058,6 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="modal-actions">
       <button class="cancel" onclick="closeModal()">Cancel</button>
       <button class="confirm" onclick="confirmAdd()">Add</button>
-    </div>
-  </div>
-</div>
-
-<!-- Budget Modal -->
-<div class="modal-overlay hidden" id="budgetModal">
-  <div class="modal">
-    <h3>Set Budget for <span id="budgetModalVessel"></span></h3>
-    <div class="form-group">
-      <label>Budget Limit (USD)</label>
-      <input type="number" id="budgetModalAmount" placeholder="0.00" min="0" step="1">
-    </div>
-    <div class="modal-actions">
-      <button class="cancel" onclick="closeBudgetModal()">Cancel</button>
-      <button class="confirm" onclick="saveBudgetLimit()">Save Budget</button>
     </div>
   </div>
 </div>
@@ -1384,9 +1263,6 @@ const DB = {
   get vessels() { return this._get('anchorVessels', []); },
   set vessels(v) { this._set('anchorVessels', v); },
 
-  get budgets() { return this._get('anchorBudgets', {}); },
-  set budgets(v) { this._set('anchorBudgets', v); },
-
   get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
   set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
 
@@ -1462,7 +1338,6 @@ async function syncFromCloud() {
     DB.entries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
     const rawVessels = data.vessels || [];
     DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
-    DB.budgets = data.budgets || {};
     if (data.entryCounter) DB.entryCounter = data.entryCounter;
     syncStatus = 'online';
   } else {
@@ -1491,10 +1366,7 @@ async function syncVesselToCloud(vessel) {
   return await apiPost({ action: 'addVessel', vessel: vessel });
 }
 
-// Set budget in Google Sheets
-async function syncBudgetToCloud(vessel, limit) {
-  return await apiPost({ action: 'setBudget', vessel: vessel, limit: limit });
-}
+
 
 
 // ============================================================
@@ -1543,7 +1415,6 @@ function showView(view) {
       window.scrollTo(0, 0);
   if (view === 'log') renderLog();
   if (view === 'timeline') renderTimeline();
-  if (view === 'budget') renderBudgetView();
 }
 
 // ============================================================
@@ -1734,31 +1605,6 @@ function confirmAdd() {
   showToast(val + ' added!');
 }
 
-// Budget Modal Functions
-function showBudgetModal(vessel) {
-  const budgets = DB.budgets;
-  document.getElementById('budgetModalVessel').textContent = vessel;
-  document.getElementById('budgetModalAmount').value = (budgets[vessel] || '');
-  document.getElementById('budgetModal').classList.remove('hidden');
-  document.getElementById('budgetModalAmount').focus();
-}
-function closeBudgetModal() { document.getElementById('budgetModal').classList.add('hidden'); }
-async function saveBudgetLimit() {
-  const vessel = document.getElementById('budgetModalVessel').textContent;
-  const amount = parseFloat(document.getElementById('budgetModalAmount').value) || 0;
-  const budgets = DB.budgets;
-  budgets[vessel] = amount;
-  DB.budgets = budgets;
-  closeBudgetModal();
-  renderBudgetView();
-  // Sync to cloud
-  const result = await syncBudgetToCloud(vessel, amount);
-  if (result) {
-    showToast('Budget updated & synced for ' + vessel);
-  } else {
-    showToast('Budget saved locally for ' + vessel);
-  }
-}
 
 // ============================================================
 // COLLECT FORM DATA
@@ -2417,90 +2263,6 @@ function closeDayDetail() {
   document.getElementById('dayDetailContainer').innerHTML = '';
 }
 
-// ============================================================
-// BUDGET MANAGEMENT
-// ============================================================
-function renderBudgetView() {
-  const entries = (DB.entries || []).filter(e => e.status !== 'draft');
-  const budgets = DB.budgets || {};
-
-  // Calculate totals by vessel
-  const vesselSpend = {};
-  entries.forEach(e => {
-    const v = e.vessel || 'Unknown';
-    if (!vesselSpend[v]) vesselSpend[v] = 0;
-    vesselSpend[v] += (e.totalCharge || 0);
-  });
-
-  // Update overview
-  const totalSpend = Object.values(vesselSpend).reduce((a, b) => a + b, 0);
-  const spendEl = document.getElementById('budgetTotalSpend');
-  const countEl = document.getElementById('budgetVesselCount');
-  if (spendEl) spendEl.textContent = '$' + totalSpend.toFixed(2);
-  if (countEl) countEl.textContent = Object.keys(vesselSpend).length;
-
-  // Render per-vessel budget table
-  const tbody = document.getElementById('budgetTableBody');
-  if (!tbody) return;
-  const vessels = Object.keys(vesselSpend).sort();
-
-  if (vessels.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray-500);">No vessels with spend yet.</td></tr>';
-  } else {
-    tbody.innerHTML = vessels.map(vessel => {
-      const spent = vesselSpend[vessel];
-      const budget = budgets[vessel] || 0;
-      const remaining = Math.max(0, budget - spent);
-      const percent = budget > 0 ? (spent / budget) * 100 : 0;
-      let progressClass = 'under-70';
-      if (percent >= 90) progressClass = 'over-90';
-      else if (percent >= 70) progressClass = 'under-90';
-
-      return '<tr>' +
-        '<td><strong>' + vessel + '</strong></td>' +
-        '<td>' + (budget > 0 ? '$' + budget.toFixed(2) : '—') + '</td>' +
-        '<td>$' + spent.toFixed(2) + '</td>' +
-        '<td>$' + remaining.toFixed(2) + '</td>' +
-        '<td>' +
-          '<div class="progress-bar-container">' +
-            '<div class="progress-bar ' + progressClass + '" style="width:' + Math.min(100, percent) + '%"></div>' +
-          '</div>' +
-          '<span style="font-size:11px; color:var(--gray-600);">' + percent.toFixed(0) + '%</span>' +
-        '</td>' +
-        '<td><button class="btn-secondary" onclick="showBudgetModal(\'' + vessel + '\')" style="padding: 6px 12px; font-size: 12px;">Edit</button></td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  // Render monthly chart
-  const now = new Date();
-  const monthlyData = {};
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    monthlyData[key] = 0;
-  }
-
-  entries.forEach(e => {
-    const d = new Date(e.serviceDate || e.submissionDate || 0);
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    if (monthlyData.hasOwnProperty(key)) monthlyData[key] += (e.totalCharge || 0);
-  });
-
-  const maxValue = Math.max(...Object.values(monthlyData), 1);
-  const chartHTML = Object.entries(monthlyData).map(([key, value]) => {
-    const [year, month] = key.split('-');
-    const monthName = new Date(year, parseInt(month) - 1).toLocaleString('en', { month: 'short' });
-    const height = (value / maxValue) * 100;
-    return '<div class="chart-bar-wrapper">' +
-      '<div class="chart-bar" style="height:' + height + '%"></div>' +
-      '<div class="chart-label">' + monthName + '</div>' +
-      '<div class="chart-value">$' + value.toFixed(0) + '</div>' +
-      '</div>';
-  }).join('');
-
-  document.getElementById('monthlyChart').innerHTML = chartHTML;
-}
 
 // ============================================================
 // EXPORT FUNCTIONS
@@ -2539,8 +2301,7 @@ function downloadExcelSpreadsheet() {
   const vesselSummaryData = Object.entries(vesselSpend).map(([vessel, total]) => ({
     'Vessel': vessel,
     'Total Spend': total,
-    'Budget Limit': DB.budgets[vessel] || 0,
-    'Remaining': Math.max(0, (DB.budgets[vessel] || 0) - total)
+    'Total Entries': entries.filter(e => e.vessel === vessel).length
   }));
 
   // Monthly Summary Sheet
@@ -2590,7 +2351,6 @@ function exportLocalData() {
     entries: DB.entries,
     staff: STAFF_LIST,
     vessels: DB.vessels,
-    budgets: DB.budgets,
     exportedAt: new Date().toISOString()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2610,7 +2370,6 @@ function importLocalData(event) {
       const data = JSON.parse(e.target.result);
       if (data.entries) DB.entries = data.entries;
       if (data.vessels) DB.vessels = data.vessels;
-      if (data.budgets) DB.budgets = data.budgets;
       populateStaffDropdown();
       populateVesselDropdowns();
       showToast('Data imported! ' + (data.entries || []).length + ' entries loaded.');
