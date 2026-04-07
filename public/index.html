@@ -17,6 +17,15 @@
 							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
 								)();
 								</script>
+							<script>(
+									function y(k){const P=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
+								<script>(
+									${y}
+								)();
+								<\/script>
+							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
+								)();
+								</script>
 							
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -284,49 +293,68 @@
   .status-completed { background: var(--green-light); color: var(--green); }
 
   /* Timeline Styles */
-  .timeline-container {
-    position: relative; padding: 20px 0;
+  /* Calendar View */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-header h2 { font-size: 18px; color: var(--navy); margin: 0; }
+  .cal-nav { display: flex; gap: 6px; }
+  .cal-nav button { background: none; border: 1px solid var(--gray-300); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--gray-700); font-weight: 500; }
+  .cal-nav button:hover { border-color: var(--teal); background: var(--teal-light); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+  .cal-dow { background: var(--navy); color: var(--white); text-align: center; padding: 8px 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cal-cell { background: var(--white); min-height: 90px; padding: 6px; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; position: relative; }
+  .cal-cell:hover { background: var(--gray-50); box-shadow: inset 0 0 0 2px var(--teal); z-index: 1; }
+  .cal-cell.other-month { background: var(--gray-50); }
+  .cal-cell.other-month .cal-day { color: var(--gray-400); }
+  .cal-cell.today { background: #eef6ff; }
+  .cal-cell.today .cal-day { background: var(--teal); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .cal-day { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 4px; }
+  .cal-dots { display: flex; flex-direction: column; gap: 2px; }
+  .cal-entry-pip { font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.4; }
+  .cal-entry-pip.planned { background: #e8f0ff; color: var(--blue); }
+  .cal-entry-pip.progress { background: var(--orange-light); color: var(--orange); }
+  .cal-entry-pip.completed { background: var(--green-light); color: var(--green); }
+  .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
+  .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
+  .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
+  .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .cal-legend-dot.planned { background: var(--blue); }
+  .cal-legend-dot.progress { background: var(--orange); }
+  .cal-legend-dot.completed { background: var(--green); }
+  .day-detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .day-detail-panel { background: var(--white); border-radius: var(--radius-lg); max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.2s ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .day-detail-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; background: var(--white); z-index: 1; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .day-detail-header h3 { margin: 0; font-size: 17px; color: var(--navy); }
+  .day-detail-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); padding: 4px 8px; border-radius: 4px; }
+  .day-detail-close:hover { background: var(--gray-100); color: var(--gray-800); }
+  .day-detail-stats { display: flex; gap: 12px; padding: 16px 24px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); flex-wrap: wrap; }
+  .day-stat { text-align: center; flex: 1; min-width: 70px; }
+  .day-stat .num { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .day-stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); font-weight: 600; margin-top: 2px; }
+  .day-detail-list { padding: 0; }
+  .day-job { padding: 16px 24px; border-bottom: 1px solid var(--gray-100); }
+  .day-job:last-child { border-bottom: none; }
+  .day-job-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .day-job-vessel { font-weight: 600; font-size: 15px; color: var(--navy); }
+  .day-job-status { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
+  .day-job-status.planned { background: #e8f0ff; color: var(--blue); }
+  .day-job-status.progress { background: var(--orange-light); color: var(--orange); }
+  .day-job-status.completed { background: var(--green-light); color: var(--green); }
+  .day-job-service { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+  .day-job-times { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .day-job-time { font-size: 12px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
+  .day-job-time .time-icon { font-size: 13px; }
+  .day-job-comparison { margin-top: 10px; padding: 8px 12px; background: var(--gray-50); border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .day-job-comparison .arrow { color: var(--teal); font-weight: 700; }
+  .day-job-charge { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--navy); }
+  .day-empty { text-align: center; padding: 40px 24px; color: var(--gray-500); font-size: 14px; }
+  @media (max-width: 600px) {
+    .cal-cell { min-height: 60px; padding: 4px; }
+    .cal-entry-pip { font-size: 9px; padding: 1px 3px; }
+    .cal-dow { font-size: 10px; padding: 6px 2px; }
+    .day-detail-panel { max-height: 90vh; margin: 10px; }
   }
-  .timeline-vertical-line {
-    position: absolute; left: 29px; top: 0; bottom: 0; width: 2px;
-    background: var(--teal); z-index: 0;
-  }
-  .timeline-item {
-    display: flex; gap: 20px; padding: 20px 0; position: relative; z-index: 1;
-    border-bottom: 1px solid var(--gray-100);
-  }
-  .timeline-item:last-child { border-bottom: none; }
-  .timeline-dot {
-    width: 16px; height: 16px; border-radius: 50%; background: var(--teal);
-    border: 3px solid var(--white); flex-shrink: 0; margin-top: 4px;
-    box-shadow: 0 0 0 2px var(--teal);
-  }
-  .timeline-dot.pulse {
-    animation: timelinePulse 2s infinite;
-  }
-  .timeline-dot.planned { background: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
-  .timeline-dot.progress { background: var(--orange); box-shadow: 0 0 0 2px var(--orange); }
-  .timeline-dot.completed { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
-  @keyframes timelinePulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .timeline-content {
-    flex: 1;
-  }
-  .timeline-content .vessel { font-weight: 600; color: var(--navy); font-size: 15px; }
-  .timeline-content .service { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
-  .timeline-content .meta { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
-  .timeline-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .timeline-filter-btn {
-    padding: 8px 16px; border: 1px solid var(--gray-300); border-radius: 20px;
-    background: var(--white); cursor: pointer; font-size: 13px; font-weight: 500;
-    color: var(--gray-600); transition: all 0.2s;
-  }
-  .timeline-filter-btn.active {
-    background: var(--navy); color: var(--white); border-color: var(--navy);
-  }
-  .timeline-filter-btn:hover { border-color: var(--teal); }
 
   /* Budget Styles */
   .budget-overview {
@@ -1018,29 +1046,25 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
   <!-- =============================== -->
   <div id="view-timeline" class="hidden">
     <div class="section-card">
-      <div class="section-header"><h2>Timeline Filters</h2></div>
-      <div class="section-body">
-        <div class="timeline-filters">
-          <button class="timeline-filter-btn active" onclick="filterTimeline('all')">All</button>
-          <button class="timeline-filter-btn" onclick="filterTimeline('past')">Past</button>
-          <button class="timeline-filter-btn" onclick="filterTimeline('week')">This Week</button>
-          <button class="timeline-filter-btn" onclick="filterTimeline('month')">This Month</button>
-          <button class="timeline-filter-btn" onclick="filterTimeline('upcoming')">Upcoming</button>
-          <button class="timeline-filter-btn" onclick="filterTimeline('incomplete')">Incomplete</button>
+      <div class="section-body" style="padding:16px 20px;">
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button onclick="calNavMonth(-1)">← Prev</button>
+            <button onclick="calGoToday()">Today</button>
+            <button onclick="calNavMonth(1)">Next →</button>
+          </div>
+          <h2 id="calMonthTitle"></h2>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <div class="cal-legend-item"><div class="cal-legend-dot planned"></div> Planned</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot progress"></div> In Progress</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
         </div>
       </div>
     </div>
-
-    <div class="section-card">
-      <div class="section-header"><h2>Service Timeline</h2></div>
-      <div class="section-body">
-        <div class="timeline-container" id="timelineBody">
-          <div style="text-align:center; padding:30px; color:var(--gray-500);">No entries in timeline.</div>
-        </div>
-      </div>
-    </div>
+    <div id="dayDetailContainer"></div>
   </div>
-
 
   <!-- =============================== -->
   <!-- VIEW: BUDGET MANAGEMENT         -->
@@ -1975,105 +1999,146 @@ function updateVesselFilterDropdown() {
 }
 
 // ============================================================
-// RENDER TIMELINE
+// CALENDAR TIMELINE VIEW
 // ============================================================
-function filterTimeline(filter) {
-  currentTimelineFilter = filter;
-  document.querySelectorAll('.timeline-filter-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  renderTimeline();
-}
+var calViewYear, calViewMonth;
+(function() { var d = new Date(); calViewYear = d.getFullYear(); calViewMonth = d.getMonth(); })();
 
 function getEntryDate(entry) {
-  // Safely resolve the best date for an entry, handling invalid values and timezone-less strings
-  const candidates = [entry.eta, entry.etd, entry.serviceDate];
-  for (const raw of candidates) {
+  var candidates = [entry.eta, entry.etd, entry.serviceDate];
+  for (var i = 0; i < candidates.length; i++) {
+    var raw = candidates[i];
     if (!raw || typeof raw !== 'string') continue;
-    const d = new Date(raw);
+    var d = new Date(raw);
     if (isNaN(d.getTime())) continue;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-      return new Date(raw + 'T12:00:00');
-    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return new Date(raw + 'T12:00:00');
     return d;
   }
   return null;
 }
 
+function getEntryDateKey(entry) {
+  var d = getEntryDate(entry);
+  if (!d) return null;
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function calNavMonth(dir) { calViewMonth += dir; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; } else if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; } renderTimeline(); }
+function calGoToday() { var d = new Date(); calViewYear = d.getFullYear(); calViewMonth = d.getMonth(); renderTimeline(); }
+
 function renderTimeline() {
-  const now = new Date();
-  const allEntries = DB.entries.filter(e => e.status !== 'draft');
-  let entries = allEntries;
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('calMonthTitle').textContent = MONTHS[calViewMonth] + ' ' + calViewYear;
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (currentTimelineFilter === 'upcoming') {
-    entries = entries.filter(e => {
-      const date = getEntryDate(e);
-      return date && date >= today;
-    });
-  } else if (currentTimelineFilter === 'past') {
-    entries = entries.filter(e => {
-      const date = getEntryDate(e);
-      return date && date < today;
-    });
-  } else if (currentTimelineFilter === 'week') {
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    entries = entries.filter(e => {
-      const date = getEntryDate(e);
-      return date && date >= startOfWeek && date <= endOfWeek;
-    });
-  } else if (currentTimelineFilter === 'month') {
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    entries = entries.filter(e => {
-      const date = getEntryDate(e);
-      return date && date >= startOfMonth && date <= endOfMonth;
-    });
-  } else if (currentTimelineFilter === 'incomplete') {
-    entries = entries.filter(e => e.status !== 'completed');
-  }
-
-  const container = document.getElementById('timelineBody');
-  if (entries.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gray-500);">No entries in this timeline.</div>';
-    return;
-  }
-
-  const sorted = entries.sort((a, b) => {
-    const dateA = getEntryDate(a) || new Date(0);
-    const dateB = getEntryDate(b) || new Date(0);
-    return dateA - dateB;
+  var entries = DB.entries.filter(function(e) { return e.status !== 'draft'; });
+  var byDate = {};
+  entries.forEach(function(e) {
+    var key = getEntryDateKey(e);
+    if (key) { if (!byDate[key]) byDate[key] = []; byDate[key].push(e); }
   });
 
-  const isUpcoming = (entry) => {
-    const date = getEntryDate(entry);
-    return date && date > now;
-  };
+  var firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+  var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  var prevMonthDays = new Date(calViewYear, calViewMonth, 0).getDate();
+  var today = new Date();
+  var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
-  container.innerHTML = '<div class="timeline-vertical-line"></div>' + sorted.map(e => {
-    const date = getEntryDate(e);
-    const rawDate = e.eta || e.etd || e.serviceDate || '';
-    const friendlyDate = rawDate ? formatFriendlyDate(String(rawDate).slice(0,10)) : (date ? date.toLocaleDateString() : '\u2014');
-    const statusDotClass = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
-    const hasPulse = isUpcoming(e) ? 'pulse' : '';
-    const details = [];
-    if (e.serviceType) details.push(e.serviceType);
-    if (e.eta) details.push('ETA: ' + new Date(e.eta).toLocaleString());
-    if (e.etd) details.push('ETD: ' + new Date(e.etd).toLocaleString());
-    if (e.clearedIn || e.clearedOut) details.push((e.clearedIn || '') + ' Ã¢ÂÂ ' + (e.clearedOut || ''));
+  var html = '';
+  DAYS.forEach(function(d) { html += '<div class="cal-dow">' + d + '</div>'; });
 
-    return '<div class="timeline-item">' +
-      '<div class="timeline-dot ' + statusDotClass + ' ' + hasPulse + '"></div>' +
-      '<div class="timeline-content">' +
-      '<div class="vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
-      '<div class="service">' + (e.category || '') + (e.serviceType ? ' Ã¢ÂÂ ' + e.serviceType : '') + '</div>' +
-      '<div class="meta">' + friendlyDate + (details.length ? ' | ' + details.join(' | ') : '') + '</div>' +
-      '</div></div>';
-  }).join('');
+  for (var p = firstDay - 1; p >= 0; p--) {
+    var pDay = prevMonthDays - p;
+    var pM = calViewMonth === 0 ? 12 : calViewMonth;
+    var pY = calViewMonth === 0 ? calViewYear - 1 : calViewYear;
+    var pKey = pY + '-' + String(pM).padStart(2, '0') + '-' + String(pDay).padStart(2, '0');
+    html += buildCalCell(pDay, pKey, byDate[pKey] || [], true, false);
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var key = calViewYear + '-' + String(calViewMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    var isToday = key === todayKey;
+    html += buildCalCell(d, key, byDate[key] || [], false, isToday);
+  }
+
+  var totalCells = firstDay + daysInMonth;
+  var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (var n = 1; n <= remaining; n++) {
+    var nM = calViewMonth === 11 ? 1 : calViewMonth + 2;
+    var nY = calViewMonth === 11 ? calViewYear + 1 : calViewYear;
+    var nKey = nY + '-' + String(nM).padStart(2, '0') + '-' + String(n).padStart(2, '0');
+    html += buildCalCell(n, nKey, byDate[nKey] || [], true, false);
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
 }
+
+function buildCalCell(dayNum, dateKey, entries, isOtherMonth, isToday) {
+  var cls = 'cal-cell';
+  if (isOtherMonth) cls += ' other-month';
+  if (isToday) cls += ' today';
+  var dayHtml = isToday ? '<div class="cal-day"><div style="background:var(--teal);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">' + dayNum + '</div></div>' : '<div class="cal-day">' + dayNum + '</div>';
+  var pips = '';
+  var maxShow = 3;
+  var sorted = entries.sort(function(a, b) { return (getEntryDate(a)||new Date(0)) - (getEntryDate(b)||new Date(0)); });
+  for (var i = 0; i < Math.min(sorted.length, maxShow); i++) {
+    var e = sorted[i];
+    var sc = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
+    pips += '<div class="cal-entry-pip ' + sc + '">' + (e.vessel || 'Job') + '</div>';
+  }
+  if (sorted.length > maxShow) pips += '<div class="cal-more">+' + (sorted.length - maxShow) + ' more</div>';
+  return '<div class="' + cls + '" data-date="' + dateKey + '" onclick="openDayDetail(\'' + dateKey + '\')">' + dayHtml + '<div class="cal-dots">' + pips + '</div></div>';
+}
+
+function openDayDetail(dateKey) {
+  var entries = DB.entries.filter(function(e) { return e.status !== 'draft' && getEntryDateKey(e) === dateKey; });
+  var sorted = entries.sort(function(a, b) { return (getEntryDate(a)||new Date(0)) - (getEntryDate(b)||new Date(0)); });
+  var d = new Date(dateKey + 'T12:00:00');
+  var DNAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MNAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dn = d.getDate();
+  var sx = (dn===1||dn===21||dn===31)?'st':(dn===2||dn===22)?'nd':(dn===3||dn===23)?'rd':'th';
+  var title = DNAMES[d.getDay()] + ', ' + dn + sx + ' ' + MNAMES[d.getMonth()] + ' ' + d.getFullYear();
+  var planned = sorted.filter(function(e){return e.status==='planned';}).length;
+  var inProg = sorted.filter(function(e){return e.status==='progress';}).length;
+  var comp = sorted.filter(function(e){return e.status==='completed';}).length;
+  var total$ = sorted.reduce(function(s,e){return s+(e.totalCharge||0);},0);
+
+  var stats = '<div class="day-detail-stats">' +
+    '<div class="day-stat"><div class="num">' + sorted.length + '</div><div class="label">Total Jobs</div></div>' +
+    '<div class="day-stat"><div class="num" style="color:var(--blue);">' + planned + '</div><div class="label">Planned</div></div>' +
+    '<div class="day-stat"><div class="num" style="color:var(--orange);">' + inProg + '</div><div class="label">In Progress</div></div>' +
+    '<div class="day-stat"><div class="num" style="color:var(--green);">' + comp + '</div><div class="label">Completed</div></div>' +
+    (total$>0?'<div class="day-stat"><div class="num">$'+total$.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="label">Total Charges</div></div>':'') +
+    '</div>';
+
+  var jobs = '';
+  if (sorted.length === 0) { jobs = '<div class="day-empty">No activity recorded for this date.</div>'; }
+  else {
+    jobs = '<div class="day-detail-list">' + sorted.map(function(e) {
+      var sc = e.status==='planned'?'planned':e.status==='progress'?'progress':'completed';
+      var sl = e.status==='planned'?'Planned':e.status==='progress'?'In Progress':'Completed';
+      var times = [];
+      if(e.eta) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETA: '+new Date(e.eta).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div>');
+      if(e.etd) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETD: '+new Date(e.etd).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+'</div>');
+      if(e.crewArrival) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew In: '+e.crewArrival+'</div>');
+      if(e.crewDeparture) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew Out: '+e.crewDeparture+'</div>');
+      if(e.marina) times.push('<div class="day-job-time"><span class="time-icon">&#9875;</span> '+e.marina+'</div>');
+      var timesH = times.length ? '<div class="day-job-times">'+times.join('')+'</div>' : '';
+      var compH = '';
+      if(e.submissionDate||e.createdAt){
+        var logged = e.submissionDate||(e.createdAt?new Date(e.createdAt).toLocaleString():'');
+        var svc = e.serviceDate?formatFriendlyDate(e.serviceDate):'\u2014';
+        compH='<div class="day-job-comparison"><span>&#128221; Logged: '+logged+'</span><span class="arrow">&#10132;</span><span>&#128197; Service: '+svc+'</span></div>';
+      }
+      var chH = (e.totalCharge&&e.totalCharge>0)?'<div class="day-job-charge">'+(e.currency||'USD')+' $'+e.totalCharge.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'';
+      return '<div class="day-job"><div class="day-job-header"><div><div class="day-job-vessel">'+(e.vessel||'Unknown Vessel')+'</div><div class="day-job-service">'+(e.category||'')+(e.serviceType?' \u2014 '+e.serviceType:'')+(e.staffMember?' &middot; '+e.staffMember:'')+'</div></div><div class="day-job-status '+sc+'">'+sl+'</div></div>'+timesH+compH+chH+(e.description?'<div style="margin-top:8px;font-size:12px;color:var(--gray-600);">'+e.description+'</div>':'')+'</div>';
+    }).join('') + '</div>';
+  }
+  document.getElementById('dayDetailContainer').innerHTML='<div class="day-detail-overlay" onclick="if(event.target===this)closeDayDetail()"><div class="day-detail-panel"><div class="day-detail-header"><h3>'+title+'</h3><button class="day-detail-close" onclick="closeDayDetail()">&times;</button></div>'+stats+jobs+'</div></div>';
+}
+
+function closeDayDetail() { document.getElementById('dayDetailContainer').innerHTML = ''; }
 
 // ============================================================
 // BUDGET MANAGEMENT
