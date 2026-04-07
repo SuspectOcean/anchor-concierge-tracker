@@ -149,9 +149,11 @@
     transition: all 0.2s; color: var(--gray-600);
   }
   .status-pill:hover { border-color: var(--gray-400); }
-  .status-pill.active-planned { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
+  .status-pill.active-upcoming { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
   .status-pill.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
   .status-pill.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .status-pill.active-overdue { border-color: #d32f2f; background: #ffeaea; color: #d32f2f; }
+  .status-pill.active-accountants { border-color: #7b1fa2; background: #f3e5f5; color: #7b1fa2; }
   .billing-type-selector { display: flex; gap: 8px; margin-bottom: 16px; }
   .billing-type-btn {
     flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius);
@@ -237,9 +239,11 @@
     display: inline-block; padding: 3px 10px; border-radius: 12px;
     font-size: 11px; font-weight: 600;
   }
-  .status-planned { background: #e8f0ff; color: var(--blue); }
+  .status-upcoming { background: #e8f0ff; color: var(--blue); }
   .status-inprogress { background: var(--orange-light); color: var(--orange); }
   .status-completed { background: var(--green-light); color: var(--green); }
+  .status-overdue { background: #ffeaea; color: #d32f2f; }
+  .status-accountants { background: #f3e5f5; color: #7b1fa2; }
 
   /* Timeline Styles */
   /* Calendar View */
@@ -259,16 +263,20 @@
   .cal-day { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 4px; }
   .cal-dots { display: flex; flex-direction: column; gap: 2px; }
   .cal-entry-pip { font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.4; }
-  .cal-entry-pip.planned { background: #e8f0ff; color: var(--blue); }
+  .cal-entry-pip.upcoming { background: #e8f0ff; color: var(--blue); }
   .cal-entry-pip.progress { background: var(--orange-light); color: var(--orange); }
   .cal-entry-pip.completed { background: var(--green-light); color: var(--green); }
+  .cal-entry-pip.overdue { background: #ffeaea; color: #d32f2f; }
+  .cal-entry-pip.accountants { background: #f3e5f5; color: #7b1fa2; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
   .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .cal-legend-dot.planned { background: var(--blue); }
+  .cal-legend-dot.upcoming { background: var(--blue); }
   .cal-legend-dot.progress { background: var(--orange); }
   .cal-legend-dot.completed { background: var(--green); }
+  .cal-legend-dot.overdue { background: #d32f2f; }
+  .cal-legend-dot.accountants { background: #7b1fa2; }
 
   /* Day Detail Panel */
   .day-detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
@@ -289,9 +297,11 @@
   .day-job-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .day-job-vessel { font-weight: 600; font-size: 15px; color: var(--navy); }
   .day-job-status { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
-  .day-job-status.planned { background: #e8f0ff; color: var(--blue); }
+  .day-job-status.upcoming { background: #e8f0ff; color: var(--blue); }
   .day-job-status.progress { background: var(--orange-light); color: var(--orange); }
   .day-job-status.completed { background: var(--green-light); color: var(--green); }
+  .day-job-status.overdue { background: #ffeaea; color: #d32f2f; }
+  .day-job-status.accountants { background: #f3e5f5; color: #7b1fa2; }
   .day-job-service { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
   .day-job-times { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
   .day-job-time { font-size: 12px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
@@ -379,9 +389,11 @@
     padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-300); background: var(--white);
     font-size: 12px; cursor: pointer; font-weight: 500;
   }
-  .edit-status-pills button.active-planned { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
+  .edit-status-pills button.active-upcoming { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
   .edit-status-pills button.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
   .edit-status-pills button.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .edit-status-pills button.active-overdue { border-color: #d32f2f; background: #ffeaea; color: #d32f2f; }
+  .edit-status-pills button.active-accountants { border-color: #7b1fa2; background: #f3e5f5; color: #7b1fa2; }
   .log-table .action-btns { display: flex; gap: 4px; }
   .log-table .action-btns button {
     padding: 4px 10px; border-radius: 4px; border: 1px solid var(--gray-300); background: var(--white);
@@ -782,9 +794,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="form-group">
             <label>Service Status</label>
             <div class="status-options">
-              <button class="status-pill active-planned" onclick="setStatus(this, 'planned')">Planned</button>
+              <button class="status-pill active-upcoming" onclick="setStatus(this, 'upcoming')">Upcoming</button>
               <button class="status-pill" onclick="setStatus(this, 'progress')">In Progress</button>
               <button class="status-pill" onclick="setStatus(this, 'completed')">Completed</button>
+              <button class="status-pill" onclick="setStatus(this, 'overdue')">Overdue</button>
+              <button class="status-pill" onclick="setStatus(this, 'accountants')">Submitted to Accountants</button>
             </div>
           </div>
         </div>
@@ -1114,7 +1128,9 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="text" id="logSearch" placeholder="Search entries..." onkeyup="renderLog()">
           <select id="logStatusFilter" onchange="renderLog()">
             <option value="">All Statuses</option>
-            <option value="planned">Planned</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="overdue">Overdue</option>
+            <option value="accountants">Submitted to Accountants</option>
             <option value="progress">In Progress</option>
             <option value="completed">Completed</option>
           </select>
@@ -1163,7 +1179,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div class="cal-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot planned"></div> Planned</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot upcoming"></div> Upcoming</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
           <div class="cal-legend-item"><div class="cal-legend-dot progress"></div> In Progress</div>
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
         </div>
@@ -1256,9 +1273,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="full-width">
         <label>Status</label>
         <div class="edit-status-pills" id="editStatusPills">
-          <button onclick="setEditStatus(this,'planned')" class="active-planned">Planned</button>
+          <button onclick="setEditStatus(this,'upcoming')" class="active-upcoming">Upcoming</button>
           <button onclick="setEditStatus(this,'progress')">In Progress</button>
           <button onclick="setEditStatus(this,'completed')">Completed</button>
+          <button onclick="setEditStatus(this,'overdue')">Overdue</button>
+          <button onclick="setEditStatus(this,'accountants')">Submitted to Accountants</button>
         </div>
       </div>
       <div>
@@ -1444,7 +1463,7 @@ function mapEntryFromSheet(raw) {
     category: fixEncoding(raw['Category'] || ''),
     serviceType: fixEncoding(raw['Service Type'] || ''),
     description: fixEncoding(raw['Description'] || ''),
-    status: (raw['Status'] || 'planned').toLowerCase(),
+    status: normalizeStatus((raw['Status'] || 'upcoming').toLowerCase()),
     workCompleted: raw['Work Completed'] || '',
     clearedIn: raw['Location - Cleared In'] || '',
     clearedOut: raw['Location - Cleared Out'] || '',
@@ -1486,6 +1505,7 @@ async function syncFromCloud() {
     syncStatus = 'offline';
   }
   updateSyncBadge();
+  if (typeof checkOverdueEntries === 'function') checkOverdueEntries();
 }
 
 // Push a new entry to Google Sheets
@@ -1770,9 +1790,53 @@ function toggleCollapsible(event) {
 }
 
 // ============================================================
+// STATUS HELPERS
+// ============================================================
+function normalizeStatus(s) {
+  if (s === 'planned') return 'upcoming';
+  return s || 'upcoming';
+}
+
+function getStatusClass(status) {
+  const map = {upcoming:'status-upcoming', progress:'status-inprogress', completed:'status-completed', overdue:'status-overdue', accountants:'status-accountants'};
+  return map[status] || 'status-upcoming';
+}
+
+function getStatusLabel(status) {
+  const map = {upcoming:'Upcoming', progress:'In Progress', completed:'Completed', overdue:'Overdue', accountants:'Submitted to Accountants'};
+  return map[status] || 'Upcoming';
+}
+
+// ============================================================
+// OVERDUE MONITORING
+// ============================================================
+function checkOverdueEntries() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  let changed = false;
+  DB.entries.forEach(function(e) {
+    if (e.status === 'upcoming' && e.serviceDate) {
+      const entryDate = e.serviceDate.slice(0, 10);
+      if (entryDate < todayStr) {
+        e.status = 'overdue';
+        changed = true;
+      }
+    }
+  });
+  if (changed) {
+    try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
+    if (document.querySelector('.log-table')) renderLog();
+    renderTimeline();
+  }
+}
+
+// Run overdue check every 60 seconds
+setInterval(checkOverdueEntries, 60000);
+
+// ============================================================
 // STATUS PILLS
 // ============================================================
-let currentStatus = 'planned';
+let currentStatus = 'upcoming';
 function setStatus(btn, status) {
   document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
   btn.classList.add('active-' + status);
@@ -2179,9 +2243,9 @@ function resetForm() {
   document.getElementById('receiptPreview').innerHTML = '';
   document.getElementById('duplicateWarning').classList.add('hidden');
   uploadedFiles = [];
-  currentStatus = 'planned';
+  currentStatus = 'upcoming';
   document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
-  document.querySelector('.status-pill').classList.add('active-planned');
+  document.querySelector('.status-pill').classList.add('active-upcoming');
 
   const newNow = new Date();
   document.getElementById('submissionDateTime').value = newNow.toISOString().slice(0, 16);
@@ -2193,13 +2257,13 @@ function resetForm() {
 // EDIT ENTRY MODAL
 // ============================================================
 let editingEntryId = null;
-let editStatus = 'planned';
+let editStatus = 'upcoming';
 
 function openEditModal(entryId) {
   const entry = DB.entries.find(e => e.entryId === entryId);
   if (!entry) { showToast('Entry not found.'); return; }
   editingEntryId = entryId;
-  editStatus = entry.status || 'planned';
+  editStatus = normalizeStatus(entry.status || 'upcoming');
 
   document.getElementById('editModalEntryId').textContent = entryId;
 
@@ -2275,9 +2339,9 @@ function setEditStatus(btn, status) {
 function setEditStatusUI(status) {
   document.querySelectorAll('#editStatusPills button').forEach(b => b.className = '');
   const pills = document.querySelectorAll('#editStatusPills button');
-  if (status === 'planned' && pills[0]) pills[0].className = 'active-planned';
-  if (status === 'progress' && pills[1]) pills[1].className = 'active-progress';
-  if (status === 'completed' && pills[2]) pills[2].className = 'active-completed';
+  const map = {upcoming:0, progress:1, completed:2, overdue:3, accountants:4};
+  const idx = map[status];
+  if (idx !== undefined && pills[idx]) pills[idx].className = 'active-' + status;
 }
 
 function toggleEditBillingFields() {
@@ -2428,8 +2492,8 @@ function renderLog() {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
   } else {
     tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
-      const statusClass = e.status === 'planned' ? 'status-planned' : e.status === 'progress' ? 'status-inprogress' : 'status-completed';
-      const statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
+      const statusClass = getStatusClass(e.status);
+      const statusLabel = getStatusLabel(e.status);
       const eid = (e.entryId || '').replace(/'/g, "\\'");
       return '<tr>' +
         '<td><strong>' + (e.entryId || '\u2014') + '</strong></td>' +
@@ -2585,7 +2649,7 @@ function buildCalCell(dayNum, dateKey, entries, isOtherMonth, isToday) {
   });
   for (var i = 0; i < Math.min(sorted.length, maxShow); i++) {
     var e = sorted[i];
-    var sc = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
+    var sc = e.status || 'upcoming';
     pips += '<div class="cal-entry-pip ' + sc + '">' + (e.vessel || 'Job') + '</div>';
   }
   if (sorted.length > maxShow) {
@@ -2610,16 +2674,18 @@ function openDayDetail(dateKey) {
   var suffix = (dayNum === 1 || dayNum === 21 || dayNum === 31) ? 'st' : (dayNum === 2 || dayNum === 22) ? 'nd' : (dayNum === 3 || dayNum === 23) ? 'rd' : 'th';
   var title = DAYS[d.getDay()] + ', ' + dayNum + suffix + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
 
-  var planned = sorted.filter(function(e) { return e.status === 'planned'; }).length;
+  var upcoming = sorted.filter(function(e) { return e.status === 'upcoming'; }).length;
   var inProg = sorted.filter(function(e) { return e.status === 'progress'; }).length;
   var completed = sorted.filter(function(e) { return e.status === 'completed'; }).length;
+  var overdue = sorted.filter(function(e) { return e.status === 'overdue'; }).length;
   var totalCharge = sorted.reduce(function(sum, e) { return sum + (e.totalCharge || 0); }, 0);
 
   var statsHtml = '<div class="day-detail-stats">' +
     '<div class="day-stat"><div class="num">' + sorted.length + '</div><div class="label">Total Jobs</div></div>' +
-    '<div class="day-stat"><div class="num" style="color:var(--blue);">' + planned + '</div><div class="label">Planned</div></div>' +
+    '<div class="day-stat"><div class="num" style="color:var(--blue);">' + upcoming + '</div><div class="label">Upcoming</div></div>' +
     '<div class="day-stat"><div class="num" style="color:var(--orange);">' + inProg + '</div><div class="label">In Progress</div></div>' +
     '<div class="day-stat"><div class="num" style="color:var(--green);">' + completed + '</div><div class="label">Completed</div></div>' +
+    (overdue > 0 ? '<div class="day-stat"><div class="num" style="color:#d32f2f;">' + overdue + '</div><div class="label">Overdue</div></div>' : '') +
     (totalCharge > 0 ? '<div class="day-stat"><div class="num">$' + totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div><div class="label">Total Charges</div></div>' : '') +
     '</div>';
 
@@ -2628,8 +2694,8 @@ function openDayDetail(dateKey) {
     jobsHtml = '<div class="day-empty">No activity recorded for this date.</div>';
   } else {
     jobsHtml = '<div class="day-detail-list">' + sorted.map(function(e) {
-      var sc = e.status === 'planned' ? 'planned' : e.status === 'progress' ? 'progress' : 'completed';
-      var statusLabel = e.status === 'planned' ? 'Planned' : e.status === 'progress' ? 'In Progress' : 'Completed';
+      var sc = e.status || 'upcoming';
+      var statusLabel = getStatusLabel(e.status);
 
       var timesHtml = '';
       var times = [];
