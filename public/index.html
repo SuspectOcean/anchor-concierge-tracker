@@ -130,6 +130,7 @@
   .toggle-row:last-child { border-bottom: none; }
   .toggle-label { font-size: 14px; color: var(--gray-700); }
   .toggle-label .hint { font-size: 12px; color: var(--gray-500); display: block; }
+  .hint-inline { font-size: 11px; color: var(--gray-400); font-weight: 400; }
   .switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider {
@@ -244,6 +245,9 @@
   .status-completed { background: var(--green-light); color: var(--green); }
   .status-overdue { background: #ffeaea; color: #d32f2f; }
   .status-accountants { background: #f3e5f5; color: #7b1fa2; }
+  .acct-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-500); }
+  .acct-check input { width: 14px; height: 14px; accent-color: #7b1fa2; cursor: pointer; }
+  .acct-check.checked { color: #7b1fa2; font-weight: 600; }
 
   /* Timeline Styles */
   /* Calendar View */
@@ -557,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
           <div class="form-group">
-            <label>Staff Member <span class="required">*</span></label>
+            <label>Staff Member <span class="hint-inline">(optional)</span></label>
             <select id="staffSelect">
               <option value="">Select staff...</option>
             </select>
@@ -565,12 +569,18 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Submission Date/Time</label>
-            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
+            <label>Service Date <span class="required">*</span></label>
+            <input type="date" id="serviceDate" onchange="updateAutoStatus()">
           </div>
           <div class="form-group">
-            <label>Service Date <span class="required">*</span></label>
-            <input type="date" id="serviceDate">
+            <label>Service Time <span class="hint-inline">(optional)</span></label>
+            <input type="time" id="serviceTime">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Submission Date/Time</label>
+            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
           </div>
         </div>
       </div>
@@ -792,14 +802,11 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Service Status</label>
-            <div class="status-options">
-              <button class="status-pill active-upcoming" onclick="setStatus(this, 'upcoming')">Upcoming</button>
-              <button class="status-pill" onclick="setStatus(this, 'progress')">In Progress</button>
-              <button class="status-pill" onclick="setStatus(this, 'completed')">Completed</button>
-              <button class="status-pill" onclick="setStatus(this, 'overdue')">Overdue</button>
-              <button class="status-pill" onclick="setStatus(this, 'accountants')">Submitted to Accountants</button>
+            <label>Auto Status</label>
+            <div id="autoStatusDisplay" class="status-options">
+              <span class="status-pill active-upcoming" style="cursor:default;">Upcoming</span>
             </div>
+            <span class="hint" style="margin-top:6px;display:block;">Status is set automatically based on service date. Mark completed below to override.</span>
           </div>
         </div>
         <div class="toggle-row">
@@ -808,7 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="hint">Check if the service has been completed</span>
           </label>
           <label class="switch">
-            <input type="checkbox" id="workCompleted" onchange="if (this.checked) setStatus(document.querySelector('.status-pill.active-completed') || document.querySelectorAll('.status-pill')[2], 'completed')">
+            <input type="checkbox" id="workCompleted" onchange="updateAutoStatus()">
             <span class="slider"></span>
           </label>
         </div>
@@ -1146,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="section-body" style="padding:0;">
         <div class="log-table-wrap"><table class="log-table">
           <thead>
-            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Amount</th><th>Staff</th><th>Actions</th></tr>
+            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Accounts</th><th>Amount</th><th>Staff</th><th>Actions</th></tr>
           </thead>
           <tbody id="logTableBody">
             <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
@@ -1256,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div>
         <label>Service Date</label>
-        <input type="date" id="editServiceDate">
+        <input type="date" id="editServiceDate" onchange="updateEditAutoStatus()">
       </div>
       <div>
         <label>Category</label>
@@ -1272,12 +1279,17 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="full-width">
         <label>Status</label>
-        <div class="edit-status-pills" id="editStatusPills">
-          <button onclick="setEditStatus(this,'upcoming')" class="active-upcoming">Upcoming</button>
-          <button onclick="setEditStatus(this,'progress')">In Progress</button>
-          <button onclick="setEditStatus(this,'completed')">Completed</button>
-          <button onclick="setEditStatus(this,'overdue')">Overdue</button>
-          <button onclick="setEditStatus(this,'accountants')">Submitted to Accountants</button>
+        <div id="editAutoStatusDisplay" class="status-options" style="margin-bottom:8px;">
+          <span class="status-pill active-upcoming" style="cursor:default;">Upcoming</span>
+        </div>
+        <span class="hint" style="display:block;margin-bottom:8px;">Auto-computed from service date.</span>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <label class="acct-check" id="editCompletedCheck">
+            <input type="checkbox" id="editWorkCompleted" onchange="updateEditAutoStatus()"> Completed
+          </label>
+          <label class="acct-check" id="editAccountantsCheck">
+            <input type="checkbox" id="editAccountants" onchange="updateEditAutoStatus()"> Submitted to Accountants
+          </label>
         </div>
       </div>
       <div>
@@ -1815,12 +1827,13 @@ function checkOverdueEntries() {
   const todayStr = now.toISOString().slice(0, 10);
   let changed = false;
   DB.entries.forEach(function(e) {
-    if (e.status === 'upcoming' && e.serviceDate) {
-      const entryDate = e.serviceDate.slice(0, 10);
-      if (entryDate < todayStr) {
-        e.status = 'overdue';
-        changed = true;
-      }
+    if (e.status === 'completed' || e.status === 'accountants' || e.status === 'draft') return;
+    if (!e.serviceDate) return;
+    const entryDate = e.serviceDate.slice(0, 10);
+    const newStatus = computeAutoStatus(entryDate, false, false);
+    if (e.status !== newStatus) {
+      e.status = newStatus;
+      changed = true;
     }
   });
   if (changed) {
@@ -1833,15 +1846,65 @@ function checkOverdueEntries() {
 // Run overdue check every 60 seconds
 setInterval(checkOverdueEntries, 60000);
 
+// Toggle "Submitted to Accountants" status
+async function toggleAccountants(entryId, checked) {
+  const entry = DB.entries.find(e => e.entryId === entryId);
+  if (!entry) return;
+  if (checked) {
+    entry.status = 'accountants';
+  } else {
+    // Revert to auto-computed status
+    const dateStr = entry.serviceDate ? entry.serviceDate.slice(0, 10) : '';
+    entry.status = computeAutoStatus(dateStr, entry.workCompleted || false, false);
+  }
+  try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
+  await syncUpdateToCloud(entry);
+  renderLog();
+  renderTimeline();
+}
+
+// Mark entry as completed
+async function markEntryCompleted(entryId) {
+  const entry = DB.entries.find(e => e.entryId === entryId);
+  if (!entry) return;
+  entry.status = 'completed';
+  entry.workCompleted = true;
+  try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
+  await syncUpdateToCloud(entry);
+  renderLog();
+  renderTimeline();
+  showToast(entryId + ' marked as completed.');
+}
+
 // ============================================================
-// STATUS PILLS
+// AUTO STATUS
 // ============================================================
 let currentStatus = 'upcoming';
+
+function computeAutoStatus(dateStr, isCompleted, isAccountants) {
+  if (isAccountants) return 'accountants';
+  if (isCompleted) return 'completed';
+  if (!dateStr) return 'upcoming';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sDate = new Date(dateStr + 'T00:00:00'); sDate.setHours(0,0,0,0);
+  if (sDate.getTime() === today.getTime()) return 'progress';
+  if (sDate < today) return 'overdue';
+  return 'upcoming';
+}
+
+function updateAutoStatus() {
+  const dateStr = document.getElementById('serviceDate').value;
+  const completed = document.getElementById('workCompleted').checked;
+  currentStatus = computeAutoStatus(dateStr, completed, false);
+  const display = document.getElementById('autoStatusDisplay');
+  if (display) {
+    display.innerHTML = '<span class="status-pill active-' + currentStatus + '" style="cursor:default;">' + getStatusLabel(currentStatus) + '</span>';
+  }
+}
+
+// Legacy support
 function setStatus(btn, status) {
-  document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
-  btn.classList.add('active-' + status);
   currentStatus = status;
-  if (status === 'completed') document.getElementById('workCompleted').checked = true;
 }
 
 // ============================================================
@@ -2088,6 +2151,7 @@ function collectFormData() {
   return {
     submissionDate: document.getElementById('submissionDateTime').value,
     serviceDate: document.getElementById('serviceDate').value,
+    serviceTime: document.getElementById('serviceTime').value || '',
     vessel: document.getElementById('vesselSelect').value,
     staffMember: document.getElementById('staffSelect').value,
     category: document.getElementById('serviceCategory').value,
@@ -2131,8 +2195,7 @@ function collectFormData() {
 // ============================================================
 async function submitEntry() {
   const vessel = document.getElementById('vesselSelect').value;
-  const staff = document.getElementById('staffSelect').value;
-  if (!vessel || !staff) { showToast('Please select a vessel and staff member.'); return; }
+  if (!vessel) { showToast('Please select a vessel.'); return; }
 
   // Customs-specific validation
   if (isCustomsCategory) {
@@ -2244,8 +2307,8 @@ function resetForm() {
   document.getElementById('duplicateWarning').classList.add('hidden');
   uploadedFiles = [];
   currentStatus = 'upcoming';
-  document.querySelectorAll('.status-pill').forEach(p => p.className = 'status-pill');
-  document.querySelector('.status-pill').classList.add('active-upcoming');
+  document.getElementById('serviceTime').value = '';
+  updateAutoStatus();
 
   const newNow = new Date();
   document.getElementById('submissionDateTime').value = newNow.toISOString().slice(0, 16);
@@ -2285,8 +2348,10 @@ function openEditModal(entryId) {
   document.getElementById('editServiceType').value = entry.serviceType || '';
   document.getElementById('editDescription').value = entry.description || '';
 
-  // Status pills
-  setEditStatusUI(editStatus);
+  // Status checkboxes + auto display
+  document.getElementById('editWorkCompleted').checked = entry.workCompleted || editStatus === 'completed';
+  document.getElementById('editAccountants').checked = editStatus === 'accountants';
+  updateEditAutoStatus();
 
   // Billing
   document.getElementById('editBillingType').value = entry.billingType || 'hourly';
@@ -2331,17 +2396,20 @@ function closeEditModal() {
   editingEntryId = null;
 }
 
-function setEditStatus(btn, status) {
-  editStatus = status;
-  setEditStatusUI(status);
-}
-
-function setEditStatusUI(status) {
-  document.querySelectorAll('#editStatusPills button').forEach(b => b.className = '');
-  const pills = document.querySelectorAll('#editStatusPills button');
-  const map = {upcoming:0, progress:1, completed:2, overdue:3, accountants:4};
-  const idx = map[status];
-  if (idx !== undefined && pills[idx]) pills[idx].className = 'active-' + status;
+function updateEditAutoStatus() {
+  const dateStr = document.getElementById('editServiceDate').value;
+  const completed = document.getElementById('editWorkCompleted').checked;
+  const accountants = document.getElementById('editAccountants').checked;
+  editStatus = computeAutoStatus(dateStr, completed, accountants);
+  const display = document.getElementById('editAutoStatusDisplay');
+  if (display) {
+    display.innerHTML = '<span class="status-pill active-' + editStatus + '" style="cursor:default;">' + getStatusLabel(editStatus) + '</span>';
+  }
+  // Toggle checked styling
+  const cc = document.getElementById('editCompletedCheck');
+  const ac = document.getElementById('editAccountantsCheck');
+  if (cc) cc.classList.toggle('checked', completed);
+  if (ac) ac.classList.toggle('checked', accountants);
 }
 
 function toggleEditBillingFields() {
@@ -2404,7 +2472,7 @@ async function saveEditEntry() {
   entries[idx].serviceDate = document.getElementById('editServiceDate').value;
   entries[idx].description = document.getElementById('editDescription').value;
   entries[idx].status = editStatus;
-  entries[idx].workCompleted = editStatus === 'completed';
+  entries[idx].workCompleted = document.getElementById('editWorkCompleted').checked;
   entries[idx].billingType = type;
   entries[idx].currency = currency;
   entries[idx].baseCharge = base;
@@ -2489,18 +2557,21 @@ function renderLog() {
   if (vesselFilter) filtered = filtered.filter(e => e.vessel === vesselFilter);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
   } else {
     tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
       const statusClass = getStatusClass(e.status);
       const statusLabel = getStatusLabel(e.status);
       const eid = (e.entryId || '').replace(/'/g, "\\'");
+      const isAcct = e.status === 'accountants';
+      const acctHtml = '<label class="acct-check' + (isAcct ? ' checked' : '') + '"><input type="checkbox"' + (isAcct ? ' checked' : '') + ' onchange="toggleAccountants(\'' + eid + '\', this.checked)"> Sent</label>';
       return '<tr>' +
         '<td><strong>' + (e.entryId || '\u2014') + '</strong></td>' +
         '<td>' + formatFriendlyDate(e.serviceDate) + '</td>' +
         '<td>' + (e.vessel || '\u2014') + '</td>' +
         '<td>' + (e.serviceType || e.category || '\u2014') + '</td>' +
         '<td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td>' + acctHtml + '</td>' +
         '<td>' + formatCurrency(e.totalCharge || 0, e.currency || 'USD') + '</td>' +
         '<td>' + (e.staffMember || '\u2014') + '</td>' +
         '<td><div class="action-btns">' +
@@ -2724,7 +2795,17 @@ function openDayDetail(dateKey) {
         chargeHtml = '<div class="day-job-charge">' + (e.currency || 'USD') + ' $' + e.totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div>';
       }
 
-      return '<div class="day-job">' +
+      var eid = (e.entryId || '').replace(/'/g, "\\'");
+      var actionsHtml = '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">';
+      actionsHtml += '<button onclick="closeDayDetail();openEditModal(\'' + eid + '\')" style="padding:5px 12px;border:1px solid var(--gray-300);border-radius:6px;background:var(--white);cursor:pointer;font-size:12px;font-weight:500;">&#9998; Edit</button>';
+      if (e.status !== 'completed' && e.status !== 'accountants') {
+        actionsHtml += '<button onclick="markEntryCompleted(\'' + eid + '\');closeDayDetail();openDayDetail(\'' + dateKey + '\')" style="padding:5px 12px;border:1px solid var(--green);border-radius:6px;background:var(--green-light);color:var(--green);cursor:pointer;font-size:12px;font-weight:600;">&#10003; Complete</button>';
+      }
+      var isAcct = e.status === 'accountants';
+      actionsHtml += '<label class="acct-check' + (isAcct ? ' checked' : '') + '" style="margin-left:auto;"><input type="checkbox"' + (isAcct ? ' checked' : '') + ' onchange="toggleAccountants(\'' + eid + '\', this.checked);closeDayDetail();openDayDetail(\'' + dateKey + '\')"> Submitted to Accountants</label>';
+      actionsHtml += '</div>';
+
+      return '<div class="day-job" style="cursor:pointer;" onclick="if(event.target.tagName!==\'BUTTON\'&&event.target.tagName!==\'INPUT\'&&event.target.tagName!==\'LABEL\'){closeDayDetail();openEditModal(\'' + eid + '\');}">' +
         '<div class="day-job-header">' +
         '<div><div class="day-job-vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
         '<div class="day-job-service">' + (e.category || '') + (e.serviceType ? ' &mdash; ' + e.serviceType : '') + (e.staffMember ? ' &middot; ' + e.staffMember : '') + '</div></div>' +
@@ -2734,6 +2815,7 @@ function openDayDetail(dateKey) {
         compHtml +
         chargeHtml +
         (e.description ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-600);">' + e.description + '</div>' : '') +
+        actionsHtml +
         '</div>';
     }).join('') + '</div>';
   }
