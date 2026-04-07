@@ -1508,11 +1508,17 @@ async function syncFromCloud() {
   const data = await apiGet();
   if (data) {
     const rawEntries = data.entries || [];
-    DB.entries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
+    const cloudEntries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
+    // Merge: keep local entries that aren't in cloud yet (unsynced)
+    const cloudIds = new Set(cloudEntries.map(e => e.entryId));
+    const localOnly = DB.entries.filter(e => e.entryId && !cloudIds.has(e.entryId));
+    DB.entries = cloudEntries.concat(localOnly);
+    // Re-sync any local-only entries to cloud
+    localOnly.forEach(e => syncEntryToCloud(e));
     const rawVessels = data.vessels || [];
     DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
     if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    syncStatus = 'online';
+    syncStatus = localOnly.length > 0 ? 'syncing' : 'online';
   } else {
     syncStatus = 'offline';
   }
@@ -1848,16 +1854,16 @@ setInterval(checkOverdueEntries, 60000);
 
 // Toggle "Submitted to Accountants" status
 async function toggleAccountants(entryId, checked) {
-  const entry = DB.entries.find(e => e.entryId === entryId);
+  const entries = DB.entries;
+  const entry = entries.find(e => e.entryId === entryId);
   if (!entry) return;
   if (checked) {
     entry.status = 'accountants';
   } else {
-    // Revert to auto-computed status
     const dateStr = entry.serviceDate ? entry.serviceDate.slice(0, 10) : '';
     entry.status = computeAutoStatus(dateStr, entry.workCompleted || false, false);
   }
-  try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
+  DB.entries = entries;
   await syncUpdateToCloud(entry);
   renderLog();
   renderTimeline();
@@ -1865,11 +1871,12 @@ async function toggleAccountants(entryId, checked) {
 
 // Mark entry as completed
 async function markEntryCompleted(entryId) {
-  const entry = DB.entries.find(e => e.entryId === entryId);
+  const entries = DB.entries;
+  const entry = entries.find(e => e.entryId === entryId);
   if (!entry) return;
   entry.status = 'completed';
   entry.workCompleted = true;
-  try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
+  DB.entries = entries;
   await syncUpdateToCloud(entry);
   renderLog();
   renderTimeline();
