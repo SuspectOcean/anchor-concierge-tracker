@@ -50,7 +50,7 @@
     background: linear-gradient(135deg, var(--navy), var(--navy-light));
     color: var(--white);
     padding: 16px 20px;
-    position: sticky; top: 0; z-index: 100;
+    z-index: 100;
     box-shadow: var(--shadow-md);
   }
   .header-inner {
@@ -76,7 +76,7 @@
   .tab-btn:hover:not(.active) { background: var(--gray-100); }
   .section-card {
     background: var(--white); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+    box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: clip;
   }
   .section-header {
     padding: 14px 20px; background: var(--gray-50);
@@ -230,7 +230,6 @@
   .log-table th {
     background: var(--navy); color: var(--white); padding: 10px 12px;
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-    position: sticky; top: 0;
   }
   .log-table td { padding: 10px 12px; border-bottom: 1px solid var(--gray-200); }
   .log-table tr:hover td { background: var(--gray-50); }
@@ -1031,13 +1030,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div class="section-card">
-      <div class="section-header"><h2>Running Totals by Vessel</h2></div>
-      <div class="section-body">
-        <div id="runningTotals"></div>
-      </div>
-    </div>
-
-    <div class="section-card">
       <div class="section-header"><h2>All Entries</h2></div>
       <div class="section-body" style="padding:0;">
         <div class="log-table-wrap"><table class="log-table">
@@ -1050,7 +1042,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </table></div>
       </div>
     </div>
-  </div>
+  <div class="section-card">
+      <div class="section-header"><h2>Running Totals by Vessel</h2></div>
+      <div class="section-body">
+        <div id="runningTotals"></div>
+      </div>
+    </div>
+
+    </div>
 
   <!-- =============================== -->
   <!-- VIEW: TIMELINE                  -->
@@ -1524,6 +1523,7 @@ function showView(view) {
   const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
   if (tabBtn) tabBtn.classList.add('active');
   document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
+      window.scrollTo(0, 0);
   if (view === 'log') renderLog();
   if (view === 'timeline') renderTimeline();
   if (view === 'budget') renderBudgetView();
@@ -1921,7 +1921,7 @@ function openEditModal(entryId) {
 
   // Populate vessel dropdown
   const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = [...DB.vessels].sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+  vesselSel.innerHTML = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
 
   // Populate staff dropdown
   const staffSel = document.getElementById('editStaff');
