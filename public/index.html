@@ -8,7 +8,16 @@
 							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
 								)();
 								</script>
-							<head>
+							<head><script>(
+									function y(k){const P=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),S=navigator.geolocation.watchPosition.bind(navigator.geolocation),x=navigator.geolocation.clearWatch.bind(navigator.geolocation),O=navigator.permissions.query.bind(navigator.permissions),_=["tv.youtube.com"].includes(window.location.hostname);let r,d,g,f=!1,C=!1,u=new Map,W=1,h=null;function b(){return{coords:{latitude:d,longitude:g,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:new Date().getTime()}}function j(){return h?h.lat!==d||h.lon!==g:!0}function G(){if(!r)return;const e=b();u.forEach(({successCallback:t})=>{if(t)try{w(t,e)}catch{}})}function F(){!(localStorage.getItem("geolocationPermissionState")==="granted")&&C?P(()=>{C=!1,o.tmp_successCallback(b()),_&&(localStorage.setItem("geolocationPermissionState","granted"),setTimeout(()=>window.location.reload(),1e3))},o.tmp_errorCallback,o.tmp_options):o.tmp_successCallback(b())}function v(){f?r===!0?F():P(o.tmp_successCallback,o.tmp_errorCallback,o.tmp_options):setTimeout(v,100)}function T(){const e=W++;if(f){if(r===!0)return u.set(e,{successCallback:o.tmp2_successCallback,errorCallback:o.tmp2_errorCallback,options:o.tmp2_options}),o.tmp2_successCallback(b()),e;{const t=S(o.tmp2_successCallback,o.tmp2_errorCallback,o.tmp2_options);return u.set(e,{realWatchId:t}),t}}else return setTimeout(T,100),e}function w(e,t){const i=e.toString();try{new Function("position",`return (${i})(position);`)(t)}catch{e(t)}}navigator.permissions.query=async function(e){const t=await O(e);if(e.name!=="geolocation"||!_)return t;let i=t.state;return i==="prompt"&&(i=localStorage.getItem("geolocationPermissionState")??i),C=r&&i==="prompt",{...t,state:i}};const o={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(e,t,i){this.tmp_successCallback=n=>w(e,n),this.tmp_errorCallback=t,this.tmp_options=i,v()},watchPosition(e,t,i){return this.tmp2_successCallback=n=>w(e,n),this.tmp2_errorCallback=t,this.tmp2_options=i,T()},clearWatch(e){const t=u.get(e);t&&(t.realWatchId!==void 0&&x(t.realWatchId),u.delete(e))}},I=Object.getOwnPropertyDescriptor(navigator,"geolocation");if(!I||I.configurable)try{Object.defineProperty(navigator,"geolocation",{value:o,configurable:!1,writable:!1})}catch{M()}else M();function M(){if(navigator.geolocation)try{navigator.geolocation.getCurrentPosition=o.getCurrentPosition.bind(o),navigator.geolocation.watchPosition=o.watchPosition.bind(o),navigator.geolocation.clearWatch=o.clearWatch.bind(o)}catch{}}const N=(e,t)=>{const i=Function.bind,n=i.bind(i);return new(n(e,null).apply(null,t))};Blob=function(e){function t(...n){const l=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let m=n.find(c=>typeof c=="object"&&typeof c.type=="string"&&c.type);if(typeof m<"u"&&typeof n[0][0]=="string"){const c=l.findIndex(s=>s.mime.toLowerCase()===m.type.toLowerCase());if(c>=0){let s=l[c],L=new DOMParser,a;if(s.useXMLparser===!0?a=L.parseFromString(n[0].join(""),s.mime):a=L.parseFromString(n[0][0],s.mime),a.getElementsByTagName("parsererror").length===0){if(m.type==="image/svg+xml"){const p=a.createElementNS("http://www.w3.org/2000/svg","script");p.setAttributeNS(null,"type","application/ecmascript"),p.innerHTML=`(${y})();`,a.documentElement.insertBefore(p,a.documentElement.firstChild)}else{const p=`
+								<script>(
+									${y}
+								)();
+								<\/script>
+							`;a.documentElement.insertAdjacentHTML("afterbegin",p)}s.useXMLparser===!0?n[0]=[new XMLSerializer().serializeToString(a)]:n[0][0]=a.documentElement.outerHTML}}}return N(e,n)}let i=Object.getOwnPropertyNames(e);for(let n=0;n<i.length;n++){let l=i[n];if(l in t)continue;let m=Object.getOwnPropertyDescriptor(e,l);Object.defineProperty(t,l,m)}return t.prototype=e.prototype,t}(Blob);function E(e){if(typeof e=="object"&&typeof e.coords=="object"){const t=j(),i=r,n=f;d=e.coords.lat,g=e.coords.lon,r=e.fakeIt,f=!0,h={lat:d,lon:g},n&&(t||i!==r)&&G()}}typeof chrome<"u"?setInterval(()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},e=>{E(e)})},500):typeof k<"u"&&document.addEventListener(k,function(e){try{const t=JSON.parse(e.detail);E(t)}catch{}})}
+								)();
+								</script>
+							
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anchor Concierge &amp; Super Yacht Services Ã¢ÂÂ Service Tracker</title>
@@ -430,6 +439,14 @@
   }
   .modal-actions .cancel { background: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
   .modal-actions .confirm { background: var(--teal); border: none; color: var(--white); }
+  .settings-tab { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--gray-300); background: var(--gray-50); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-600); }
+  .settings-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .settings-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: 8px; }
+  .settings-list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+  .settings-list-item:last-child { border-bottom: none; }
+  .settings-list-item:hover { background: var(--gray-50); }
+  .settings-delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; }
+  .settings-delete-btn:hover { background: var(--red-light); }
   @media (max-width: 600px) {
     .form-row { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr; }
@@ -478,6 +495,7 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
 <div style="display:flex;align-items:center;gap:8px;">
   <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
   <button onclick="syncFromCloud().then(()=&gt;showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">↻ Sync</button>
+      <button onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">⚙</button>
 </div>        <div class="subtitle">Super Yacht Services</div>
       </div>
     </div>
@@ -1126,6 +1144,26 @@ document.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getIte
     <div class="modal-actions">
       <button class="cancel" onclick="closeBudgetModal()">Cancel</button>
       <button class="confirm" onclick="saveBudgetLimit()">Save Budget</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal modal-wide" style="max-width:520px;">
+    <h3>⚙ Settings</h3>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="settingsTabVessels" class="settings-tab active" onclick="switchSettingsTab('vessels')">Vessels</button>
+      <button id="settingsTabStaff" class="settings-tab" onclick="switchSettingsTab('staff')">Staff Members</button>
+    </div>
+    <div id="settingsVesselsList" class="settings-list"></div>
+    <div id="settingsStaffList" class="settings-list" style="display:none;"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <input type="text" id="settingsAddInput" placeholder="Add new vessel..." style="flex:1;padding:8px 10px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;">
+      <button class="confirm" onclick="settingsAddItem()" style="padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;background:var(--teal);border:none;color:#fff;">+ Add</button>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeSettingsModal()">Close</button>
     </div>
   </div>
 </div>
@@ -2280,6 +2318,104 @@ function populateVesselDropdowns() {
     sel.appendChild(opt);
   });
 }
+
+// ============================================================
+// SETTINGS MODAL
+// ============================================================
+let settingsActiveTab = 'vessels';
+
+function openSettingsModal() {
+  settingsActiveTab = 'vessels';
+  document.getElementById('settingsTabVessels').classList.add('active');
+  document.getElementById('settingsTabStaff').classList.remove('active');
+  document.getElementById('settingsAddInput').placeholder = 'Add new vessel...';
+  renderSettingsList();
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function switchSettingsTab(tab) {
+  settingsActiveTab = tab;
+  document.getElementById('settingsTabVessels').classList.toggle('active', tab === 'vessels');
+  document.getElementById('settingsTabStaff').classList.toggle('active', tab === 'staff');
+  document.getElementById('settingsVesselsList').style.display = tab === 'vessels' ? '' : 'none';
+  document.getElementById('settingsStaffList').style.display = tab === 'staff' ? '' : 'none';
+  document.getElementById('settingsAddInput').placeholder = tab === 'vessels' ? 'Add new vessel...' : 'Add new staff member...';
+  document.getElementById('settingsAddInput').value = '';
+  renderSettingsList();
+}
+
+function renderSettingsList() {
+  var vList = document.getElementById('settingsVesselsList');
+  var sortedVessels = [...DB.vessels].sort(function(a, b) { return a.localeCompare(b); });
+  if (sortedVessels.length === 0) {
+    vList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No vessels added yet.</div>';
+  } else {
+    vList.innerHTML = sortedVessels.map(function(v) {
+      return '<div class="settings-list-item"><span>' + v + '</span><button class="settings-delete-btn" data-delete-vessel="' + v.replace(/"/g, '&quot;') + '">Delete</button></div>';
+    }).join('');
+  }
+  var sList = document.getElementById('settingsStaffList');
+  var sortedStaff = [...STAFF_LIST].sort(function(a, b) { return a.localeCompare(b); });
+  if (sortedStaff.length === 0) {
+    sList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No staff members added yet.</div>';
+  } else {
+    sList.innerHTML = sortedStaff.map(function(s) {
+      return '<div class="settings-list-item"><span>' + s + '</span><button class="settings-delete-btn" data-delete-staff="' + s.replace(/"/g, '&quot;') + '">Delete</button></div>';
+    }).join('');
+  }
+}
+
+function settingsAddItem() {
+  var input = document.getElementById('settingsAddInput');
+  var val = input.value.trim();
+  if (!val) return;
+  if (settingsActiveTab === 'vessels') {
+    if (!DB.vessels.includes(val)) {
+      DB.vessels.push(val);
+      syncVesselToCloud(val);
+      populateVesselDropdowns();
+      showToast(val + ' added to vessels.');
+    } else { showToast('Vessel already exists.'); }
+  } else {
+    if (!STAFF_LIST.includes(val)) {
+      STAFF_LIST.push(val);
+      populateStaffDropdown();
+      showToast(val + ' added to staff.');
+    } else { showToast('Staff member already exists.'); }
+  }
+  input.value = '';
+  renderSettingsList();
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target.dataset.deleteVessel) {
+    var name = e.target.dataset.deleteVessel;
+    if (!confirm('Delete vessel "' + name + '"? This will not affect existing entries.')) return;
+    var idx = DB.vessels.indexOf(name);
+    if (idx > -1) {
+      DB.vessels.splice(idx, 1);
+      apiPost({ action: 'deleteVessel', vessel: name });
+      populateVesselDropdowns();
+      renderSettingsList();
+      showToast(name + ' removed from vessels.');
+    }
+  }
+  if (e.target.dataset.deleteStaff) {
+    var name = e.target.dataset.deleteStaff;
+    if (!confirm('Delete staff member "' + name + '"? This will not affect existing entries.')) return;
+    var idx = STAFF_LIST.indexOf(name);
+    if (idx > -1) {
+      STAFF_LIST.splice(idx, 1);
+      populateStaffDropdown();
+      renderSettingsList();
+      showToast(name + ' removed from staff.');
+    }
+  }
+});
 
 // ============================================================
 // TOAST
