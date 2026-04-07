@@ -50,7 +50,7 @@
     background: linear-gradient(135deg, var(--navy), var(--navy-light));
     color: var(--white);
     padding: 16px 20px;
-    position: sticky; top: 0; z-index: 100;
+    z-index: 100;
     box-shadow: var(--shadow-md);
   }
   .header-inner {
@@ -406,6 +406,24 @@
   .settings-list-item:hover { background: var(--gray-50); }
   .settings-delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; }
   .settings-delete-btn:hover { background: var(--red-light); }
+  /* Customs multi-select */
+  .customs-services-panel { margin-top: 12px; }
+  .customs-check-list { display: flex; flex-direction: column; gap: 6px; }
+  .customs-check-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+  .customs-check-item:hover { border-color: var(--teal); background: var(--teal-light); }
+  .customs-check-item.checked { border-color: var(--teal); background: var(--teal-light); }
+  .customs-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
+  .customs-check-item .ci-label { font-size: 14px; font-weight: 500; color: var(--gray-700); flex: 1; }
+  .customs-check-item .ci-price { font-size: 12px; color: var(--gray-500); white-space: nowrap; }
+  .customs-fields-group { margin-top: 12px; padding: 14px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius); }
+  .customs-fields-group h4 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+  .customs-guidance { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #6d4c00; display: flex; align-items: center; gap: 8px; }
+  .customs-guidance .guide-icon { font-size: 16px; flex-shrink: 0; }
+  .customs-auto-price { margin-top: 16px; }
+  .customs-price-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+  .customs-price-row .cpr-label { color: var(--gray-600); }
+  .customs-price-row .cpr-value { font-weight: 600; color: var(--navy); }
+  .customs-price-row.cpr-total { border-top: 2px solid var(--navy); padding-top: 8px; margin-top: 4px; font-weight: 700; font-size: 15px; }
   @media (max-width: 600px) {
     .app-main { padding: 12px 8px 80px; }
     .form-row { grid-template-columns: 1fr; }
@@ -582,6 +600,128 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
         </div>
+        <!-- Customs & Immigration Multi-Select Panel -->
+        <div id="customsServicesPanel" class="customs-services-panel hidden">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Service Types <span class="required">*</span> <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);">(select all that apply)</span></label>
+          </div>
+          <div class="customs-check-list" id="customsCheckList">
+            <label class="customs-check-item" data-service="inbound">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Inbound</span> <span class="ci-price">from $200</span>
+            </label>
+            <label class="customs-check-item" data-service="outbound">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Outbound</span> <span class="ci-price">from $200</span>
+            </label>
+            <label class="customs-check-item" data-service="change_of_captain">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Change of Captain</span> <span class="ci-price">$50</span>
+            </label>
+            <label class="customs-check-item" data-service="crew_guest_signoff">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Crew/Guest Sign off</span> <span class="ci-price">$50/person</span>
+            </label>
+            <label class="customs-check-item" data-service="transfer_of_crew">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Transfer of Crew</span> <span class="ci-price">$50/person</span>
+            </label>
+            <label class="customs-check-item" data-service="ok_to_travel">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Ok to Travel Letter</span> <span class="ci-price">$80 + $10/edit</span>
+            </label>
+            <label class="customs-check-item" data-service="failure_signoff_letter">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Failure to Sign off Crew/Guests Letter</span> <span class="ci-price">$50 + per-person</span>
+            </label>
+            <label class="customs-check-item" data-service="vessel_relinquancy">
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Vessel Relinquancy to Agent</span> <span class="ci-price">$50</span>
+            </label>
+          </div>
+
+          <!-- Guidance banners (shown conditionally) -->
+          <div id="customsGuidanceCaptain" class="customs-guidance hidden">
+            <span class="guide-icon">&#128161;</span>
+            <span>Change of Captain often requires a <strong>Crew/Guest Sign off</strong>. Consider selecting it above if applicable.</span>
+          </div>
+          <div id="customsGuidanceRelinquancy" class="customs-guidance hidden">
+            <span class="guide-icon">&#128161;</span>
+            <span>Vessel Relinquancy typically requires a <strong>Crew/Guest Sign off</strong> as well. Consider selecting it above.</span>
+          </div>
+
+          <!-- Conditional fields for Inbound -->
+          <div id="customsFieldsInbound" class="customs-fields-group hidden">
+            <h4>Inbound Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Crew Count <span class="required">*</span></label>
+                <input type="number" id="customsInboundCrew" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+              <div class="form-group">
+                <label>Guest Count <span class="required">*</span></label>
+                <input type="number" id="customsInboundGuests" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional fields for Outbound -->
+          <div id="customsFieldsOutbound" class="customs-fields-group hidden">
+            <h4>Outbound Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Crew Count <span class="required">*</span></label>
+                <input type="number" id="customsOutboundCrew" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+              <div class="form-group">
+                <label>Guest Count <span class="required">*</span></label>
+                <input type="number" id="customsOutboundGuests" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional fields for Crew/Guest Sign off -->
+          <div id="customsFieldsSignoff" class="customs-fields-group hidden">
+            <h4>Crew/Guest Sign off</h4>
+            <div class="form-row single">
+              <div class="form-group">
+                <label>Number of Persons <span class="required">*</span></label>
+                <input type="number" id="customsSignoffCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional fields for Transfer of Crew -->
+          <div id="customsFieldsTransfer" class="customs-fields-group hidden">
+            <h4>Transfer of Crew</h4>
+            <div class="form-row single">
+              <div class="form-group">
+                <label>Number of Persons <span class="required">*</span></label>
+                <input type="number" id="customsTransferCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional fields for Ok to Travel Letter -->
+          <div id="customsFieldsTravel" class="customs-fields-group hidden">
+            <h4>Ok to Travel Letter</h4>
+            <div class="form-row single">
+              <div class="form-group">
+                <label>Number of Edits</label>
+                <input type="number" id="customsTravelEdits" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditional fields for Failure to Sign off Letter -->
+          <div id="customsFieldsFailure" class="customs-fields-group hidden">
+            <h4>Failure to Sign off Crew/Guests Letter</h4>
+            <div class="form-row single">
+              <div class="form-group">
+                <label>Number of Persons <span class="required">*</span></label>
+                <input type="number" id="customsFailureCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto price breakdown -->
+          <div id="customsPriceBreakdown" class="customs-auto-price hidden">
+            <div id="customsPriceRows"></div>
+          </div>
+        </div>
+
         <div class="form-row single">
           <div class="form-group">
             <label>Description / Notes</label>
@@ -601,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="form-row">
           <div class="form-group">
             <label>Cleared In At</label>
-            <select id="clearedIn">
+            <select id="clearedIn" onchange="if(isCustomsCategory)recalcCustoms()">
               <option value="">Select...</option>
               <option>North Sound, Crabbs</option>
               <option>Jolly Harbour</option>
@@ -612,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="form-group">
             <label>Cleared Out At</label>
-            <select id="clearedOut">
+            <select id="clearedOut" onchange="if(isCustomsCategory)recalcCustoms()">
               <option value="">Select...</option>
               <option>North Sound, Crabbs</option>
               <option>Jolly Harbour</option>
@@ -717,6 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </label>
         </div>
 
+        <div id="billingFieldsSection">
         <!-- HOURLY -->
         <div id="billing-hourly">
           <div class="form-row">
@@ -858,9 +999,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
         </div>
+        </div><!-- /billingFieldsSection -->
 
         <!-- BILLING TYPE SELECTOR -->
-        <div style="margin-top: 16px; padding: 16px 0; border-top: 1px solid var(--gray-200);">
+        <div id="billingMethodSection" style="margin-top: 16px; padding: 16px 0; border-top: 1px solid var(--gray-200);">
           <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Select Billing Method</label>
           <div class="billing-type-selector">
             <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
@@ -996,14 +1138,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </table></div>
       </div>
     </div>
-
-    <div class="section-card">
+  <div class="section-card">
       <div class="section-header"><h2>Running Totals by Vessel</h2></div>
       <div class="section-body">
         <div id="runningTotals"></div>
       </div>
     </div>
-  </div>
+
+    </div>
 
   <!-- =============================== -->
   <!-- VIEW: TIMELINE                  -->
@@ -1031,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
 
+  </div>
 
 </div>
 
@@ -1272,20 +1415,23 @@ const DB = {
   }
 };
 
+// Load all data from Google Sheets into localStorage
 // Fix double-encoded UTF-8 strings from Google Sheets
 function fixEncoding(str) {
-  if (typeof str !== 'string') return str;
-  try {
-    // Detect double-encoded UTF-8: Latin-1 interpreted UTF-8 bytes re-encoded as UTF-8
-    // e.g. em dash (U+2014) bytes E2 80 94 read as Latin-1 become Ã¢ÂÂ then re-encoded
-    if (/[\xC3][\x80-\xBF]/.test(str)) {
-      const bytes = new Uint8Array([...str].map(c => c.charCodeAt(0)));
-      const decoded = new TextDecoder('utf-8').decode(bytes);
-      if (!decoded.includes('\uFFFD') && decoded.length < str.length) return decoded;
+      if (typeof str !== 'string') return str;
+      try {
+        let result = str;
+        for (let i = 0; i < 3; i++) {
+          if (!/[\x80-\xFF]/.test(result)) break;
+          const bytes = new Uint8Array([...result].map(c => c.charCodeAt(0)));
+          const decoded = new TextDecoder('utf-8').decode(bytes);
+          if (decoded === result || decoded.includes('\uFFFD')) break;
+          result = decoded;
+        }
+        return result;
+      } catch(e) {}
+      return str;
     }
-  } catch(e) {}
-  return str;
-}
 
 // Map Google Sheets header names to frontend camelCase keys
 function mapEntryFromSheet(raw) {
@@ -1327,28 +1473,19 @@ function mapEntryFromSheet(raw) {
   };
 }
 
-// Load all data from Google Sheets into localStorage
 async function syncFromCloud() {
   const data = await apiGet();
   if (data) {
-    // Map entries from Sheet header names to camelCase
     const rawEntries = data.entries || [];
     DB.entries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
-    // Extract vessel names from vessel objects if needed
     const rawVessels = data.vessels || [];
     DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
     if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    // Refresh current view
-    populateVesselDropdowns();
-    const activeView = document.querySelector('.tab-btn.active');
-    if (activeView) {
-      const view = activeView.getAttribute('data-view');
-      if (view === 'log') renderLog();
-      if (view === 'timeline') renderTimeline();
-        }
-    return true;
+    syncStatus = 'online';
+  } else {
+    syncStatus = 'offline';
   }
-  return false;
+  updateSyncBadge();
 }
 
 // Push a new entry to Google Sheets
@@ -1373,6 +1510,7 @@ async function syncVesselToCloud(vessel) {
 
 
 
+
 // ============================================================
 // INITIALIZATION
 // ============================================================
@@ -1384,7 +1522,7 @@ document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
 // SERVICE TYPE MAPPING
 // ============================================================
 const serviceTypes = {
-  'Customs & Immigration': ['Inward Clearance (up to 10 crew)','Outward Clearance','Additional Crew Clearance','Crew Sign Off — Immigration','Clearance Outside Falmouth/English Harbour'],
+  'Customs & Immigration': [], // handled by custom multi-select panel
   'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
   'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
   'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
@@ -1395,13 +1533,209 @@ const serviceTypes = {
   'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
 };
 
+// Customs & Immigration service key labels (for data storage)
+const CUSTOMS_SERVICE_LABELS = {
+  inbound: 'Inbound',
+  outbound: 'Outbound',
+  change_of_captain: 'Change of Captain',
+  crew_guest_signoff: 'Crew/Guest Sign off',
+  transfer_of_crew: 'Transfer of Crew',
+  ok_to_travel: 'Ok to Travel Letter',
+  failure_signoff_letter: 'Failure to Sign off Crew/Guests Letter',
+  vessel_relinquancy: 'Vessel Relinquancy to Agent'
+};
+
+let isCustomsCategory = false;
+let customsTotal = 0;
+
 function updateServiceTypes() {
   const cat = document.getElementById('serviceCategory').value;
   const sel = document.getElementById('serviceType');
-  sel.innerHTML = '<option value="">Select type...</option>';
-  if (serviceTypes[cat]) {
-    serviceTypes[cat].forEach(t => { const o = document.createElement('option'); o.textContent = t; sel.appendChild(o); });
+  const customsPanel = document.getElementById('customsServicesPanel');
+  const serviceTypeRow = sel.closest('.form-group');
+
+  isCustomsCategory = (cat === 'Customs & Immigration');
+
+  if (isCustomsCategory) {
+    // Hide standard service type dropdown, show customs multi-select
+    serviceTypeRow.style.display = 'none';
+    customsPanel.classList.remove('hidden');
+    // Auto-enable billable and set billing to fixed for customs
+    document.getElementById('billableToggle').checked = true;
+    // Hide the billing type selector — customs uses auto-pricing
+    document.getElementById('billingMethodSection').style.display = 'none';
+    document.getElementById('billingFieldsSection').style.display = 'none';
+    recalcCustoms();
+  } else {
+    serviceTypeRow.style.display = '';
+    customsPanel.classList.add('hidden');
+    document.getElementById('billingMethodSection').style.display = '';
+    document.getElementById('billingFieldsSection').style.display = '';
+    sel.innerHTML = '<option value="">Select type...</option>';
+    if (serviceTypes[cat]) {
+      serviceTypes[cat].forEach(t => { const o = document.createElement('option'); o.textContent = t; sel.appendChild(o); });
+    }
+    customsTotal = 0;
+    recalculate();
   }
+}
+
+function getSelectedCustomsServices() {
+  const items = document.querySelectorAll('#customsCheckList .customs-check-item');
+  const selected = [];
+  items.forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (cb.checked) selected.push(item.dataset.service);
+  });
+  return selected;
+}
+
+function onCustomsServiceChange() {
+  const selected = getSelectedCustomsServices();
+
+  // Toggle checked styling
+  document.querySelectorAll('#customsCheckList .customs-check-item').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    item.classList.toggle('checked', cb.checked);
+  });
+
+  // Show/hide conditional fields
+  document.getElementById('customsFieldsInbound').classList.toggle('hidden', !selected.includes('inbound'));
+  document.getElementById('customsFieldsOutbound').classList.toggle('hidden', !selected.includes('outbound'));
+  document.getElementById('customsFieldsSignoff').classList.toggle('hidden', !selected.includes('crew_guest_signoff'));
+  document.getElementById('customsFieldsTransfer').classList.toggle('hidden', !selected.includes('transfer_of_crew'));
+  document.getElementById('customsFieldsTravel').classList.toggle('hidden', !selected.includes('ok_to_travel'));
+  document.getElementById('customsFieldsFailure').classList.toggle('hidden', !selected.includes('failure_signoff_letter'));
+
+  // Show/hide guidance banners
+  const hasCaptain = selected.includes('change_of_captain');
+  const hasRelinquancy = selected.includes('vessel_relinquancy');
+  const hasSignoff = selected.includes('crew_guest_signoff');
+  document.getElementById('customsGuidanceCaptain').classList.toggle('hidden', !hasCaptain || hasSignoff);
+  document.getElementById('customsGuidanceRelinquancy').classList.toggle('hidden', !hasRelinquancy || hasSignoff);
+
+  // Make Cleared In At required when inbound or outbound selected
+  const clearedInLabel = document.querySelector('label[for="clearedIn"], #clearedIn').closest('.form-group').querySelector('label');
+  const clearedOutLabel = document.querySelector('label[for="clearedOut"], #clearedOut').closest('.form-group').querySelector('label');
+  if (selected.includes('inbound') || selected.includes('outbound')) {
+    if (!clearedInLabel.querySelector('.required')) clearedInLabel.innerHTML = 'Cleared In At <span class="required">*</span>';
+  } else {
+    clearedInLabel.innerHTML = 'Cleared In At';
+  }
+  if (selected.includes('outbound')) {
+    if (!clearedOutLabel.querySelector('.required')) clearedOutLabel.innerHTML = 'Cleared Out At <span class="required">*</span>';
+  } else {
+    clearedOutLabel.innerHTML = 'Cleared Out At';
+  }
+
+  recalcCustoms();
+}
+
+function calcClearancePrice(crewCount, guestCount) {
+  const total = (parseInt(crewCount) || 0) + (parseInt(guestCount) || 0);
+  if (total <= 10) return 200;
+  return 200 + (total - 10) * 35;
+}
+
+function recalcCustoms() {
+  const selected = getSelectedCustomsServices();
+  const clearedIn = document.getElementById('clearedIn').value;
+  const clearedOut = document.getElementById('clearedOut').value;
+  let lines = [];
+  let grandTotal = 0;
+
+  if (selected.includes('inbound')) {
+    const crew = document.getElementById('customsInboundCrew').value;
+    const guests = document.getElementById('customsInboundGuests').value;
+    const price = calcClearancePrice(crew, guests);
+    const totalPersons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
+    let label = 'Inbound (' + totalPersons + ' persons)';
+    lines.push({ label: label, amount: price });
+    grandTotal += price;
+
+    // Passport collection fee if cleared in at non-English Harbour
+    if (clearedIn && clearedIn !== 'English Harbour') {
+      lines.push({ label: 'Passport Collection Fee (non-English Harbour)', amount: 50 });
+      grandTotal += 50;
+    }
+  }
+
+  if (selected.includes('outbound')) {
+    const crew = document.getElementById('customsOutboundCrew').value;
+    const guests = document.getElementById('customsOutboundGuests').value;
+    const price = calcClearancePrice(crew, guests);
+    const totalPersons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
+    let label = 'Outbound (' + totalPersons + ' persons)';
+    lines.push({ label: label, amount: price });
+    grandTotal += price;
+
+    // Additional location fee if cleared out at non-English Harbour
+    if (clearedOut && clearedOut !== 'English Harbour') {
+      lines.push({ label: 'Additional Location Fee (non-English Harbour)', amount: 50 });
+      grandTotal += 50;
+    }
+  }
+
+  if (selected.includes('change_of_captain')) {
+    lines.push({ label: 'Change of Captain', amount: 50 });
+    grandTotal += 50;
+  }
+
+  if (selected.includes('crew_guest_signoff')) {
+    const count = parseInt(document.getElementById('customsSignoffCount').value) || 1;
+    const price = count * 50;
+    lines.push({ label: 'Crew/Guest Sign off (' + count + ' × $50)', amount: price });
+    grandTotal += price;
+  }
+
+  if (selected.includes('transfer_of_crew')) {
+    const count = parseInt(document.getElementById('customsTransferCount').value) || 1;
+    const price = count * 50;
+    lines.push({ label: 'Transfer of Crew (' + count + ' × $50)', amount: price });
+    grandTotal += price;
+  }
+
+  if (selected.includes('ok_to_travel')) {
+    const edits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
+    const price = 80 + (edits * 10);
+    let label = 'Ok to Travel Letter';
+    if (edits > 0) label += ' + ' + edits + ' edit' + (edits > 1 ? 's' : '');
+    lines.push({ label: label, amount: price });
+    grandTotal += price;
+  }
+
+  if (selected.includes('failure_signoff_letter')) {
+    const count = parseInt(document.getElementById('customsFailureCount').value) || 1;
+    const letterFee = 50;
+    const personCharges = count * 50;
+    const price = letterFee + personCharges;
+    lines.push({ label: 'Failure to Sign off Letter ($50)', amount: letterFee });
+    lines.push({ label: 'Sign off charges (' + count + ' × $50)', amount: personCharges });
+    grandTotal += price;
+  }
+
+  if (selected.includes('vessel_relinquancy')) {
+    lines.push({ label: 'Vessel Relinquancy to Agent', amount: 50 });
+    grandTotal += 50;
+  }
+
+  // Render price breakdown
+  const breakdownEl = document.getElementById('customsPriceBreakdown');
+  const rowsEl = document.getElementById('customsPriceRows');
+  if (lines.length > 0) {
+    breakdownEl.classList.remove('hidden');
+    rowsEl.innerHTML = lines.map(l =>
+      '<div class="customs-price-row"><span class="cpr-label">' + l.label + '</span><span class="cpr-value">$' + l.amount.toFixed(2) + '</span></div>'
+    ).join('') +
+    '<div class="customs-price-row cpr-total"><span class="cpr-label">Customs Total</span><span class="cpr-value">$' + grandTotal.toFixed(2) + '</span></div>';
+  } else {
+    breakdownEl.classList.add('hidden');
+    rowsEl.innerHTML = '';
+  }
+
+  customsTotal = grandTotal;
+  // Push into main calc summary
+  recalculate();
 }
 
 // ============================================================
@@ -1416,7 +1750,7 @@ function showView(view) {
   const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
   if (tabBtn) tabBtn.classList.add('active');
   document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
-  window.scrollTo(0, 0);
+      window.scrollTo(0, 0);
   if (view === 'log') renderLog();
   if (view === 'timeline') renderTimeline();
 }
@@ -1500,6 +1834,18 @@ function updatePercentRate() {
 function recalculate() {
   const billable = document.getElementById('billableToggle').checked;
   let base = 0, crewCharge = 0, currency = 'USD';
+
+  if (isCustomsCategory) {
+    // For customs, base = customsTotal, no manual billing type needed
+    base = customsTotal;
+    currency = 'USD';
+    const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
+    const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
+    const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+    updateCalcDisplay(base, 0, agency, disbursement, other, base + agency + disbursement + other, currency);
+    return;
+  }
+
   if (!billable) { updateCalcDisplay(0, 0, 0, 0, 0, 0, 'USD'); return; }
 
   if (currentBillingType === 'hourly') {
@@ -1616,8 +1962,18 @@ function confirmAdd() {
 function collectFormData() {
   let base = 0, crewCharge = 0, currency = 'USD';
   const billable = document.getElementById('billableToggle').checked;
+  let billingType = currentBillingType;
+  let serviceTypeValue = document.getElementById('serviceType').value;
 
-  if (billable) {
+  if (isCustomsCategory) {
+    // Customs uses auto-pricing
+    base = customsTotal;
+    currency = 'USD';
+    billingType = 'customs_auto';
+    // Build a combined service type string from selected services
+    const selected = getSelectedCustomsServices();
+    serviceTypeValue = selected.map(k => CUSTOMS_SERVICE_LABELS[k] || k).join(', ');
+  } else if (billable) {
     if (currentBillingType === 'hourly') {
       const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
       const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
@@ -1646,13 +2002,32 @@ function collectFormData() {
   const other = parseFloat(document.getElementById('otherCharges').value) || 0;
   const total = base + crewCharge + agency + disbursement + other;
 
+  // Collect customs-specific data if applicable
+  let customsData = undefined;
+  if (isCustomsCategory) {
+    const selected = getSelectedCustomsServices();
+    customsData = { selectedServices: selected };
+    if (selected.includes('inbound')) {
+      customsData.inboundCrew = parseInt(document.getElementById('customsInboundCrew').value) || 0;
+      customsData.inboundGuests = parseInt(document.getElementById('customsInboundGuests').value) || 0;
+    }
+    if (selected.includes('outbound')) {
+      customsData.outboundCrew = parseInt(document.getElementById('customsOutboundCrew').value) || 0;
+      customsData.outboundGuests = parseInt(document.getElementById('customsOutboundGuests').value) || 0;
+    }
+    if (selected.includes('crew_guest_signoff')) customsData.signoffCount = parseInt(document.getElementById('customsSignoffCount').value) || 1;
+    if (selected.includes('transfer_of_crew')) customsData.transferCount = parseInt(document.getElementById('customsTransferCount').value) || 1;
+    if (selected.includes('ok_to_travel')) customsData.travelEdits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
+    if (selected.includes('failure_signoff_letter')) customsData.failureCount = parseInt(document.getElementById('customsFailureCount').value) || 1;
+  }
+
   return {
     submissionDate: document.getElementById('submissionDateTime').value,
     serviceDate: document.getElementById('serviceDate').value,
     vessel: document.getElementById('vesselSelect').value,
     staffMember: document.getElementById('staffSelect').value,
     category: document.getElementById('serviceCategory').value,
-    serviceType: document.getElementById('serviceType').value,
+    serviceType: serviceTypeValue,
     description: document.getElementById('serviceDescription').value,
     status: currentStatus,
     workCompleted: document.getElementById('workCompleted').checked,
@@ -1664,25 +2039,26 @@ function collectFormData() {
     etd: document.getElementById('etdField').value,
     crewArrival: document.getElementById('crewArrival').value,
     crewDeparture: document.getElementById('crewDeparture').value,
-    billingType: currentBillingType,
-    billable: billable,
+    billingType: billingType,
+    billable: isCustomsCategory ? true : billable,
     currency: currency,
-    hoursWorked: currentBillingType === 'hourly' ? (parseFloat(document.getElementById('hoursWorked').value) || 0) : undefined,
-    hourlyRate: currentBillingType === 'hourly' ? (parseFloat(document.getElementById('hourlyRate').value) || 0) : undefined,
-    fixedAmount: currentBillingType === 'fixed' ? (parseFloat(document.getElementById('fixedAmount').value) || 0) : undefined,
-    fixedQty: currentBillingType === 'fixed' ? (parseInt(document.getElementById('fixedQty').value) || 1) : undefined,
-    percentBase: currentBillingType === 'percentage' ? (parseFloat(document.getElementById('baseAmount').value) || 0) : undefined,
-    percentRate: currentBillingType === 'percentage' ? (parseFloat(document.getElementById('percentRate').value) || 0) : undefined,
+    hoursWorked: currentBillingType === 'hourly' && !isCustomsCategory ? (parseFloat(document.getElementById('hoursWorked').value) || 0) : undefined,
+    hourlyRate: currentBillingType === 'hourly' && !isCustomsCategory ? (parseFloat(document.getElementById('hourlyRate').value) || 0) : undefined,
+    fixedAmount: currentBillingType === 'fixed' && !isCustomsCategory ? (parseFloat(document.getElementById('fixedAmount').value) || 0) : undefined,
+    fixedQty: currentBillingType === 'fixed' && !isCustomsCategory ? (parseInt(document.getElementById('fixedQty').value) || 1) : undefined,
+    percentBase: currentBillingType === 'percentage' && !isCustomsCategory ? (parseFloat(document.getElementById('baseAmount').value) || 0) : undefined,
+    percentRate: currentBillingType === 'percentage' && !isCustomsCategory ? (parseFloat(document.getElementById('percentRate').value) || 0) : undefined,
     baseCharge: base,
     crewCharge: crewCharge,
     agencyFee: agency,
     disbursementFee: disbursement,
     otherCharges: other,
     totalCharge: total,
+    customsData: customsData,
     specialNotes: document.getElementById('specialNotes').value,
     internalNotes: document.getElementById('internalNotes').value,
     clientNotes: document.getElementById('clientNotes').value,
-    overrideNote: currentBillingType === 'manual' ? document.getElementById('manualNote').value : ''
+    overrideNote: !isCustomsCategory && currentBillingType === 'manual' ? document.getElementById('manualNote').value : ''
   };
 }
 
@@ -1693,6 +2069,20 @@ async function submitEntry() {
   const vessel = document.getElementById('vesselSelect').value;
   const staff = document.getElementById('staffSelect').value;
   if (!vessel || !staff) { showToast('Please select a vessel and staff member.'); return; }
+
+  // Customs-specific validation
+  if (isCustomsCategory) {
+    const selected = getSelectedCustomsServices();
+    if (selected.length === 0) { showToast('Please select at least one customs service type.'); return; }
+    const clearedIn = document.getElementById('clearedIn').value;
+    const clearedOut = document.getElementById('clearedOut').value;
+    if ((selected.includes('inbound') || selected.includes('outbound')) && !clearedIn) {
+      showToast('Cleared In At is required for Inbound/Outbound services.'); return;
+    }
+    if (selected.includes('outbound') && !clearedOut) {
+      showToast('Cleared Out At is required for Outbound services.'); return;
+    }
+  }
 
   const submitBtn = document.querySelector('.submit-btn');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
@@ -1740,7 +2130,34 @@ function saveDraft() {
 function resetForm() {
   document.getElementById('serviceCategory').value = '';
   document.getElementById('serviceType').innerHTML = '<option value="">Select type...</option>';
+  document.getElementById('serviceType').closest('.form-group').style.display = '';
   document.getElementById('serviceDescription').value = '';
+  // Reset customs panel
+  isCustomsCategory = false;
+  customsTotal = 0;
+  document.getElementById('customsServicesPanel').classList.add('hidden');
+  document.querySelectorAll('#customsCheckList input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('#customsCheckList .customs-check-item').forEach(el => el.classList.remove('checked'));
+  document.getElementById('customsFieldsInbound').classList.add('hidden');
+  document.getElementById('customsFieldsOutbound').classList.add('hidden');
+  document.getElementById('customsFieldsSignoff').classList.add('hidden');
+  document.getElementById('customsFieldsTransfer').classList.add('hidden');
+  document.getElementById('customsFieldsTravel').classList.add('hidden');
+  document.getElementById('customsFieldsFailure').classList.add('hidden');
+  document.getElementById('customsGuidanceCaptain').classList.add('hidden');
+  document.getElementById('customsGuidanceRelinquancy').classList.add('hidden');
+  document.getElementById('customsPriceBreakdown').classList.add('hidden');
+  document.getElementById('customsInboundCrew').value = '0';
+  document.getElementById('customsInboundGuests').value = '0';
+  document.getElementById('customsOutboundCrew').value = '0';
+  document.getElementById('customsOutboundGuests').value = '0';
+  document.getElementById('customsSignoffCount').value = '1';
+  document.getElementById('customsTransferCount').value = '1';
+  document.getElementById('customsTravelEdits').value = '0';
+  document.getElementById('customsFailureCount').value = '1';
+  // Restore billing sections visibility
+  document.getElementById('billingMethodSection').style.display = '';
+  document.getElementById('billingFieldsSection').style.display = '';
   document.getElementById('clearedIn').value = '';
   document.getElementById('clearedOut').value = '';
   document.getElementById('marina').value = '';
@@ -1788,7 +2205,7 @@ function openEditModal(entryId) {
 
   // Populate vessel dropdown
   const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = [...DB.vessels].sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+  vesselSel.innerHTML = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
 
   // Populate staff dropdown
   const staffSel = document.getElementById('editStaff');
@@ -2415,7 +2832,7 @@ function populateStaffDropdown() {
 // VESSEL MANAGEMENT
 // ============================================================
 function populateVesselDropdowns() {
-  const vessels = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b));
+  const vessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
   const sel = document.getElementById('vesselSelect');
   const currentVal = sel.value;
   sel.innerHTML = '<option value="">Select vessel...</option>';
