@@ -50,7 +50,7 @@
     background: linear-gradient(135deg, var(--navy), var(--navy-light));
     color: var(--white);
     padding: 16px 20px;
-    z-index: 100;
+    position: sticky; top: 0; z-index: 100;
     box-shadow: var(--shadow-md);
   }
   .header-inner {
@@ -996,14 +996,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </table></div>
       </div>
     </div>
-  <div class="section-card">
+
+    <div class="section-card">
       <div class="section-header"><h2>Running Totals by Vessel</h2></div>
       <div class="section-body">
         <div id="runningTotals"></div>
       </div>
     </div>
-
-    </div>
+  </div>
 
   <!-- =============================== -->
   <!-- VIEW: TIMELINE                  -->
@@ -1031,7 +1031,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 
 
-  </div>
 
 </div>
 
@@ -1273,23 +1272,20 @@ const DB = {
   }
 };
 
-// Load all data from Google Sheets into localStorage
 // Fix double-encoded UTF-8 strings from Google Sheets
 function fixEncoding(str) {
-      if (typeof str !== 'string') return str;
-      try {
-        let result = str;
-        for (let i = 0; i < 3; i++) {
-          if (!/[\x80-\xFF]/.test(result)) break;
-          const bytes = new Uint8Array([...result].map(c => c.charCodeAt(0)));
-          const decoded = new TextDecoder('utf-8').decode(bytes);
-          if (decoded === result || decoded.includes('\uFFFD')) break;
-          result = decoded;
-        }
-        return result;
-      } catch(e) {}
-      return str;
+  if (typeof str !== 'string') return str;
+  try {
+    // Detect double-encoded UTF-8: Latin-1 interpreted UTF-8 bytes re-encoded as UTF-8
+    // e.g. em dash (U+2014) bytes E2 80 94 read as Latin-1 become Ã¢ÂÂ then re-encoded
+    if (/[\xC3][\x80-\xBF]/.test(str)) {
+      const bytes = new Uint8Array([...str].map(c => c.charCodeAt(0)));
+      const decoded = new TextDecoder('utf-8').decode(bytes);
+      if (!decoded.includes('\uFFFD') && decoded.length < str.length) return decoded;
     }
+  } catch(e) {}
+  return str;
+}
 
 // Map Google Sheets header names to frontend camelCase keys
 function mapEntryFromSheet(raw) {
@@ -1331,19 +1327,28 @@ function mapEntryFromSheet(raw) {
   };
 }
 
+// Load all data from Google Sheets into localStorage
 async function syncFromCloud() {
   const data = await apiGet();
   if (data) {
+    // Map entries from Sheet header names to camelCase
     const rawEntries = data.entries || [];
     DB.entries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
+    // Extract vessel names from vessel objects if needed
     const rawVessels = data.vessels || [];
     DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
     if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    syncStatus = 'online';
-  } else {
-    syncStatus = 'offline';
+    // Refresh current view
+    populateVesselDropdowns();
+    const activeView = document.querySelector('.tab-btn.active');
+    if (activeView) {
+      const view = activeView.getAttribute('data-view');
+      if (view === 'log') renderLog();
+      if (view === 'timeline') renderTimeline();
+        }
+    return true;
   }
-  updateSyncBadge();
+  return false;
 }
 
 // Push a new entry to Google Sheets
@@ -1365,7 +1370,6 @@ async function syncDeleteFromCloud(entryId) {
 async function syncVesselToCloud(vessel) {
   return await apiPost({ action: 'addVessel', vessel: vessel });
 }
-
 
 
 
@@ -1412,7 +1416,7 @@ function showView(view) {
   const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
   if (tabBtn) tabBtn.classList.add('active');
   document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
-      window.scrollTo(0, 0);
+  window.scrollTo(0, 0);
   if (view === 'log') renderLog();
   if (view === 'timeline') renderTimeline();
 }
@@ -1784,7 +1788,7 @@ function openEditModal(entryId) {
 
   // Populate vessel dropdown
   const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
+  vesselSel.innerHTML = [...DB.vessels].sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
 
   // Populate staff dropdown
   const staffSel = document.getElementById('editStaff');
@@ -2411,7 +2415,7 @@ function populateStaffDropdown() {
 // VESSEL MANAGEMENT
 // ============================================================
 function populateVesselDropdowns() {
-  const vessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
+  const vessels = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b));
   const sel = document.getElementById('vesselSelect');
   const currentVal = sel.value;
   sel.innerHTML = '<option value="">Select vessel...</option>';
