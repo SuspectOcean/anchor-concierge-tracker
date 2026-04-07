@@ -1398,17 +1398,30 @@ const DB = {
 };
 
 // Load all data from Google Sheets into localStorage
+// Fix double-encoded UTF-8 strings from Google Sheets
+function fixEncoding(str) {
+  if (typeof str !== 'string') return str;
+  try {
+    if (/[\xC3][\x80-\xBF]/.test(str)) {
+      const bytes = new Uint8Array([...str].map(c => c.charCodeAt(0)));
+      const decoded = new TextDecoder('utf-8').decode(bytes);
+      if (!decoded.includes('\uFFFD') && decoded.length < str.length) return decoded;
+    }
+  } catch(e) {}
+  return str;
+}
+
 // Map Google Sheets header names to frontend camelCase keys
 function mapEntryFromSheet(raw) {
   return {
     entryId: raw['Entry ID'] || '',
     submissionDate: raw['Submission Date'] || '',
     serviceDate: raw['Service Date'] || '',
-    vessel: raw['Vessel'] || '',
-    staffMember: raw['Staff Member'] || '',
-    category: raw['Category'] || '',
-    serviceType: raw['Service Type'] || '',
-    description: raw['Description'] || '',
+    vessel: fixEncoding(raw['Vessel'] || ''),
+    staffMember: fixEncoding(raw['Staff Member'] || ''),
+    category: fixEncoding(raw['Category'] || ''),
+    serviceType: fixEncoding(raw['Service Type'] || ''),
+    description: fixEncoding(raw['Description'] || ''),
     status: (raw['Status'] || 'planned').toLowerCase(),
     workCompleted: raw['Work Completed'] || '',
     clearedIn: raw['Location - Cleared In'] || '',
@@ -1430,9 +1443,9 @@ function mapEntryFromSheet(raw) {
     disbursementFee: raw['Disbursement Fee'] || 0,
     otherCharges: raw['Other Charges'] || 0,
     totalCharge: raw['Total Charge'] || 0,
-    specialNotes: raw['Special Notes'] || '',
-    internalNotes: raw['Internal Notes'] || '',
-    clientNotes: raw['Client Notes'] || '',
+    specialNotes: fixEncoding(raw['Special Notes'] || ''),
+    internalNotes: fixEncoding(raw['Internal Notes'] || ''),
+    clientNotes: fixEncoding(raw['Client Notes'] || ''),
     overrideNote: raw['Override Note'] || '',
     syncedAt: raw['Synced At'] || ''
   };
@@ -2705,7 +2718,9 @@ function settingsAddItem() {
   if (!val) return;
   if (settingsActiveTab === 'vessels') {
     if (!DB.vessels.includes(val)) {
-      DB.vessels.push(val);
+      const vessels = DB.vessels;
+      vessels.push(val);
+      DB.vessels = vessels;
       syncVesselToCloud(val);
       populateVesselDropdowns();
       showToast(val + ' added to vessels.');
@@ -2727,10 +2742,12 @@ function settingsAddItem() {
 
 function deleteVessel(name) {
   if (!confirm('Delete vessel "' + name + '"? This will not affect existing entries.')) return;
-  const idx = DB.vessels.indexOf(name);
+  const vessels = DB.vessels;
+  const idx = vessels.indexOf(name);
   if (idx > -1) {
-    DB.vessels.splice(idx, 1);
-    apiPost({ action: 'deleteVessel', vessel: name });
+    vessels.splice(idx, 1);
+    DB.vessels = vessels;
+    apiPost({ action: 'removeVessel', vessel: name });
     populateVesselDropdowns();
     renderSettingsList();
     showToast(name + ' removed from vessels.');
