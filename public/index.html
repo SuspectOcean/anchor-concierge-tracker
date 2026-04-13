@@ -467,7 +467,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Submission Date/Time</label>
-            <input type="datetime-local" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
+            <input type="text" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
           </div>
         </div>
       </div>
@@ -1246,6 +1246,7 @@ async function handleLogin() {
     await loadEntries();
     await loadVessels();
     await loadStaff();
+    updateSubmissionDateTime();
     subscribeToChanges();
   } catch (err) {
     errorEl.textContent = err.message || 'Login failed';
@@ -1293,6 +1294,7 @@ async function handleSignup() {
     await loadEntries();
     await loadVessels();
     await loadStaff();
+    updateSubmissionDateTime();
     subscribeToChanges();
   } catch (err) {
     errorEl.textContent = err.message || 'Signup failed';
@@ -2001,6 +2003,18 @@ function toggleSection(header) {
   body.classList.toggle('collapsed');
 }
 
+function getAntiguaDateTime() {
+  return new Date().toLocaleString('en-GB', {
+    timeZone: 'America/Antigua',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+}
+
+function updateSubmissionDateTime() {
+  document.getElementById('submissionDateTime').value = getAntiguaDateTime();
+}
+
 function showView(view) {
   document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
   document.getElementById(`view-${view}`).style.display = 'block';
@@ -2009,9 +2023,8 @@ function showView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
 
-  if (view === 'timeline') {
-    renderTimeline();
-  }
+  if (view === 'new') updateSubmissionDateTime();
+  if (view === 'timeline') renderTimeline();
 }
 
 function renderLog() {
@@ -2490,6 +2503,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadEntries();
     await loadVessels();
     await loadStaff();
+    updateSubmissionDateTime();
     subscribeToChanges();
   }
 
