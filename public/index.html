@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -298,218 +299,101 @@
   .day-detail-list { padding: 0; }
   .day-job { padding: 16px 24px; border-bottom: 1px solid var(--gray-100); }
   .day-job:last-child { border-bottom: none; }
-  .day-job-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .day-job-vessel { font-weight: 600; font-size: 15px; color: var(--navy); }
-  .day-job-status { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
-  .day-job-status.upcoming { background: #e8f0ff; color: var(--blue); }
-  .day-job-status.progress { background: var(--orange-light); color: var(--orange); }
-  .day-job-status.completed { background: var(--green-light); color: var(--green); }
-  .day-job-status.overdue { background: #ffeaea; color: #d32f2f; }
-  .day-job-status.accountants { background: #f3e5f5; color: #7b1fa2; }
-  .day-job-service { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
-  .day-job-times { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
-  .day-job-time { font-size: 12px; color: var(--gray-500); display: flex; align-items: center; gap: 4px; }
-  .day-job-time .time-icon { font-size: 13px; }
-  .day-job-comparison { margin-top: 10px; padding: 8px 12px; background: var(--gray-50); border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-  .day-job-comparison .arrow { color: var(--teal); font-weight: 700; }
-  .day-job-charge { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--navy); }
-  .day-empty { text-align: center; padding: 40px 24px; color: var(--gray-500); font-size: 14px; }
-  @media (max-width: 600px) {
-    .cal-grid { gap: 0; border: 1px solid var(--gray-200); }
-    .cal-cell { min-height: 52px; padding: 3px 2px; }
-    .cal-day { font-size: 11px; margin-bottom: 2px; }
-    .cal-entry-pip { font-size: 0; padding: 0; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-    .cal-dots { flex-direction: row; flex-wrap: wrap; gap: 2px; }
-    .cal-more { font-size: 9px; }
-    .cal-dow { font-size: 10px; padding: 6px 2px; }
-    .cal-legend { gap: 10px; flex-wrap: wrap; }
-    .cal-legend-item { font-size: 10px; }
-    .day-detail-overlay { padding: 8px; }
-    .day-detail-panel { max-height: 95vh; margin: 0; border-radius: 12px; }
-    .day-detail-header { padding: 14px 16px 12px; }
-    .day-detail-header h3 { font-size: 15px; }
-    .day-detail-stats { padding: 12px 14px; gap: 8px; }
-    .day-stat .num { font-size: 17px; }
-    .day-job { padding: 12px 14px; }
-    .day-job-vessel { font-size: 14px; }
-    .day-job-service { font-size: 12px; }
-    .day-job-times { gap: 8px; }
-    .day-job-time { font-size: 11px; }
-    .day-job-comparison { font-size: 11px; padding: 6px 10px; }
-  }
-  @media (max-width: 374px) {
-    .cal-cell { min-height: 44px; padding: 2px 1px; }
-    .cal-day { font-size: 10px; }
-    .tab-btn { font-size: 10px; padding: 7px 4px; }
-  }
+  .day-job-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .day-job-title { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .day-job-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .day-job-detail { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
+  .day-job-action { font-size: 12px; color: var(--teal); cursor: pointer; margin-top: 8px; font-weight: 600; }
 
-  .collapsible-section { margin-bottom: 16px; }
-  .collapsible-header {
-    padding: 14px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200);
-    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
-  }
-  .collapsible-header h3 { font-size: 14px; font-weight: 600; color: var(--navy); flex: 1; }
-  .collapsible-header .toggle { color: var(--gray-500); font-size: 18px; transition: transform 0.2s; }
-  .collapsible-header.expanded .toggle { transform: rotate(180deg); }
-  .collapsible-body { display: none; padding: 16px 20px; }
-  .collapsible-body.expanded { display: block; }
-  .currency-row { display: flex; gap: 8px; align-items: center; }
-  .currency-row select { width: 90px; flex-shrink: 0; }
-  .currency-row input { flex: 1; }
-  .search-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .search-bar input { flex: 1; min-width: 200px; }
-  .search-bar select { width: 160px; }
-  .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: var(--navy); color: var(--white); padding: 12px 24px;
-    border-radius: var(--radius); font-size: 14px; z-index: 300;
-    box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease;
-  }
-  @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+  /* Modal Overlay */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  .modal-overlay.hidden { display: none; }
+  .modal-content { background: var(--white); border-radius: var(--radius-lg); padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--gray-200); }
+  .modal-header h2 { margin: 0; font-size: 18px; color: var(--navy); font-weight: 700; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); padding: 4px; }
+  .modal-close:hover { background: var(--gray-100); border-radius: 4px; }
+  .modal-footer { display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+  .modal-footer button { flex: 1; }
+
+  /* Auth Gate Styles */
+  .auth-gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--navy), var(--navy-light)); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  .auth-gate.hidden { display: none; }
+  .auth-card { background: var(--white); border-radius: var(--radius-lg); padding: 32px; max-width: 400px; width: 90%; box-shadow: var(--shadow-lg); }
+  .auth-card h2 { font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 8px; text-align: center; }
+  .auth-card .subtitle { text-align: center; color: var(--gray-500); margin-bottom: 24px; font-size: 14px; }
+  .auth-group { margin-bottom: 16px; }
+  .auth-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .auth-group input { width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; }
+  .auth-group input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(26,138,125,0.12); }
+  .auth-error { color: var(--red); font-size: 13px; margin-top: 6px; display: none; }
+  .auth-buttons { display: flex; gap: 12px; margin-top: 20px; }
+  .btn-auth { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-auth-primary { background: var(--teal); color: var(--white); }
+  .btn-auth-primary:hover { background: #0d6b66; }
+  .btn-auth-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-auth-secondary:hover { background: var(--gray-200); }
+  .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--gray-600); }
+  .auth-toggle a { color: var(--teal); cursor: pointer; text-decoration: underline; }
   .hidden { display: none !important; }
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); z-index: 200; display: flex;
-    align-items: center; justify-content: center; padding: 20px;
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 80px; left: 20px; background: var(--navy); color: var(--white);
+    padding: 12px 16px; border-radius: var(--radius); font-size: 13px; z-index: 300;
+    box-shadow: var(--shadow-md); max-width: 300px; word-wrap: break-word;
   }
-  .modal {
-    background: var(--white); border-radius: var(--radius-lg); padding: 24px;
-    max-width: 440px; width: 100%; box-shadow: var(--shadow-lg);
-  }
-  .modal.modal-wide {
-    max-width: 600px; max-height: 85vh; overflow-y: auto;
-  }
-  .modal .edit-form-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  }
-  .modal .edit-form-grid .full-width { grid-column: 1 / -1; }
-  .modal .edit-form-grid label { font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 2px; display: block; }
-  .modal .edit-form-grid input, .modal .edit-form-grid select, .modal .edit-form-grid textarea {
-    width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px;
-  }
-  .modal .edit-form-grid textarea { resize: vertical; min-height: 50px; }
-  .edit-status-pills { display: flex; gap: 6px; margin-top: 4px; }
-  .edit-status-pills button {
-    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-300); background: var(--white);
-    font-size: 12px; cursor: pointer; font-weight: 500;
-  }
-  .edit-status-pills button.active-upcoming { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
-  .edit-status-pills button.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
-  .edit-status-pills button.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
-  .edit-status-pills button.active-overdue { border-color: #d32f2f; background: #ffeaea; color: #d32f2f; }
-  .edit-status-pills button.active-accountants { border-color: #7b1fa2; background: #f3e5f5; color: #7b1fa2; }
-  .log-table .action-btns { display: flex; gap: 4px; }
-  .log-table .action-btns button {
-    padding: 4px 10px; border-radius: 4px; border: 1px solid var(--gray-300); background: var(--white);
-    cursor: pointer; font-size: 11px; font-weight: 500;
-  }
-  .log-table .action-btns .edit-btn { color: var(--teal); border-color: var(--teal); }
-  .log-table .action-btns .edit-btn:hover { background: var(--teal-light); }
-  .log-table .action-btns .delete-btn { color: var(--red); border-color: var(--red); }
-  .log-table .action-btns .delete-btn:hover { background: var(--red-light); }
-  .modal h3 { font-size: 17px; color: var(--navy); margin-bottom: 12px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-  .modal-actions button {
-    padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
-  }
-  .modal-actions .cancel { background: var(--gray-100); border: 1px solid var(--gray-300); color: var(--gray-700); }
-  .modal-actions .confirm { background: var(--teal); border: none; color: var(--white); }
-  .settings-tab { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--gray-300); background: var(--gray-50); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-600); }
-  .settings-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
-  .settings-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: 8px; }
-  .settings-list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
-  .settings-list-item:last-child { border-bottom: none; }
-  .settings-list-item:hover { background: var(--gray-50); }
-  .settings-delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; }
-  .settings-delete-btn:hover { background: var(--red-light); }
-  /* Customs multi-select */
-  .customs-services-panel { margin-top: 12px; }
-  .customs-check-list { display: flex; flex-direction: column; gap: 6px; }
-  .customs-check-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-  .customs-check-item:hover { border-color: var(--teal); background: var(--teal-light); }
-  .customs-check-item.checked { border-color: var(--teal); background: var(--teal-light); }
-  .customs-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
-  .customs-check-item .ci-label { font-size: 14px; font-weight: 500; color: var(--gray-700); flex: 1; }
-  .customs-check-item .ci-price { font-size: 12px; color: var(--gray-500); white-space: nowrap; }
-  .customs-fields-group { margin-top: 12px; padding: 14px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius); }
-  .customs-fields-group h4 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
-  .customs-guidance { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #6d4c00; display: flex; align-items: center; gap: 8px; }
-  .customs-guidance .guide-icon { font-size: 16px; flex-shrink: 0; }
-  .customs-auto-price { margin-top: 16px; }
-  .customs-price-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
-  .customs-price-row .cpr-label { color: var(--gray-600); }
-  .customs-price-row .cpr-value { font-weight: 600; color: var(--navy); }
-  .customs-price-row.cpr-total { border-top: 2px solid var(--navy); padding-top: 8px; margin-top: 4px; font-weight: 700; font-size: 15px; }
-  @media (max-width: 600px) {
-    .app-main { padding: 12px 8px 80px; }
-    .form-row { grid-template-columns: 1fr; }
-    .form-row.three { grid-template-columns: 1fr; }
-    .app-header { padding: 12px 12px; }
-    .header-brand h1 { font-size: 14px; }
-    .header-brand .anchor-icon { font-size: 22px; }
-    .header-brand .subtitle { font-size: 9px; letter-spacing: 1px; }
-    .header-brand { gap: 8px; }
-    .billing-type-selector { flex-wrap: wrap; }
-    .billing-type-btn { flex: 1 1 45%; font-size: 12px; padding: 10px 6px; }
-    .billing-type-btn .icon { font-size: 20px; }
-    .status-options { gap: 6px; }
-    .status-pill { padding: 6px 12px; font-size: 12px; }
-    .section-body { padding: 12px 10px; }
-    .submit-inner { flex-wrap: wrap; }
-    .log-table { font-size: 12px; }
-    .log-table th, .log-table td { padding: 8px 6px; }
-    .tab-bar { gap: 2px; padding: 3px; }
-    .tab-btn { padding: 8px 6px; font-size: 11px; }
-    .currency-row { flex-wrap: wrap; }
-    .currency-row select { width: 100%; }
-    .section-card { border-radius: 10px; }
-    .section-header h2 { font-size: 16px; }
-    .modal { margin: 10px; max-height: 90vh; overflow-y: auto; padding: 18px; }
-    .modal .edit-form-grid { grid-template-columns: 1fr; }
-    .modal.modal-wide { max-width: 100%; margin: 8px; }
-    .chart-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  }
+  #toast.hidden { display: none; }
 </style>
 </head>
+
 <body>
 
-<!-- PASSWORD GATE -->
-<div id="passwordGate" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0b1d3a,#132d5e);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
-    <div style="font-size:48px;margin-bottom:12px;">&#9875;</div>
-    <h2 style="color:#0b1d3a;font-size:22px;margin-bottom:4px;font-weight:700;">Anchor Concierge</h2>
-    <p style="color:#6c757d;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:28px;">Super Yacht Services</p>
-    <div style="text-align:left;margin-bottom:20px;">
-      <label style="font-size:13px;font-weight:600;color:#495057;display:block;margin-bottom:6px;">Enter Password</label>
-      <input type="password" id="passwordInput" placeholder="Password" style="width:100%;padding:12px 16px;border:2px solid #dee2e6;border-radius:8px;font-size:15px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#c8a84e'" onblur="this.style.borderColor='#dee2e6'">
-      <p id="passwordError" style="color:#dc3545;font-size:12px;margin-top:6px;display:none;">Incorrect password. Please try again.</p>
+<!-- AUTH GATE -->
+<div id="authGate" class="auth-gate">
+  <div class="auth-card">
+    <h2>Anchor Concierge</h2>
+    <div class="subtitle">Service Tracker</div>
+
+    <div id="loginPanel">
+      <div class="auth-group">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="your@email.com">
+        <div class="auth-error" id="authError"></div>
+      </div>
+      <div class="auth-group">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="••••••••">
+      </div>
+      <div class="auth-buttons">
+        <button class="btn-auth btn-auth-primary" onclick="handleLogin()">Sign In</button>
+      </div>
+      <div class="auth-toggle">
+        Don't have an account? <a onclick="toggleAuthPanel('signup')">Sign Up</a>
+      </div>
     </div>
-    <button onclick="checkPassword()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0b1d3a,#132d5e);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;letter-spacing:0.3px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign In</button>
-    <p style="color:#adb5bd;font-size:11px;margin-top:16px;">Authorized personnel only</p>
+
+    <div id="signupPanel" class="hidden">
+      <div class="auth-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="your@email.com">
+        <div class="auth-error" id="signupError"></div>
+      </div>
+      <div class="auth-group">
+        <label>Full Name</label>
+        <input type="text" id="signupName" placeholder="Your Name">
+      </div>
+      <div class="auth-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="••••••••">
+      </div>
+      <div class="auth-buttons">
+        <button class="btn-auth btn-auth-primary" onclick="handleSignup()">Create Account</button>
+        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">Back</button>
+      </div>
+    </div>
   </div>
 </div>
-<script>
-function checkPassword() {
-  var input = document.getElementById('passwordInput');
-  var error = document.getElementById('passwordError');
-  if (input.value === 'Anchorcsys') {
-    document.getElementById('passwordGate').style.display = 'none';
-    sessionStorage.setItem('anchor_auth', 'true');
-  } else {
-    error.style.display = 'block';
-    input.style.borderColor = '#dc3545';
-    input.value = '';
-    input.focus();
-  }
-}
-document.addEventListener('DOMContentLoaded', function() {
-  if (sessionStorage.getItem('anchor_auth') === 'true') {
-    document.getElementById('passwordGate').style.display = 'none';
-  }
-  var inp = document.getElementById('passwordInput');
-  if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPassword(); });
-});
-</script>
 
 <!-- HEADER -->
 <header class="app-header">
@@ -523,8 +407,10 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
-      <button onclick="syncFromCloud().then(()=>showToast('Data refreshed from cloud.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data from cloud">&#8635; Sync</button>
+      <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
+      <button onclick="loadEntries().then(()=>showToast('Data refreshed.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
       <button onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
+      <button onclick="handleLogout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Sign out">Sign Out</button>
     </div>
   </div>
 </header>
@@ -537,11 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
   </div>
 
-  <!-- =============================== -->
-  <!-- VIEW: NEW ENTRY FORM            -->
-  <!-- =============================== -->
+  <!-- VIEW: NEW ENTRY FORM -->
   <div id="view-form">
-
     <!-- VESSEL & STAFF -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
@@ -802,2311 +685,918 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Auto Status</label>
-            <div id="autoStatusDisplay" class="status-options">
-              <span class="status-pill active-upcoming" style="cursor:default;">Upcoming</span>
+            <label>Status <span class="required">*</span></label>
+            <div class="status-options">
+              <button type="button" class="status-pill active-upcoming" data-status="upcoming" onclick="selectStatus('upcoming')">📅 Upcoming</button>
+              <button type="button" class="status-pill" data-status="in-progress" onclick="selectStatus('in-progress')">⏳ In Progress</button>
+              <button type="button" class="status-pill" data-status="completed" onclick="selectStatus('completed')">✓ Completed</button>
+              <button type="button" class="status-pill" data-status="overdue" onclick="selectStatus('overdue')">⚠️ Overdue</button>
+              <button type="button" class="status-pill" data-status="on-hold" onclick="selectStatus('on-hold')">⏸ On Hold</button>
+              <button type="button" class="status-pill" data-status="cancelled" onclick="selectStatus('cancelled')">✕ Cancelled</button>
             </div>
-            <span class="hint" style="margin-top:6px;display:block;">Status is set automatically based on service date. Mark completed below to override.</span>
+            <input type="hidden" id="statusInput" value="upcoming">
           </div>
         </div>
-        <div class="toggle-row">
-          <label class="toggle-label">
-            Mark Work as Completed
-            <span class="hint">Check if the service has been completed</span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" id="workCompleted" onchange="updateAutoStatus()">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="toggle-row">
-          <label class="toggle-label">
-            Future Task / Movement
-            <span class="hint">Schedule upcoming work (ETA/ETD)</span>
-          </label>
-          <label class="switch">
-            <input type="checkbox" id="futureTask" onchange="toggleFutureFields()">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div id="futureFields" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Estimated Time of Arrival (ETA)</label>
-              <input type="datetime-local" id="etaField">
-            </div>
-            <div class="form-group">
-              <label>Estimated Time of Departure (ETD)</label>
-              <input type="datetime-local" id="etdField">
-            </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ETA (Estimated Time of Arrival)</label>
+            <input type="datetime-local" id="eta">
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Crew Arrival</label>
-              <input type="datetime-local" id="crewArrival">
-            </div>
-            <div class="form-group">
-              <label>Crew Departure</label>
-              <input type="datetime-local" id="crewDeparture">
-            </div>
+          <div class="form-group">
+            <label>ETD (Estimated Time of Departure)</label>
+            <input type="datetime-local" id="etd">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Crew Arrival</label>
+            <input type="datetime-local" id="crewArrival">
+          </div>
+          <div class="form-group">
+            <label>Crew Departure</label>
+            <input type="datetime-local" id="crewDeparture">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Work Completed</label>
+            <select id="workCompleted">
+              <option value="">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Future Task for Vessel</label>
+            <input type="text" id="futureTask" placeholder="e.g. Follow-up inspection">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- DUPLICATE WARNING -->
-    <div id="duplicateWarning" class="duplicate-warning hidden">
-      <span class="warn-icon">&#9888;</span>
-      <div class="warn-text">
-        <strong>Similar entry detected</strong><br>
-        There may be a duplicate. Review before submitting.
-      </div>
-    </div>
-
-    <!-- BILLING & PRICING -->
+    <!-- BILLING & CHARGES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4B0; Billing &amp; Pricing</h2>
+        <h2>&#x1F4B0; Billing &amp; Charges</h2>
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
-        <div class="toggle-row">
-          <label class="toggle-label">Billable Service</label>
-          <label class="switch">
-            <input type="checkbox" id="billableToggle" onchange="recalculate()">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div id="billingFieldsSection">
-        <!-- HOURLY -->
-        <div id="billing-hourly">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Hours Worked</label>
-              <input type="number" id="hoursWorked" value="" placeholder="0.0" min="0" step="0.5" onchange="recalculate()">
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Billing Type</label>
+            <div class="billing-type-selector">
+              <button type="button" class="billing-type-btn active" data-type="charged" onclick="selectBillingType('charged')">
+                <div class="icon">💰</div>
+                <div class="label">Charged</div>
+              </button>
+              <button type="button" class="billing-type-btn" data-type="complimentary" onclick="selectBillingType('complimentary')">
+                <div class="icon">🎁</div>
+                <div class="label">Complimentary</div>
+              </button>
+              <button type="button" class="billing-type-btn" data-type="deferred" onclick="selectBillingType('deferred')">
+                <div class="icon">📋</div>
+                <div class="label">Deferred</div>
+              </button>
             </div>
-            <div class="form-group">
-              <label>Rate Per Hour</label>
-              <div class="currency-row">
-                <select id="currencySelect" onchange="recalculate()">
-                  <option value="USD">USD</option>
-                  <option value="XCD">XCD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="BBD">BBD</option>
-                </select>
-                <input type="number" id="hourlyRate" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
-              </div>
-            </div>
-          </div>
-          <div class="form-row single">
-            <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600;">Rate Rules (Preset Multipliers)</label>
-            <div class="toggle-row" style="margin-bottom: 8px;">
-              <label class="toggle-label">Overtime (1.5x)</label>
-              <label class="switch"><input type="checkbox" id="overtimeToggle" onchange="applyRateRule()"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row" style="margin-bottom: 8px;">
-              <label class="toggle-label">Sunday Service (1.5x)</label>
-              <label class="switch"><input type="checkbox" id="sundayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <label class="toggle-label">Holiday Service (2x)</label>
-              <label class="switch"><input type="checkbox" id="holidayToggle" onchange="applyRateRule()"><span class="slider"></span></label>
-            </div>
+            <input type="hidden" id="billingTypeInput" value="charged">
           </div>
         </div>
-
-        <!-- FIXED PRICE -->
-        <div id="billing-fixed" class="hidden">
+        <div id="chargesSection">
           <div class="form-row">
             <div class="form-group">
-              <label>Service Package</label>
-              <select id="fixedServiceSelect" onchange="applyFixedRate()">
-                <option value="">Select package...</option>
-                <option value="150">Basic Clearance (150)</option>
-                <option value="250">Full Crew Handling (250)</option>
-                <option value="500">Complex Import Brokerage (500)</option>
-                <option value="350">Marina Coordination (350)</option>
+              <label>Billable</label>
+              <select id="billable">
+                <option value="">No</option>
+                <option value="Yes">Yes</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Service Amount</label>
-              <div class="currency-row">
-                <select id="fixedCurrency" onchange="recalculate()">
-                  <option value="USD">USD</option>
-                  <option value="XCD">XCD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="BBD">BBD</option>
-                </select>
-                <input type="number" id="fixedAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Quantity</label>
-              <input type="number" id="fixedQty" value="1" min="1" step="1" onchange="recalculate()">
-            </div>
-            <div class="form-group">
-              <label>Additional Crew Members</label>
-              <input type="number" id="additionalCrew" value="0" min="0" step="1" onchange="recalculate()">
-            </div>
-          </div>
-        </div>
-
-        <!-- PERCENTAGE -->
-        <div id="billing-percentage" class="hidden">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Base Amount (Goods/Services)</label>
-              <div class="currency-row">
-                <select id="percentCurrency" onchange="recalculate()">
-                  <option value="USD">USD</option>
-                  <option value="XCD">XCD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="BBD">BBD</option>
-                </select>
-                <input type="number" id="baseAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Markup Percentage</label>
-              <select id="percentType" onchange="updatePercentRate()">
-                <option value="">Select rate...</option>
-                <option value="5">5%</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-                <option value="custom">Custom</option>
+              <label>Currency</label>
+              <select id="currency">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
               </select>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Custom Rate (if selected)</label>
-              <input type="number" id="percentRate" value="" placeholder="0.00" min="0" step="0.1" onchange="recalculate()">
+              <label>Base Charge</label>
+              <input type="number" id="baseCharge" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
             <div class="form-group">
-              <label>Markup Fee</label>
-              <input type="text" id="percentFee" value="$0.00" readonly style="background: var(--gray-50); color: var(--gray-500);">
+              <label>Additional Crew Charge</label>
+              <input type="number" id="additionalCrewCharge" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
           </div>
-        </div>
-
-        <!-- MANUAL -->
-        <div id="billing-manual" class="hidden">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Enter Total Amount</label>
-              <div class="currency-row">
-                <select id="manualCurrency" onchange="recalculate()">
-                  <option value="USD">USD</option>
-                  <option value="XCD">XCD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="BBD">BBD</option>
-                </select>
-                <input type="number" id="manualAmount" value="" placeholder="0.00" min="0" step="1" onchange="recalculate()">
-              </div>
-            </div>
-          </div>
-          <div class="form-row single">
-            <div class="form-group">
-              <label>Reason for Manual Override</label>
-              <textarea id="manualNote" placeholder="Why is a manual amount being used? (Client adjustment, special rate, etc.)"></textarea>
-            </div>
-          </div>
-        </div>
-        </div><!-- /billingFieldsSection -->
-
-        <!-- BILLING TYPE SELECTOR -->
-        <div id="billingMethodSection" style="margin-top: 16px; padding: 16px 0; border-top: 1px solid var(--gray-200);">
-          <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Select Billing Method</label>
-          <div class="billing-type-selector">
-            <button class="billing-type-btn active" onclick="setBillingType(this, 'hourly')">
-              <div class="icon">&#x23F1;</div>
-              <div class="label">Hourly</div>
-            </button>
-            <button class="billing-type-btn" onclick="setBillingType(this, 'fixed')">
-              <div class="icon">&#x1F4B8;</div>
-              <div class="label">Fixed Price</div>
-            </button>
-            <button class="billing-type-btn" onclick="setBillingType(this, 'percentage')">
-              <div class="icon">&#x1F4C8;</div>
-              <div class="label">Percentage Fee</div>
-            </button>
-            <button class="billing-type-btn" onclick="setBillingType(this, 'manual')">
-              <div class="icon">&#x270D;</div>
-              <div class="label">Manual Entry</div>
-            </button>
-          </div>
-        </div>
-
-        <!-- FEE ADDITIONS -->
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
-          <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600;">Additional Charges</label>
           <div class="form-row">
             <div class="form-group">
               <label>Agency Fee</label>
-              <input type="number" id="agencyFee" value="0" min="0" step="1" onchange="recalculate()">
+              <input type="number" id="agencyFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
             <div class="form-group">
               <label>Disbursement Fee</label>
-              <input type="number" id="disbursementFee" value="0" min="0" step="1" onchange="recalculate()">
+              <input type="number" id="disbursementFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
           </div>
           <div class="form-row single">
             <div class="form-group">
               <label>Other Charges</label>
-              <input type="number" id="otherCharges" value="0" min="0" step="1" onchange="recalculate()">
+              <input type="number" id="otherCharges" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
+            </div>
+          </div>
+          <div class="calc-summary">
+            <div class="calc-row">
+              <span class="calc-label">Base Charge</span>
+              <span class="calc-value" id="calcBase">0.00</span>
+            </div>
+            <div class="calc-row">
+              <span class="calc-label">Additional Crew</span>
+              <span class="calc-value" id="calcCrew">0.00</span>
+            </div>
+            <div class="calc-row">
+              <span class="calc-label">Agency Fee</span>
+              <span class="calc-value" id="calcAgency">0.00</span>
+            </div>
+            <div class="calc-row">
+              <span class="calc-label">Disbursement</span>
+              <span class="calc-value" id="calcDisburse">0.00</span>
+            </div>
+            <div class="calc-row">
+              <span class="calc-label">Other</span>
+              <span class="calc-value" id="calcOther">0.00</span>
+            </div>
+            <div class="calc-row total">
+              <span class="calc-label">Total</span>
+              <span class="calc-value" id="calcTotal">0.00</span>
             </div>
           </div>
         </div>
-
-        <!-- CALCULATION SUMMARY -->
-        <div class="calc-summary">
-          <div class="calc-row"><span class="calc-label">Service Charge</span><span class="calc-value" id="calcBase">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Crew Charges</span><span class="calc-value" id="calcCrew">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Agency Fee</span><span class="calc-value" id="calcAgency">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Disbursement</span><span class="calc-value" id="calcDisbursement">$0.00</span></div>
-          <div class="calc-row"><span class="calc-label">Other Charges</span><span class="calc-value" id="calcOther">$0.00</span></div>
-          <div class="calc-row total"><span class="calc-label">Total</span><span class="calc-value" id="calcTotal">$0.00</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RECEIPTS & ATTACHMENTS -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4C4; Receipts &amp; Attachments</h2>
-        <span class="chevron">&#9660;</span>
-      </div>
-      <div class="section-body">
-        <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
-          <div class="icon">&#x1F4CE;</div>
-          <div class="text">Upload receipts, invoices, or documents</div>
-          <div class="hint">PNG, JPG, PDF — click or drag files here</div>
-          <input type="file" id="fileUpload" accept=".png,.jpg,.jpeg,.pdf" style="display:none" onchange="handleFileUpload(event)" multiple>
-        </div>
-        <div id="receiptPreview" class="receipt-preview"></div>
       </div>
     </div>
 
     <!-- NOTES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4DD; Notes &amp; Comments</h2>
+        <h2>&#x1F4DD; Notes</h2>
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Special Requests / Notes</label>
-            <textarea id="specialNotes" placeholder="Any special notes or requests for this service..."></textarea>
+            <label>Special Notes (visible to client)</label>
+            <textarea id="specialNotes" placeholder="Notes visible to the client..."></textarea>
           </div>
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Internal Notes (Team Only)</label>
-            <textarea id="internalNotes" placeholder="Notes visible only to your team..."></textarea>
+            <label>Internal Notes (private)</label>
+            <textarea id="internalNotes" placeholder="Internal team notes..."></textarea>
           </div>
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Client-Facing Notes</label>
-            <textarea id="clientNotes" placeholder="Notes that can be shared with the yacht/client..."></textarea>
+            <label>Client Notes</label>
+            <textarea id="clientNotes" placeholder="Notes from or about the client..."></textarea>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Override Note</label>
+            <textarea id="overrideNote" placeholder="Override reason or additional info..."></textarea>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- =============================== -->
-  <!-- VIEW: SERVICE LOG               -->
-  <!-- =============================== -->
-  <div id="view-log" class="hidden">
+  <!-- SERVICE LOG VIEW -->
+  <div id="view-log" style="display:none;">
     <div class="section-card">
-      <div class="section-header"><h2>Search &amp; Filter</h2></div>
       <div class="section-body">
-        <div class="search-bar">
-          <input type="text" id="logSearch" placeholder="Search entries..." onkeyup="renderLog()">
-          <select id="logStatusFilter" onchange="renderLog()">
-            <option value="">All Statuses</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="overdue">Overdue</option>
-            <option value="accountants">Submitted to Accountants</option>
-            <option value="progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-          <select id="logVesselFilter" onchange="renderLog()">
-            <option value="">All Vessels</option>
-          </select>
+        <div class="log-table-wrap">
+          <table class="log-table" id="logTable">
+            <thead>
+              <tr>
+                <th>Entry ID</th>
+                <th>Vessel</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
+  </div>
 
+  <!-- TIMELINE VIEW -->
+  <div id="view-timeline" style="display:none;">
     <div class="section-card">
-      <div class="section-header"><h2>All Entries</h2></div>
-      <div class="section-body" style="padding:0;">
-        <div class="log-table-wrap"><table class="log-table">
-          <thead>
-            <tr><th>Entry ID</th><th>Date</th><th>Vessel</th><th>Service</th><th>Status</th><th>Accounts</th><th>Amount</th><th>Staff</th><th>Actions</th></tr>
-          </thead>
-          <tbody id="logTableBody">
-            <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--gray-500);">No entries yet.</td></tr>
-          </tbody>
-        </table></div>
+      <div class="section-header">
+        <h2>Calendar View</h2>
       </div>
-    </div>
-  <div class="section-card">
-      <div class="section-header"><h2>Running Totals by Vessel</h2></div>
       <div class="section-body">
-        <div id="runningTotals"></div>
-      </div>
-    </div>
-
-    </div>
-
-  <!-- =============================== -->
-  <!-- VIEW: TIMELINE                  -->
-  <!-- =============================== -->
-  <div id="view-timeline" class="hidden">
-    <div class="section-card">
-      <div class="section-body" style="padding:16px 20px;">
         <div class="cal-header">
+          <h2 id="calendarMonth">January 2024</h2>
           <div class="cal-nav">
-            <button onclick="calNavMonth(-1)">&larr; Prev</button>
-            <button onclick="calGoToday()">Today</button>
-            <button onclick="calNavMonth(1)">Next &rarr;</button>
+            <button onclick="previousMonth()">← Prev</button>
+            <button onclick="nextMonth()">Next →</button>
           </div>
-          <h2 id="calMonthTitle"></h2>
         </div>
-        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-grid" id="calendarGrid">
+          <!-- Generated by JS -->
+        </div>
         <div class="cal-legend">
           <div class="cal-legend-item"><div class="cal-legend-dot upcoming"></div> Upcoming</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
           <div class="cal-legend-item"><div class="cal-legend-dot progress"></div> In Progress</div>
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
         </div>
       </div>
     </div>
-    <div id="dayDetailContainer"></div>
   </div>
 
-
+  <!-- DAY DETAIL MODAL -->
+  <div class="day-detail-overlay hidden" id="dayDetailOverlay" onclick="if(event.target === this) closeDayDetail()">
+    <div class="day-detail-panel">
+      <div class="day-detail-header">
+        <h3 id="dayDetailDate">December 25, 2024</h3>
+        <button class="day-detail-close" onclick="closeDayDetail()">✕</button>
+      </div>
+      <div class="day-detail-stats" id="dayDetailStats">
+        <!-- Generated by JS -->
+      </div>
+      <div class="day-detail-list" id="dayDetailList">
+        <!-- Generated by JS -->
+      </div>
+    </div>
   </div>
 
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay hidden" id="settingsModal" onclick="if(event.target === this) closeModal('settingsModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+      </div>
+      <div style="margin-bottom:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">User Profile</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="settingsEmail" readonly style="background:var(--gray-50);color:var(--gray-500);">
+          </div>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="settingsName" readonly style="background:var(--gray-50);color:var(--gray-500);">
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--gray-200);padding-top:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Vessel Management</h3>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Add New Vessel</label>
+            <div class="inline-add">
+              <input type="text" id="newVesselName" placeholder="Vessel name">
+              <button class="add-btn" onclick="addVessel()">+ Add</button>
+            </div>
+          </div>
+        </div>
+        <div id="vesselList" style="margin-top:16px;">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('settingsModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD MODAL (vessel, category, service type) -->
+  <div class="modal-overlay hidden" id="addModal" onclick="if(event.target === this) closeModal('addModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="addModalTitle">Add Item</h2>
+        <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+      </div>
+      <div id="addModalBody" style="margin-bottom:20px;">
+        <!-- Content filled by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+        <button class="btn-submit" onclick="saveAddModalItem()">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- SUBMIT BAR -->
+<!-- SUBMIT BAR (Fixed at bottom) -->
 <div class="submit-bar" id="submitBar">
   <div class="submit-inner">
     <div class="submit-total">
-      <div class="label">Estimated Total</div>
-      <div class="amount" id="submitTotal">$0.00</div>
+      <div class="amount" id="displayTotal">$0.00</div>
+      <div class="label">Total Charge</div>
     </div>
-    <button class="btn-secondary" onclick="saveDraft()">Save Draft</button>
+    <button class="btn-secondary" onclick="resetForm()">Reset</button>
     <button class="btn-submit" onclick="submitEntry()">Submit Entry</button>
   </div>
 </div>
 
-<!-- ADD MODAL -->
-<div class="modal-overlay hidden" id="addModal">
-  <div class="modal">
-    <h3 id="modalTitle">Add New Item</h3>
-    <div class="form-group">
-      <label id="modalLabel">Name</label>
-      <input type="text" id="modalInput" placeholder="">
-    </div>
-    <div class="modal-actions">
-      <button class="cancel" onclick="closeModal()">Cancel</button>
-      <button class="confirm" onclick="confirmAdd()">Add</button>
-    </div>
-  </div>
-</div>
-
-<!-- Settings Modal -->
-<div class="modal-overlay hidden" id="settingsModal">
-  <div class="modal modal-wide" style="max-width:520px;">
-    <h3>&#9881; Settings</h3>
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button id="settingsTabVessels" class="settings-tab active" onclick="switchSettingsTab('vessels')">Vessels</button>
-      <button id="settingsTabStaff" class="settings-tab" onclick="switchSettingsTab('staff')">Staff Members</button>
-    </div>
-    <div id="settingsVesselsList" class="settings-list"></div>
-    <div id="settingsStaffList" class="settings-list" style="display:none;"></div>
-    <div style="margin-top:12px;display:flex;gap:8px;">
-      <input type="text" id="settingsAddInput" placeholder="Add new vessel..." style="flex:1;padding:8px 10px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;">
-      <button class="confirm" onclick="settingsAddItem()" style="padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;background:var(--teal);border:none;color:#fff;">+ Add</button>
-    </div>
-    <div class="modal-actions">
-      <button class="cancel" onclick="closeSettingsModal()">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Entry Modal -->
-<div class="modal-overlay hidden" id="editModal">
-  <div class="modal modal-wide">
-    <h3>Edit Entry <span id="editModalEntryId"></span></h3>
-    <div class="edit-form-grid">
-      <div>
-        <label>Vessel</label>
-        <select id="editVessel"></select>
-      </div>
-      <div>
-        <label>Staff Member</label>
-        <select id="editStaff"></select>
-      </div>
-      <div>
-        <label>Service Date</label>
-        <input type="date" id="editServiceDate" onchange="updateEditAutoStatus()">
-      </div>
-      <div>
-        <label>Category</label>
-        <input type="text" id="editCategory" readonly>
-      </div>
-      <div class="full-width">
-        <label>Service Type</label>
-        <input type="text" id="editServiceType" readonly>
-      </div>
-      <div class="full-width">
-        <label>Description</label>
-        <textarea id="editDescription" rows="2"></textarea>
-      </div>
-      <div class="full-width">
-        <label>Status</label>
-        <div id="editAutoStatusDisplay" class="status-options" style="margin-bottom:8px;">
-          <span class="status-pill active-upcoming" style="cursor:default;">Upcoming</span>
-        </div>
-        <span class="hint" style="display:block;margin-bottom:8px;">Auto-computed from service date.</span>
-        <div style="display:flex;gap:16px;align-items:center;">
-          <label class="acct-check" id="editCompletedCheck">
-            <input type="checkbox" id="editWorkCompleted" onchange="updateEditAutoStatus()"> Completed
-          </label>
-          <label class="acct-check" id="editAccountantsCheck">
-            <input type="checkbox" id="editAccountants" onchange="updateEditAutoStatus()"> Submitted to Accountants
-          </label>
-        </div>
-      </div>
-      <div>
-        <label>Billing Type</label>
-        <select id="editBillingType" onchange="toggleEditBillingFields()">
-          <option value="hourly">Hourly</option>
-          <option value="fixed">Fixed</option>
-          <option value="percentage">Percentage</option>
-          <option value="manual">Manual</option>
-        </select>
-      </div>
-      <div>
-        <label>Currency</label>
-        <select id="editCurrency">
-          <option value="USD">USD ($)</option>
-          <option value="XCD">XCD (EC$)</option>
-          <option value="EUR">EUR</option>
-          <option value="GBP">GBP</option>
-          <option value="BBD">BBD</option>
-        </select>
-      </div>
-      <div id="editHourlyFields">
-        <label>Hours Worked</label>
-        <input type="number" id="editHours" min="0" step="0.5" onchange="recalcEditTotal()">
-      </div>
-      <div id="editHourlyRateField">
-        <label>Hourly Rate</label>
-        <input type="number" id="editRate" min="0" step="1" onchange="recalcEditTotal()">
-      </div>
-      <div id="editFixedFields" style="display:none">
-        <label>Fixed Amount</label>
-        <input type="number" id="editFixedAmt" min="0" step="1" onchange="recalcEditTotal()">
-      </div>
-      <div id="editFixedQtyField" style="display:none">
-        <label>Quantity</label>
-        <input type="number" id="editFixedQty" min="1" step="1" value="1" onchange="recalcEditTotal()">
-      </div>
-      <div id="editPercentFields" style="display:none">
-        <label>Base Amount</label>
-        <input type="number" id="editBaseAmt" min="0" step="1" onchange="recalcEditTotal()">
-      </div>
-      <div id="editPercentRateField" style="display:none">
-        <label>Percent Rate (%)</label>
-        <input type="number" id="editPctRate" min="0" step="0.5" onchange="recalcEditTotal()">
-      </div>
-      <div id="editManualField" style="display:none" class="full-width">
-        <label>Manual Amount</label>
-        <input type="number" id="editManualAmt" min="0" step="1" onchange="recalcEditTotal()">
-      </div>
-      <div>
-        <label>Agency Fee</label>
-        <input type="number" id="editAgency" min="0" step="1" value="0" onchange="recalcEditTotal()">
-      </div>
-      <div>
-        <label>Disbursement Fee</label>
-        <input type="number" id="editDisbursement" min="0" step="1" value="0" onchange="recalcEditTotal()">
-      </div>
-      <div>
-        <label>Other Charges</label>
-        <input type="number" id="editOther" min="0" step="1" value="0" onchange="recalcEditTotal()">
-      </div>
-      <div>
-        <label>Total Charge</label>
-        <input type="text" id="editTotalDisplay" readonly style="font-weight:700; color:var(--navy); background:var(--gray-50);">
-      </div>
-      <div class="full-width">
-        <label>Special Notes</label>
-        <textarea id="editSpecialNotes" rows="2"></textarea>
-      </div>
-    </div>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="cancel" onclick="closeEditModal()">Cancel</button>
-      <button class="confirm" onclick="saveEditEntry()">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast hidden" id="toast">Entry submitted successfully!</div>
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="hidden"></div>
 
 <script>
-// ============================================================
-// GOOGLE SHEETS BACKEND + LOCAL CACHE
-// ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzbLCEGwkKCNn8GD2Wv9MAm6dvqIf6fH3FL_zm102148l96FLhJNtdaeIiI5Uef0QcD4g/exec';
-let syncStatus = 'offline'; // 'online', 'offline', 'syncing'
+// ============================================
+// SUPABASE INITIALIZATION
+// ============================================
+const SUPABASE_URL = 'https://ahgrdvxrxaghnjqudwib.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoZ3JkdnhyeGFnaG5qcXVkd2liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTc1NzMsImV4cCI6MjA5MTYzMzU3M30.0S-gf62DmqYkR-jGYnDezUBuedITuoHrEk97nkw-HYw';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function updateSyncBadge() {
-  const badge = document.getElementById('syncBadge');
-  if (!badge) return;
-  if (syncStatus === 'online') { badge.textContent = 'Synced'; badge.style.background = 'var(--green)'; }
-  else if (syncStatus === 'syncing') { badge.textContent = 'Syncing...'; badge.style.background = 'var(--orange)'; }
-  else { badge.textContent = 'Offline'; badge.style.background = 'var(--red)'; }
-}
+let currentUser = null;
+let allEntries = [];
+let allVessels = [];
+let isOnline = true;
 
-async function apiGet() {
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
+async function handleLogin() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errorEl = document.getElementById('authError');
+
+  if (!email || !password) {
+    errorEl.textContent = 'Please enter email and password';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   try {
-    syncStatus = 'syncing'; updateSyncBadge();
-    const resp = await fetch(API_URL);
-    const data = await resp.json();
-    if (data.success) {
-      syncStatus = 'online'; updateSyncBadge();
-      return data;
-    }
-    throw new Error(data.error || 'Unknown error');
-  } catch(err) {
-    console.error('API GET failed:', err);
-    syncStatus = 'offline'; updateSyncBadge();
-    return null;
+    errorEl.style.display = 'none';
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    currentUser = data.user;
+    await loadUserProfile();
+    document.getElementById('authGate').classList.add('hidden');
+    await loadEntries();
+    await loadVessels();
+    subscribeToChanges();
+  } catch (err) {
+    errorEl.textContent = err.message || 'Login failed';
+    errorEl.style.display = 'block';
   }
 }
 
-async function apiPost(payload) {
+async function handleSignup() {
+  const email = document.getElementById('signupEmail').value.trim();
+  const fullName = document.getElementById('signupName').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errorEl = document.getElementById('signupError');
+
+  if (!email || !fullName || !password) {
+    errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   try {
-    syncStatus = 'syncing'; updateSyncBadge();
-    const resp = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
+    errorEl.style.display = 'none';
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+
+    currentUser = data.user;
+    await supabase.from('profiles').insert({
+      id: currentUser.id,
+      email,
+      full_name: fullName,
+      role: 'staff'
     });
-    const data = await resp.json();
-    if (data.success) {
-      syncStatus = 'online'; updateSyncBadge();
-      return data;
-    }
-    throw new Error(data.error || 'Unknown error');
-  } catch(err) {
-    console.error('API POST failed:', err);
-    syncStatus = 'offline'; updateSyncBadge();
-    return null;
+
+    await loadUserProfile();
+    document.getElementById('authGate').classList.add('hidden');
+    await loadEntries();
+    await loadVessels();
+    subscribeToChanges();
+  } catch (err) {
+    errorEl.textContent = err.message || 'Signup failed';
+    errorEl.style.display = 'block';
   }
 }
 
-// ============================================================
-// LOCAL DB (localStorage cache + Google Sheets sync)
-// ============================================================
-const DB = {
-  _get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch(e) { return fallback; } },
-  _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-
-  get entries() { return this._get('anchorEntries', []); },
-  set entries(v) { this._set('anchorEntries', v); },
-
-  get vessels() { return this._get('anchorVessels', []); },
-  set vessels(v) { this._set('anchorVessels', v); },
-
-  get entryCounter() { return parseInt(localStorage.getItem('anchorEntryCounter')) || 0; },
-  set entryCounter(v) { localStorage.setItem('anchorEntryCounter', String(v)); },
-
-  nextEntryId() {
-    let c = this.entryCounter + 1;
-    this.entryCounter = c;
-    return 'AC-' + String(c).padStart(4, '0');
+async function handleLogout() {
+  try {
+    await supabase.auth.signOut();
+    currentUser = null;
+    allEntries = [];
+    allVessels = [];
+    document.getElementById('authGate').classList.remove('hidden');
+    resetForm();
+  } catch (err) {
+    console.error('Logout error:', err);
   }
-};
+}
 
-// Load all data from Google Sheets into localStorage
-// Fix double-encoded UTF-8 strings from Google Sheets
-function fixEncoding(str) {
-      if (typeof str !== 'string') return str;
-      try {
-        let result = str;
-        for (let i = 0; i < 3; i++) {
-          if (!/[\x80-\xFF]/.test(result)) break;
-          const bytes = new Uint8Array([...result].map(c => c.charCodeAt(0)));
-          const decoded = new TextDecoder('utf-8').decode(bytes);
-          if (decoded === result || decoded.includes('\uFFFD')) break;
-          result = decoded;
-        }
-        return result;
-      } catch(e) {}
-      return str;
-    }
+function toggleAuthPanel(panel) {
+  document.getElementById('loginPanel').classList.toggle('hidden', panel !== 'login');
+  document.getElementById('signupPanel').classList.toggle('hidden', panel !== 'signup');
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('signupError').style.display = 'none';
+}
 
-// Map Google Sheets header names to frontend camelCase keys
-function mapEntryFromSheet(raw) {
+async function loadUserProfile() {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (data) {
+    currentUser.full_name = data.full_name;
+    currentUser.role = data.role;
+    currentUser.avatar_url = data.avatar_url;
+    updateHeaderWithUser();
+    document.getElementById('settingsEmail').value = currentUser.email || '';
+    document.getElementById('settingsName').value = currentUser.full_name || '';
+  }
+}
+
+function updateHeaderWithUser() {
+  const userSpan = document.getElementById('currentUserName');
+  if (userSpan && currentUser) {
+    userSpan.textContent = currentUser.full_name || currentUser.email;
+  }
+}
+
+// ============================================
+// DATA OPERATIONS
+// ============================================
+async function loadEntries() {
+  try {
+    const { data, error } = await supabase.from('entries').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
+    if (error) throw error;
+    allEntries = (data || []).map(row => entryFromDb(row));
+    renderLog();
+    checkOverdueEntries();
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Load entries error:', err);
+    updateSyncBadge(false);
+  }
+}
+
+async function loadVessels() {
+  try {
+    const { data, error } = await supabase.from('vessels').select('*').eq('is_active', true).order('name');
+    if (error) throw error;
+    allVessels = data || [];
+    populateVesselSelect();
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Load vessels error:', err);
+    updateSyncBadge(false);
+  }
+}
+
+function entryFromDb(row) {
   return {
-    entryId: raw['Entry ID'] || '',
-    submissionDate: raw['Submission Date'] || '',
-    serviceDate: raw['Service Date'] || '',
-    vessel: fixEncoding(raw['Vessel'] || ''),
-    staffMember: fixEncoding(raw['Staff Member'] || ''),
-    category: fixEncoding(raw['Category'] || ''),
-    serviceType: fixEncoding(raw['Service Type'] || ''),
-    description: fixEncoding(raw['Description'] || ''),
-    status: normalizeStatus((raw['Status'] || 'upcoming').toLowerCase()),
-    workCompleted: raw['Work Completed'] || '',
-    clearedIn: raw['Location - Cleared In'] || '',
-    clearedOut: raw['Location - Cleared Out'] || '',
-    marina: raw['Marina/Berth/Port'] || '',
-    country: raw['Country/Island'] || '',
-    jurisdiction: raw['Jurisdiction'] || '',
-    futureTask: raw['Future Task'] || '',
-    eta: raw['ETA'] || '',
-    etd: raw['ETD'] || '',
-    crewArrival: raw['Crew Arrival'] || '',
-    crewDeparture: raw['Crew Departure'] || '',
-    billingType: raw['Billing Type'] || '',
-    billable: raw['Billable'] || '',
-    currency: raw['Currency'] || 'USD',
-    baseCharge: raw['Base Charge'] || 0,
-    additionalCrewCharge: raw['Additional Crew Charge'] || 0,
-    agencyFee: raw['Agency Fee'] || 0,
-    disbursementFee: raw['Disbursement Fee'] || 0,
-    otherCharges: raw['Other Charges'] || 0,
-    totalCharge: raw['Total Charge'] || 0,
-    specialNotes: fixEncoding(raw['Special Notes'] || ''),
-    internalNotes: fixEncoding(raw['Internal Notes'] || ''),
-    clientNotes: fixEncoding(raw['Client Notes'] || ''),
-    overrideNote: raw['Override Note'] || '',
-    syncedAt: raw['Synced At'] || ''
+    entryId: row.entry_id,
+    submissionDate: row.submission_date,
+    serviceDate: row.service_date,
+    vessel: row.vessel,
+    staffMember: row.staff_member,
+    category: row.category,
+    serviceType: row.service_type,
+    description: row.description,
+    status: row.status,
+    workCompleted: row.work_completed,
+    clearedIn: row.cleared_in,
+    clearedOut: row.cleared_out,
+    marina: row.marina,
+    country: row.country,
+    jurisdiction: row.jurisdiction,
+    futureTask: row.future_task,
+    eta: row.eta,
+    etd: row.etd,
+    crewArrival: row.crew_arrival,
+    crewDeparture: row.crew_departure,
+    billingType: row.billing_type,
+    billable: row.billable,
+    currency: row.currency,
+    baseCharge: row.base_charge,
+    additionalCrewCharge: row.additional_crew_charge,
+    agencyFee: row.agency_fee,
+    disbursementFee: row.disbursement_fee,
+    otherCharges: row.other_charges,
+    totalCharge: row.total_charge,
+    specialNotes: row.special_notes,
+    internalNotes: row.internal_notes,
+    clientNotes: row.client_notes,
+    overrideNote: row.override_note,
+    syncedAt: row.updated_at,
+    createdAt: row.created_at
   };
 }
 
-async function syncFromCloud() {
-  const data = await apiGet();
-  if (data) {
-    const rawEntries = data.entries || [];
-    const cloudEntries = rawEntries.map(e => e['Entry ID'] !== undefined ? mapEntryFromSheet(e) : e);
-    // Merge: keep local entries that aren't in cloud yet (unsynced)
-    const cloudIds = new Set(cloudEntries.map(e => e.entryId));
-    const localOnly = DB.entries.filter(e => e.entryId && !cloudIds.has(e.entryId));
-    DB.entries = cloudEntries.concat(localOnly);
-    // Re-sync any local-only entries to cloud
-    localOnly.forEach(e => syncEntryToCloud(e));
-    const rawVessels = data.vessels || [];
-    DB.vessels = rawVessels.map(v => typeof v === 'object' ? (v['Vessel Name'] || v.name || v['Name'] || '') : v).filter(Boolean);
-    if (data.entryCounter) DB.entryCounter = data.entryCounter;
-    syncStatus = localOnly.length > 0 ? 'syncing' : 'online';
-  } else {
-    syncStatus = 'offline';
+function entryToDb(entry) {
+  return {
+    entry_id: entry.entryId,
+    submission_date: entry.submissionDate,
+    service_date: entry.serviceDate || null,
+    vessel: entry.vessel,
+    staff_member: entry.staffMember,
+    category: entry.category,
+    service_type: entry.serviceType,
+    description: entry.description,
+    status: entry.status,
+    work_completed: entry.workCompleted,
+    cleared_in: entry.clearedIn,
+    cleared_out: entry.clearedOut,
+    marina: entry.marina,
+    country: entry.country,
+    jurisdiction: entry.jurisdiction,
+    future_task: entry.futureTask,
+    eta: entry.eta || null,
+    etd: entry.etd || null,
+    crew_arrival: entry.crewArrival || null,
+    crew_departure: entry.crewDeparture || null,
+    billing_type: entry.billingType,
+    billable: entry.billable,
+    currency: entry.currency,
+    base_charge: parseFloat(entry.baseCharge) || 0,
+    additional_crew_charge: parseFloat(entry.additionalCrewCharge) || 0,
+    agency_fee: parseFloat(entry.agencyFee) || 0,
+    disbursement_fee: parseFloat(entry.disbursementFee) || 0,
+    other_charges: parseFloat(entry.otherCharges) || 0,
+    total_charge: parseFloat(entry.totalCharge) || 0,
+    special_notes: entry.specialNotes,
+    internal_notes: entry.internalNotes,
+    client_notes: entry.clientNotes,
+    override_note: entry.overrideNote
+  };
+}
+
+async function submitEntry() {
+  const entry = gatherFormData();
+  const validation = validateEntry(entry);
+  if (!validation.valid) {
+    showToast(validation.message);
+    return;
   }
-  updateSyncBadge();
-  if (typeof checkOverdueEntries === 'function') checkOverdueEntries();
+
+  try {
+    updateSyncBadge(true, 'Syncing');
+
+    // Get next entry ID
+    const { data: idData, error: idError } = await supabase.rpc('next_entry_id');
+    if (idError) throw idError;
+    entry.entryId = idData;
+    entry.submissionDate = new Date().toISOString().split('T')[0];
+    entry.createdBy = currentUser.id;
+
+    // Insert entry
+    const { error: insertError } = await supabase.from('entries').insert([entryToDb(entry)]);
+    if (insertError) throw insertError;
+
+    // Log audit
+    await supabase.from('audit_log').insert({
+      entry_id: entry.entryId,
+      action: 'create',
+      changed_fields: Object.keys(entry),
+      new_values: entry,
+      performed_by: currentUser.id,
+      performed_by_name: currentUser.full_name || currentUser.email
+    });
+
+    allEntries.unshift(entry);
+    resetForm();
+    showView('log');
+    showToast('Entry created successfully');
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Submit error:', err);
+    showToast('Failed to save entry: ' + err.message);
+    updateSyncBadge(false);
+  }
 }
 
-// Push a new entry to Google Sheets
-async function syncEntryToCloud(entry) {
-  return await apiPost({ action: 'submitEntry', entry: entry });
+async function deleteEntry(entryId) {
+  if (!confirm('Are you sure you want to delete this entry?')) return;
+
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const { error } = await supabase.from('entries').update({
+      is_deleted: true,
+      deleted_at: new Date().toISOString(),
+      deleted_by: currentUser.id
+    }).eq('entry_id', entryId);
+
+    if (error) throw error;
+
+    await supabase.from('audit_log').insert({
+      entry_id: entryId,
+      action: 'delete',
+      performed_by: currentUser.id,
+      performed_by_name: currentUser.full_name || currentUser.email
+    });
+
+    allEntries = allEntries.filter(e => e.entryId !== entryId);
+    renderLog();
+    showToast('Entry deleted');
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast('Failed to delete entry: ' + err.message);
+    updateSyncBadge(false);
+  }
 }
 
-// Push an updated entry to Google Sheets
-async function syncUpdateToCloud(entry) {
-  return await apiPost({ action: 'updateEntry', entry: entry });
+async function addVessel() {
+  const name = document.getElementById('newVesselName').value.trim();
+
+  if (!name) {
+    showToast('Please enter vessel name');
+    return;
+  }
+
+  try {
+    const { error } = await supabase.from('vessels').insert({
+      name,
+      is_active: true,
+      created_by: currentUser.id
+    });
+
+    if (error) throw error;
+
+    await loadVessels();
+    document.getElementById('newVesselName').value = '';
+    showToast('Vessel added');
+  } catch (err) {
+    console.error('Add vessel error:', err);
+    showToast('Failed to add vessel: ' + err.message);
+  }
 }
 
-// Delete entry from Google Sheets
-async function syncDeleteFromCloud(entryId) {
-  return await apiPost({ action: 'deleteEntry', entryId: entryId });
+function subscribeToChanges() {
+  if (!supabase) return;
+
+  supabase.channel('entries-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
+      loadEntries();
+    })
+    .subscribe();
+
+  supabase.channel('vessels-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, (payload) => {
+      loadVessels();
+    })
+    .subscribe();
 }
 
-// Add vessel to Google Sheets
-async function syncVesselToCloud(vessel) {
-  return await apiPost({ action: 'addVessel', vessel: vessel });
+function updateSyncBadge(online, status) {
+  const badge = document.getElementById('syncBadge');
+  if (!badge) return;
+
+  isOnline = online;
+  if (status === 'Syncing') {
+    badge.textContent = 'Syncing';
+    badge.style.background = 'var(--orange)';
+  } else if (online) {
+    badge.textContent = 'Online';
+    badge.style.background = 'var(--green)';
+  } else {
+    badge.textContent = 'Offline';
+    badge.style.background = 'var(--red)';
+  }
 }
 
+// ============================================
+// FORM FUNCTIONS (from original)
+// ============================================
 
+function gatherFormData() {
+  return {
+    entryId: '',
+    submissionDate: new Date().toISOString().split('T')[0],
+    serviceDate: document.getElementById('serviceDate').value,
+    vessel: document.getElementById('vesselSelect').value,
+    staffMember: document.getElementById('staffSelect').value,
+    category: document.getElementById('serviceCategory').value,
+    serviceType: document.getElementById('serviceType').value,
+    description: document.getElementById('serviceDescription').value,
+    status: normalizeStatus(document.getElementById('statusInput').value),
+    workCompleted: document.getElementById('workCompleted').value,
+    clearedIn: document.getElementById('clearedIn').value,
+    clearedOut: document.getElementById('clearedOut').value,
+    marina: document.getElementById('marina').value,
+    country: '',
+    jurisdiction: '',
+    futureTask: document.getElementById('futureTask').value,
+    eta: document.getElementById('eta').value,
+    etd: document.getElementById('etd').value,
+    crewArrival: document.getElementById('crewArrival').value,
+    crewDeparture: document.getElementById('crewDeparture').value,
+    billingType: document.getElementById('billingTypeInput').value,
+    billable: document.getElementById('billable').value,
+    currency: document.getElementById('currency').value,
+    baseCharge: document.getElementById('baseCharge').value,
+    additionalCrewCharge: document.getElementById('additionalCrewCharge').value,
+    agencyFee: document.getElementById('agencyFee').value,
+    disbursementFee: document.getElementById('disbursementFee').value,
+    otherCharges: document.getElementById('otherCharges').value,
+    totalCharge: document.getElementById('calcTotal').textContent.replace('$', ''),
+    specialNotes: document.getElementById('specialNotes').value,
+    internalNotes: document.getElementById('internalNotes').value,
+    clientNotes: document.getElementById('clientNotes').value,
+    overrideNote: document.getElementById('overrideNote').value
+  };
+}
 
+function validateEntry(entry) {
+  if (!entry.vessel) return { valid: false, message: 'Please select a vessel' };
+  if (!entry.serviceDate) return { valid: false, message: 'Please select a service date' };
+  if (!entry.category) return { valid: false, message: 'Please select a service category' };
+  if (!entry.serviceType) return { valid: false, message: 'Please select a service type' };
+  return { valid: true };
+}
 
-// ============================================================
-// INITIALIZATION
-// ============================================================
-const now = new Date();
-document.getElementById('submissionDateTime').value = now.toISOString().slice(0, 16);
-document.getElementById('serviceDate').value = now.toISOString().slice(0, 10);
+function resetForm() {
+  document.getElementById('vesselSelect').value = '';
+  document.getElementById('staffSelect').value = '';
+  document.getElementById('serviceDate').value = '';
+  document.getElementById('serviceTime').value = '';
+  document.getElementById('serviceCategory').value = '';
+  document.getElementById('serviceType').value = '';
+  document.getElementById('serviceDescription').value = '';
+  document.getElementById('clearedIn').value = '';
+  document.getElementById('clearedOut').value = '';
+  document.getElementById('marina').value = '';
+  document.getElementById('statusInput').value = 'upcoming';
+  updateStatusPills();
+  document.getElementById('eta').value = '';
+  document.getElementById('etd').value = '';
+  document.getElementById('crewArrival').value = '';
+  document.getElementById('crewDeparture').value = '';
+  document.getElementById('workCompleted').value = '';
+  document.getElementById('futureTask').value = '';
+  document.getElementById('billingTypeInput').value = 'charged';
+  updateBillingTypeBtns();
+  document.getElementById('billable').value = '';
+  document.getElementById('currency').value = 'USD';
+  document.getElementById('baseCharge').value = '';
+  document.getElementById('additionalCrewCharge').value = '';
+  document.getElementById('agencyFee').value = '';
+  document.getElementById('disbursementFee').value = '';
+  document.getElementById('otherCharges').value = '';
+  document.getElementById('specialNotes').value = '';
+  document.getElementById('internalNotes').value = '';
+  document.getElementById('clientNotes').value = '';
+  document.getElementById('overrideNote').value = '';
+  calculateTotal();
+}
 
-// ============================================================
-// SERVICE TYPE MAPPING
-// ============================================================
-const serviceTypes = {
-  'Customs & Immigration': [], // handled by custom multi-select panel
-  'Provisioning & Sourcing': ['Provisioning — Local Sourcing','Provisioning — Overseas Import','Item Sourcing (non-food)','Fuel Arrangement','Flowers / Special Requests'],
-  'Logistics & Shipping': ['Air Freight Brokerage','Sea Freight Brokerage','Airport Handling & Delivery','Container Movement — Inbound','Container Movement — Outbound','Trucking / Land Transport'],
-  'Crew Services': ['Crew Transfer / Transport','Crew Accommodation Booking','Crew Change Coordination','Crew Immigration Handling'],
-  'Berth & Marina': ['Berth Booking','National Parks Fees & Dockage','Marina Coordination','Anchorage Arrangement'],
-  'Consulting & Admin': ['General Agency Services (Hourly)','Overtime Agency Services','Warrant & Entry Documentation','Phytosanitary Certificate','Vessel Registration Assistance'],
-  'Airport & Transport': ['Airport Meet & Greet','Airport Transfer','VIP Lounge Arrangement','Private Charter Coordination'],
-  'Brokerage': ['Yacht Import Brokerage','Yacht Export Brokerage','Customs Brokerage — General'],
-  'General Support': ['Concierge Request','Restaurant / Activity Booking','Laundry / Dry Cleaning','Medical Assistance Coordination','Other — See Notes']
-};
+function updateAutoStatus() {
+  const serviceDate = new Date(document.getElementById('serviceDate').value);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  serviceDate.setHours(0, 0, 0, 0);
 
-// Customs & Immigration service key labels (for data storage)
-const CUSTOMS_SERVICE_LABELS = {
-  inbound: 'Inbound',
-  outbound: 'Outbound',
-  change_of_captain: 'Change of Captain',
-  crew_guest_signoff: 'Crew/Guest Sign off',
-  transfer_of_crew: 'Transfer of Crew',
-  ok_to_travel: 'Ok to Travel Letter',
-  failure_signoff_letter: 'Failure to Sign off Crew/Guests Letter',
-  vessel_relinquancy: 'Vessel Relinquancy to Agent'
-};
+  if (serviceDate < today) {
+    selectStatus('overdue');
+  } else if (serviceDate.getTime() === today.getTime()) {
+    selectStatus('in-progress');
+  } else {
+    selectStatus('upcoming');
+  }
+}
 
-let isCustomsCategory = false;
-let customsTotal = 0;
+function normalizeStatus(status) {
+  if (!status) return 'upcoming';
+  return status.replace(/\s+/g, '-').toLowerCase();
+}
+
+function selectStatus(status) {
+  document.getElementById('statusInput').value = status;
+  updateStatusPills();
+}
+
+function updateStatusPills() {
+  const status = document.getElementById('statusInput').value;
+  document.querySelectorAll('.status-pill').forEach(pill => {
+    pill.classList.remove('active-upcoming', 'active-progress', 'active-completed', 'active-overdue', 'active-accountants');
+    if (pill.dataset.status === status) {
+      pill.classList.add(`active-${status}`);
+    }
+  });
+}
+
+function selectBillingType(type) {
+  document.getElementById('billingTypeInput').value = type;
+  updateBillingTypeBtns();
+}
+
+function updateBillingTypeBtns() {
+  const type = document.getElementById('billingTypeInput').value;
+  document.querySelectorAll('.billing-type-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.type === type) {
+      btn.classList.add('active');
+    }
+  });
+}
 
 function updateServiceTypes() {
-  const cat = document.getElementById('serviceCategory').value;
-  const sel = document.getElementById('serviceType');
-  const customsPanel = document.getElementById('customsServicesPanel');
-  const serviceTypeRow = sel.closest('.form-group');
+  const category = document.getElementById('serviceCategory').value;
+  const typeSelect = document.getElementById('serviceType');
+  const types = {
+    'Customs & Immigration': ['Inbound', 'Outbound', 'Change of Captain', 'Crew Signoff'],
+    'Provisioning & Sourcing': ['Food', 'Beverages', 'Supplies', 'Equipment'],
+    'Crew Services': ['Crew Change', 'Training', 'Recruitment', 'Medical'],
+    'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance']
+  };
 
-  isCustomsCategory = (cat === 'Customs & Immigration');
-
-  if (isCustomsCategory) {
-    // Hide standard service type dropdown, show customs multi-select
-    serviceTypeRow.style.display = 'none';
-    customsPanel.classList.remove('hidden');
-    // Auto-enable billable and set billing to fixed for customs
-    document.getElementById('billableToggle').checked = true;
-    // Hide the billing type selector — customs uses auto-pricing
-    document.getElementById('billingMethodSection').style.display = 'none';
-    document.getElementById('billingFieldsSection').style.display = 'none';
-    recalcCustoms();
-  } else {
-    serviceTypeRow.style.display = '';
-    customsPanel.classList.add('hidden');
-    document.getElementById('billingMethodSection').style.display = '';
-    document.getElementById('billingFieldsSection').style.display = '';
-    sel.innerHTML = '<option value="">Select type...</option>';
-    if (serviceTypes[cat]) {
-      serviceTypes[cat].forEach(t => { const o = document.createElement('option'); o.textContent = t; sel.appendChild(o); });
-    }
-    customsTotal = 0;
-    recalculate();
-  }
+  typeSelect.innerHTML = '<option value="">Select type...</option>';
+  (types[category] || []).forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t;
+    typeSelect.appendChild(opt);
+  });
 }
 
-function getSelectedCustomsServices() {
-  const items = document.querySelectorAll('#customsCheckList .customs-check-item');
-  const selected = [];
-  items.forEach(item => {
-    const cb = item.querySelector('input[type="checkbox"]');
-    if (cb.checked) selected.push(item.dataset.service);
-  });
-  return selected;
+function calculateTotal() {
+  const base = parseFloat(document.getElementById('baseCharge').value) || 0;
+  const crew = parseFloat(document.getElementById('additionalCrewCharge').value) || 0;
+  const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
+  const disburse = parseFloat(document.getElementById('disbursementFee').value) || 0;
+  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+
+  document.getElementById('calcBase').textContent = base.toFixed(2);
+  document.getElementById('calcCrew').textContent = crew.toFixed(2);
+  document.getElementById('calcAgency').textContent = agency.toFixed(2);
+  document.getElementById('calcDisburse').textContent = disburse.toFixed(2);
+  document.getElementById('calcOther').textContent = other.toFixed(2);
+
+  const total = base + crew + agency + disburse + other;
+  document.getElementById('calcTotal').textContent = total.toFixed(2);
+  document.getElementById('displayTotal').textContent = '$' + total.toFixed(2);
 }
 
 function onCustomsServiceChange() {
-  const selected = getSelectedCustomsServices();
-
-  // Toggle checked styling
-  document.querySelectorAll('#customsCheckList .customs-check-item').forEach(item => {
-    const cb = item.querySelector('input[type="checkbox"]');
-    item.classList.toggle('checked', cb.checked);
-  });
-
-  // Show/hide conditional fields
-  document.getElementById('customsFieldsInbound').classList.toggle('hidden', !selected.includes('inbound'));
-  document.getElementById('customsFieldsOutbound').classList.toggle('hidden', !selected.includes('outbound'));
-  document.getElementById('customsFieldsSignoff').classList.toggle('hidden', !selected.includes('crew_guest_signoff'));
-  document.getElementById('customsFieldsTransfer').classList.toggle('hidden', !selected.includes('transfer_of_crew'));
-  document.getElementById('customsFieldsTravel').classList.toggle('hidden', !selected.includes('ok_to_travel'));
-  document.getElementById('customsFieldsFailure').classList.toggle('hidden', !selected.includes('failure_signoff_letter'));
-
-  // Show/hide guidance banners
-  const hasCaptain = selected.includes('change_of_captain');
-  const hasRelinquancy = selected.includes('vessel_relinquancy');
-  const hasSignoff = selected.includes('crew_guest_signoff');
-  document.getElementById('customsGuidanceCaptain').classList.toggle('hidden', !hasCaptain || hasSignoff);
-  document.getElementById('customsGuidanceRelinquancy').classList.toggle('hidden', !hasRelinquancy || hasSignoff);
-
-  // Make Cleared In At required when inbound or outbound selected
-  const clearedInLabel = document.querySelector('label[for="clearedIn"], #clearedIn').closest('.form-group').querySelector('label');
-  const clearedOutLabel = document.querySelector('label[for="clearedOut"], #clearedOut').closest('.form-group').querySelector('label');
-  if (selected.includes('inbound') || selected.includes('outbound')) {
-    if (!clearedInLabel.querySelector('.required')) clearedInLabel.innerHTML = 'Cleared In At <span class="required">*</span>';
-  } else {
-    clearedInLabel.innerHTML = 'Cleared In At';
-  }
-  if (selected.includes('outbound')) {
-    if (!clearedOutLabel.querySelector('.required')) clearedOutLabel.innerHTML = 'Cleared Out At <span class="required">*</span>';
-  } else {
-    clearedOutLabel.innerHTML = 'Cleared Out At';
-  }
-
-  recalcCustoms();
-}
-
-function calcClearancePrice(crewCount, guestCount) {
-  const total = (parseInt(crewCount) || 0) + (parseInt(guestCount) || 0);
-  if (total <= 10) return 200;
-  return 200 + (total - 10) * 35;
+  // Placeholder for customs logic
 }
 
 function recalcCustoms() {
-  const selected = getSelectedCustomsServices();
-  const clearedIn = document.getElementById('clearedIn').value;
-  const clearedOut = document.getElementById('clearedOut').value;
-  let lines = [];
-  let grandTotal = 0;
-
-  if (selected.includes('inbound')) {
-    const crew = document.getElementById('customsInboundCrew').value;
-    const guests = document.getElementById('customsInboundGuests').value;
-    const price = calcClearancePrice(crew, guests);
-    const totalPersons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
-    let label = 'Inbound (' + totalPersons + ' persons)';
-    lines.push({ label: label, amount: price });
-    grandTotal += price;
-
-    // Passport collection fee if cleared in at non-English Harbour
-    if (clearedIn && clearedIn !== 'English Harbour') {
-      lines.push({ label: 'Passport Collection Fee (non-English Harbour)', amount: 50 });
-      grandTotal += 50;
-    }
-  }
-
-  if (selected.includes('outbound')) {
-    const crew = document.getElementById('customsOutboundCrew').value;
-    const guests = document.getElementById('customsOutboundGuests').value;
-    const price = calcClearancePrice(crew, guests);
-    const totalPersons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
-    let label = 'Outbound (' + totalPersons + ' persons)';
-    lines.push({ label: label, amount: price });
-    grandTotal += price;
-
-    // Additional location fee if cleared out at non-English Harbour
-    if (clearedOut && clearedOut !== 'English Harbour') {
-      lines.push({ label: 'Additional Location Fee (non-English Harbour)', amount: 50 });
-      grandTotal += 50;
-    }
-  }
-
-  if (selected.includes('change_of_captain')) {
-    lines.push({ label: 'Change of Captain', amount: 50 });
-    grandTotal += 50;
-  }
-
-  if (selected.includes('crew_guest_signoff')) {
-    const count = parseInt(document.getElementById('customsSignoffCount').value) || 1;
-    const price = count * 50;
-    lines.push({ label: 'Crew/Guest Sign off (' + count + ' × $50)', amount: price });
-    grandTotal += price;
-  }
-
-  if (selected.includes('transfer_of_crew')) {
-    const count = parseInt(document.getElementById('customsTransferCount').value) || 1;
-    const price = count * 50;
-    lines.push({ label: 'Transfer of Crew (' + count + ' × $50)', amount: price });
-    grandTotal += price;
-  }
-
-  if (selected.includes('ok_to_travel')) {
-    const edits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
-    const price = 80 + (edits * 10);
-    let label = 'Ok to Travel Letter';
-    if (edits > 0) label += ' + ' + edits + ' edit' + (edits > 1 ? 's' : '');
-    lines.push({ label: label, amount: price });
-    grandTotal += price;
-  }
-
-  if (selected.includes('failure_signoff_letter')) {
-    const count = parseInt(document.getElementById('customsFailureCount').value) || 1;
-    const letterFee = 50;
-    const personCharges = count * 50;
-    const price = letterFee + personCharges;
-    lines.push({ label: 'Failure to Sign off Letter ($50)', amount: letterFee });
-    lines.push({ label: 'Sign off charges (' + count + ' × $50)', amount: personCharges });
-    grandTotal += price;
-  }
-
-  if (selected.includes('vessel_relinquancy')) {
-    lines.push({ label: 'Vessel Relinquancy to Agent', amount: 50 });
-    grandTotal += 50;
-  }
-
-  // Render price breakdown
-  const breakdownEl = document.getElementById('customsPriceBreakdown');
-  const rowsEl = document.getElementById('customsPriceRows');
-  if (lines.length > 0) {
-    breakdownEl.classList.remove('hidden');
-    rowsEl.innerHTML = lines.map(l =>
-      '<div class="customs-price-row"><span class="cpr-label">' + l.label + '</span><span class="cpr-value">$' + l.amount.toFixed(2) + '</span></div>'
-    ).join('') +
-    '<div class="customs-price-row cpr-total"><span class="cpr-label">Customs Total</span><span class="cpr-value">$' + grandTotal.toFixed(2) + '</span></div>';
-  } else {
-    breakdownEl.classList.add('hidden');
-    rowsEl.innerHTML = '';
-  }
-
-  customsTotal = grandTotal;
-  // Push into main calc summary
-  recalculate();
+  // Placeholder for customs calculation
 }
 
-// ============================================================
-// VIEW SWITCHING
-// ============================================================
-let currentTimelineFilter = 'all';
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  header.classList.toggle('collapsed');
+  body.classList.toggle('collapsed');
+}
 
 function showView(view) {
-  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById('view-' + view).classList.remove('hidden');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const tabBtn = document.querySelector('.tab-btn[data-view="' + view + '"]');
-  if (tabBtn) tabBtn.classList.add('active');
-  document.getElementById('submitBar').style.display = view === 'form' ? '' : 'none';
-      window.scrollTo(0, 0);
-  if (view === 'log') renderLog();
-  if (view === 'timeline') renderTimeline();
-}
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  document.getElementById(`view-${view}`).style.display = 'block';
 
-// ============================================================
-// SECTION TOGGLE
-// ============================================================
-function toggleSection(header) {
-  header.classList.toggle('collapsed');
-  header.nextElementSibling.classList.toggle('collapsed');
-}
-
-function toggleCollapsible(event) {
-  const header = event.currentTarget;
-  header.classList.toggle('expanded');
-  header.parentElement.nextElementSibling.classList.toggle('expanded');
-}
-
-// ============================================================
-// STATUS HELPERS
-// ============================================================
-function normalizeStatus(s) {
-  if (s === 'planned') return 'upcoming';
-  return s || 'upcoming';
-}
-
-function getStatusClass(status) {
-  const map = {upcoming:'status-upcoming', progress:'status-inprogress', completed:'status-completed', overdue:'status-overdue', accountants:'status-accountants'};
-  return map[status] || 'status-upcoming';
-}
-
-function getStatusLabel(status) {
-  const map = {upcoming:'Upcoming', progress:'In Progress', completed:'Completed', overdue:'Overdue', accountants:'Submitted to Accountants'};
-  return map[status] || 'Upcoming';
-}
-
-// ============================================================
-// OVERDUE MONITORING
-// ============================================================
-function checkOverdueEntries() {
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  let changed = false;
-  DB.entries.forEach(function(e) {
-    if (e.status === 'completed' || e.status === 'accountants' || e.status === 'draft') return;
-    if (!e.serviceDate) return;
-    const entryDate = e.serviceDate.slice(0, 10);
-    const newStatus = computeAutoStatus(entryDate, false, false);
-    if (e.status !== newStatus) {
-      e.status = newStatus;
-      changed = true;
-    }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
   });
-  if (changed) {
-    try { localStorage.setItem('acDB', JSON.stringify(DB)); } catch(ex) {}
-    if (document.querySelector('.log-table')) renderLog();
+
+  if (view === 'timeline') {
     renderTimeline();
   }
 }
 
-// Run overdue check every 60 seconds
-setInterval(checkOverdueEntries, 60000);
-
-// Toggle "Submitted to Accountants" status
-async function toggleAccountants(entryId, checked) {
-  const entries = DB.entries;
-  const entry = entries.find(e => e.entryId === entryId);
-  if (!entry) return;
-  if (checked) {
-    entry.status = 'accountants';
-  } else {
-    const dateStr = entry.serviceDate ? entry.serviceDate.slice(0, 10) : '';
-    entry.status = computeAutoStatus(dateStr, entry.workCompleted || false, false);
-  }
-  DB.entries = entries;
-  await syncUpdateToCloud(entry);
-  renderLog();
-  renderTimeline();
-}
-
-// Mark entry as completed
-async function markEntryCompleted(entryId) {
-  const entries = DB.entries;
-  const entry = entries.find(e => e.entryId === entryId);
-  if (!entry) return;
-  entry.status = 'completed';
-  entry.workCompleted = true;
-  DB.entries = entries;
-  await syncUpdateToCloud(entry);
-  renderLog();
-  renderTimeline();
-  showToast(entryId + ' marked as completed.');
-}
-
-// ============================================================
-// AUTO STATUS
-// ============================================================
-let currentStatus = 'upcoming';
-
-function computeAutoStatus(dateStr, isCompleted, isAccountants) {
-  if (isAccountants) return 'accountants';
-  if (isCompleted) return 'completed';
-  if (!dateStr) return 'upcoming';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const sDate = new Date(dateStr + 'T00:00:00'); sDate.setHours(0,0,0,0);
-  if (sDate.getTime() === today.getTime()) return 'progress';
-  if (sDate < today) return 'overdue';
-  return 'upcoming';
-}
-
-function updateAutoStatus() {
-  const dateStr = document.getElementById('serviceDate').value;
-  const completed = document.getElementById('workCompleted').checked;
-  currentStatus = computeAutoStatus(dateStr, completed, false);
-  const display = document.getElementById('autoStatusDisplay');
-  if (display) {
-    display.innerHTML = '<span class="status-pill active-' + currentStatus + '" style="cursor:default;">' + getStatusLabel(currentStatus) + '</span>';
-  }
-}
-
-// Legacy support
-function setStatus(btn, status) {
-  currentStatus = status;
-}
-
-// ============================================================
-// FUTURE FIELDS
-// ============================================================
-function toggleFutureFields() {
-  document.getElementById('futureFields').classList.toggle('hidden', !document.getElementById('futureTask').checked);
-}
-
-// ============================================================
-// BILLING TYPE
-// ============================================================
-let currentBillingType = 'hourly';
-function setBillingType(btn, type) {
-  document.querySelectorAll('.billing-type-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  ['hourly','fixed','percentage','manual'].forEach(t => {
-    document.getElementById('billing-' + t).classList.toggle('hidden', t !== type);
-  });
-  currentBillingType = type;
-  recalculate();
-}
-
-// ============================================================
-// RATE RULES
-// ============================================================
-function applyRateRule() {
-  const rateInput = document.getElementById('hourlyRate');
-  const overtime = document.getElementById('overtimeToggle').checked;
-  const sunday = document.getElementById('sundayToggle').checked;
-  const holiday = document.getElementById('holidayToggle').checked;
-  if (holiday) { rateInput.value = 160; document.getElementById('sundayToggle').checked = false; document.getElementById('overtimeToggle').checked = false; }
-  else if (sunday) { rateInput.value = 120; document.getElementById('overtimeToggle').checked = false; document.getElementById('holidayToggle').checked = false; }
-  else if (overtime) { rateInput.value = 120; document.getElementById('sundayToggle').checked = false; document.getElementById('holidayToggle').checked = false; }
-  else { rateInput.value = 80; }
-  recalculate();
-}
-
-function applyFixedRate() {
-  const val = document.getElementById('fixedServiceSelect').value;
-  if (val) document.getElementById('fixedAmount').value = val;
-  recalculate();
-}
-
-function updatePercentRate() {
-  const val = document.getElementById('percentType').value;
-  if (val !== 'custom') document.getElementById('percentRate').value = val;
-  recalculate();
-}
-
-// ============================================================
-// PRICING CALCULATION
-// ============================================================
-function recalculate() {
-  const billable = document.getElementById('billableToggle').checked;
-  let base = 0, crewCharge = 0, currency = 'USD';
-
-  if (isCustomsCategory) {
-    // For customs, base = customsTotal, no manual billing type needed
-    base = customsTotal;
-    currency = 'USD';
-    const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
-    const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
-    const other = parseFloat(document.getElementById('otherCharges').value) || 0;
-    updateCalcDisplay(base, 0, agency, disbursement, other, base + agency + disbursement + other, currency);
-    return;
-  }
-
-  if (!billable) { updateCalcDisplay(0, 0, 0, 0, 0, 0, 'USD'); return; }
-
-  if (currentBillingType === 'hourly') {
-    const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
-    const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
-    currency = document.getElementById('currencySelect').value;
-    base = hours * rate;
-  } else if (currentBillingType === 'fixed') {
-    const amount = parseFloat(document.getElementById('fixedAmount').value) || 0;
-    const qty = parseInt(document.getElementById('fixedQty').value) || 1;
-    const crew = parseInt(document.getElementById('additionalCrew').value) || 0;
-    currency = document.getElementById('fixedCurrency').value;
-    base = amount * qty;
-    crewCharge = crew * 35;
-  } else if (currentBillingType === 'percentage') {
-    const baseAmt = parseFloat(document.getElementById('baseAmount').value) || 0;
-    const pct = parseFloat(document.getElementById('percentRate').value) || 0;
-    currency = document.getElementById('percentCurrency').value;
-    base = baseAmt * (pct / 100);
-    document.getElementById('percentFee').value = formatCurrency(base, currency);
-  } else if (currentBillingType === 'manual') {
-    base = parseFloat(document.getElementById('manualAmount').value) || 0;
-    currency = document.getElementById('manualCurrency').value;
-  }
-
-  const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
-  const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
-  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
-  updateCalcDisplay(base, crewCharge, agency, disbursement, other, base + crewCharge + agency + disbursement + other, currency);
-}
-
-function updateCalcDisplay(base, crew, agency, disbursement, other, total, currency) {
-  const sym = currencySymbol(currency);
-  document.getElementById('calcBase').textContent = sym + base.toFixed(2);
-  document.getElementById('calcCrew').textContent = sym + crew.toFixed(2);
-  document.getElementById('calcAgency').textContent = sym + agency.toFixed(2);
-  document.getElementById('calcDisbursement').textContent = sym + disbursement.toFixed(2);
-  document.getElementById('calcOther').textContent = sym + other.toFixed(2);
-  document.getElementById('calcTotal').textContent = sym + total.toFixed(2);
-  document.getElementById('submitTotal').textContent = sym + total.toFixed(2);
-}
-
-function currencySymbol(code) {
-  return ({ USD: '$', XCD: 'EC$', EUR: '\u20AC', GBP: '\u00A3', BBD: 'Bds$' })[code] || code + ' ';
-}
-function formatCurrency(amount, code) { return currencySymbol(code) + amount.toFixed(2); }
-
-// ============================================================
-// FILE UPLOAD
-// ============================================================
-let uploadedFiles = [];
-function handleFileUpload(e) {
-  Array.from(e.target.files).forEach(file => {
-    uploadedFiles.push(file);
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const preview = document.getElementById('receiptPreview');
-      const thumb = document.createElement('div');
-      thumb.className = 'receipt-thumb';
-      if (file.type.startsWith('image/')) {
-        thumb.innerHTML = '<img src="' + ev.target.result + '"><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
-      } else {
-        thumb.innerHTML = '<span style="font-size:24px">&#x1F4C4;</span><button class="remove" onclick="this.parentElement.remove()">&times;</button>';
-      }
-      preview.appendChild(thumb);
-    };
-    reader.readAsDataURL(file);
-  });
-  e.target.value = '';
-}
-
-// ============================================================
-// MODAL
-// ============================================================
-let modalType = '';
-function showAddModal(type) {
-  modalType = type;
-  const titles = { vessel: 'Add New Vessel', category: 'Add Service Category', serviceType: 'Add Service Type' };
-  const labels = { vessel: 'Vessel Name (e.g. M/Y Neptune)', category: 'Category Name', serviceType: 'Service Type Name' };
-  document.getElementById('modalTitle').textContent = titles[type];
-  document.getElementById('modalLabel').textContent = labels[type];
-  document.getElementById('modalInput').value = '';
-  document.getElementById('addModal').classList.remove('hidden');
-  document.getElementById('modalInput').focus();
-}
-function closeModal() { document.getElementById('addModal').classList.add('hidden'); }
-function confirmAdd() {
-  const val = document.getElementById('modalInput').value.trim();
-  if (!val) return;
-  if (modalType === 'vessel') {
-    const vessels = DB.vessels;
-    if (!vessels.includes(val)) {
-      vessels.push(val);
-      DB.vessels = vessels;
-      syncVesselToCloud(val); // sync to cloud
-    }
-    populateVesselDropdowns();
-    document.getElementById('vesselSelect').value = val;
-  } else if (modalType === 'category') {
-    const sel = document.getElementById('serviceCategory');
-    const opt = document.createElement('option'); opt.textContent = val; opt.selected = true; sel.appendChild(opt);
-  } else {
-    const sel = document.getElementById('serviceType');
-    const opt = document.createElement('option'); opt.textContent = val; opt.selected = true; sel.appendChild(opt);
-  }
-  closeModal();
-  showToast(val + ' added!');
-}
-
-
-// ============================================================
-// COLLECT FORM DATA
-// ============================================================
-function collectFormData() {
-  let base = 0, crewCharge = 0, currency = 'USD';
-  const billable = document.getElementById('billableToggle').checked;
-  let billingType = currentBillingType;
-  let serviceTypeValue = document.getElementById('serviceType').value;
-
-  if (isCustomsCategory) {
-    // Customs uses auto-pricing
-    base = customsTotal;
-    currency = 'USD';
-    billingType = 'customs_auto';
-    // Build a combined service type string from selected services
-    const selected = getSelectedCustomsServices();
-    serviceTypeValue = selected.map(k => CUSTOMS_SERVICE_LABELS[k] || k).join(', ');
-  } else if (billable) {
-    if (currentBillingType === 'hourly') {
-      const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
-      const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
-      currency = document.getElementById('currencySelect').value;
-      base = hours * rate;
-    } else if (currentBillingType === 'fixed') {
-      const amount = parseFloat(document.getElementById('fixedAmount').value) || 0;
-      const qty = parseInt(document.getElementById('fixedQty').value) || 1;
-      const crew = parseInt(document.getElementById('additionalCrew').value) || 0;
-      currency = document.getElementById('fixedCurrency').value;
-      base = amount * qty;
-      crewCharge = crew * 35;
-    } else if (currentBillingType === 'percentage') {
-      const baseAmt = parseFloat(document.getElementById('baseAmount').value) || 0;
-      const pct = parseFloat(document.getElementById('percentRate').value) || 0;
-      currency = document.getElementById('percentCurrency').value;
-      base = baseAmt * (pct / 100);
-    } else if (currentBillingType === 'manual') {
-      base = parseFloat(document.getElementById('manualAmount').value) || 0;
-      currency = document.getElementById('manualCurrency').value;
-    }
-  }
-
-  const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
-  const disbursement = parseFloat(document.getElementById('disbursementFee').value) || 0;
-  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
-  const total = base + crewCharge + agency + disbursement + other;
-
-  // Collect customs-specific data if applicable
-  let customsData = undefined;
-  if (isCustomsCategory) {
-    const selected = getSelectedCustomsServices();
-    customsData = { selectedServices: selected };
-    if (selected.includes('inbound')) {
-      customsData.inboundCrew = parseInt(document.getElementById('customsInboundCrew').value) || 0;
-      customsData.inboundGuests = parseInt(document.getElementById('customsInboundGuests').value) || 0;
-    }
-    if (selected.includes('outbound')) {
-      customsData.outboundCrew = parseInt(document.getElementById('customsOutboundCrew').value) || 0;
-      customsData.outboundGuests = parseInt(document.getElementById('customsOutboundGuests').value) || 0;
-    }
-    if (selected.includes('crew_guest_signoff')) customsData.signoffCount = parseInt(document.getElementById('customsSignoffCount').value) || 1;
-    if (selected.includes('transfer_of_crew')) customsData.transferCount = parseInt(document.getElementById('customsTransferCount').value) || 1;
-    if (selected.includes('ok_to_travel')) customsData.travelEdits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
-    if (selected.includes('failure_signoff_letter')) customsData.failureCount = parseInt(document.getElementById('customsFailureCount').value) || 1;
-  }
-
-  return {
-    submissionDate: document.getElementById('submissionDateTime').value,
-    serviceDate: document.getElementById('serviceDate').value,
-    serviceTime: document.getElementById('serviceTime').value || '',
-    vessel: document.getElementById('vesselSelect').value,
-    staffMember: document.getElementById('staffSelect').value,
-    category: document.getElementById('serviceCategory').value,
-    serviceType: serviceTypeValue,
-    description: document.getElementById('serviceDescription').value,
-    status: currentStatus,
-    workCompleted: document.getElementById('workCompleted').checked,
-    clearedIn: document.getElementById('clearedIn').value,
-    clearedOut: document.getElementById('clearedOut').value,
-    marina: document.getElementById('marina').value,
-    futureTask: document.getElementById('futureTask').checked,
-    eta: document.getElementById('etaField').value,
-    etd: document.getElementById('etdField').value,
-    crewArrival: document.getElementById('crewArrival').value,
-    crewDeparture: document.getElementById('crewDeparture').value,
-    billingType: billingType,
-    billable: isCustomsCategory ? true : billable,
-    currency: currency,
-    hoursWorked: currentBillingType === 'hourly' && !isCustomsCategory ? (parseFloat(document.getElementById('hoursWorked').value) || 0) : undefined,
-    hourlyRate: currentBillingType === 'hourly' && !isCustomsCategory ? (parseFloat(document.getElementById('hourlyRate').value) || 0) : undefined,
-    fixedAmount: currentBillingType === 'fixed' && !isCustomsCategory ? (parseFloat(document.getElementById('fixedAmount').value) || 0) : undefined,
-    fixedQty: currentBillingType === 'fixed' && !isCustomsCategory ? (parseInt(document.getElementById('fixedQty').value) || 1) : undefined,
-    percentBase: currentBillingType === 'percentage' && !isCustomsCategory ? (parseFloat(document.getElementById('baseAmount').value) || 0) : undefined,
-    percentRate: currentBillingType === 'percentage' && !isCustomsCategory ? (parseFloat(document.getElementById('percentRate').value) || 0) : undefined,
-    baseCharge: base,
-    crewCharge: crewCharge,
-    agencyFee: agency,
-    disbursementFee: disbursement,
-    otherCharges: other,
-    totalCharge: total,
-    customsData: customsData,
-    specialNotes: document.getElementById('specialNotes').value,
-    internalNotes: document.getElementById('internalNotes').value,
-    clientNotes: document.getElementById('clientNotes').value,
-    overrideNote: !isCustomsCategory && currentBillingType === 'manual' ? document.getElementById('manualNote').value : ''
-  };
-}
-
-// ============================================================
-// SUBMIT ENTRY
-// ============================================================
-async function submitEntry() {
-  const vessel = document.getElementById('vesselSelect').value;
-  if (!vessel) { showToast('Please select a vessel.'); return; }
-
-  // Customs-specific validation
-  if (isCustomsCategory) {
-    const selected = getSelectedCustomsServices();
-    if (selected.length === 0) { showToast('Please select at least one customs service type.'); return; }
-    const clearedIn = document.getElementById('clearedIn').value;
-    const clearedOut = document.getElementById('clearedOut').value;
-    if ((selected.includes('inbound') || selected.includes('outbound')) && !clearedIn) {
-      showToast('Cleared In At is required for Inbound/Outbound services.'); return;
-    }
-    if (selected.includes('outbound') && !clearedOut) {
-      showToast('Cleared Out At is required for Outbound services.'); return;
-    }
-  }
-
-  const submitBtn = document.querySelector('.submit-btn');
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
-
-  const entryId = DB.nextEntryId();
-  const entry = collectFormData();
-  entry.entryId = entryId;
-  entry.createdAt = new Date().toISOString();
-
-  // Save locally first (instant)
-  const entries = DB.entries;
-  entries.push(entry);
-  DB.entries = entries;
-
-  const vessels = DB.vessels;
-  if (!vessels.includes(vessel)) {
-    vessels.push(vessel);
-    DB.vessels = vessels;
-    syncVesselToCloud(vessel); // fire and forget
-  }
-
-  // Sync to Google Sheets
-  const cloudResult = await syncEntryToCloud(entry);
-  if (cloudResult) {
-    showToast('Entry ' + entryId + ' saved & synced to cloud!');
-  } else {
-    showToast('Entry ' + entryId + ' saved locally (cloud sync pending).');
-  }
-
-  if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Entry'; }
-  resetForm();
-}
-
-function saveDraft() {
-  const entry = collectFormData();
-  entry.entryId = 'DRAFT-' + Date.now();
-  entry.createdAt = new Date().toISOString();
-  entry.status = 'draft';
-  const entries = DB.entries;
-  entries.push(entry);
-  DB.entries = entries;
-  showToast('Draft saved locally.');
-}
-
-function resetForm() {
-  document.getElementById('serviceCategory').value = '';
-  document.getElementById('serviceType').innerHTML = '<option value="">Select type...</option>';
-  document.getElementById('serviceType').closest('.form-group').style.display = '';
-  document.getElementById('serviceDescription').value = '';
-  // Reset customs panel
-  isCustomsCategory = false;
-  customsTotal = 0;
-  document.getElementById('customsServicesPanel').classList.add('hidden');
-  document.querySelectorAll('#customsCheckList input[type="checkbox"]').forEach(cb => { cb.checked = false; });
-  document.querySelectorAll('#customsCheckList .customs-check-item').forEach(el => el.classList.remove('checked'));
-  document.getElementById('customsFieldsInbound').classList.add('hidden');
-  document.getElementById('customsFieldsOutbound').classList.add('hidden');
-  document.getElementById('customsFieldsSignoff').classList.add('hidden');
-  document.getElementById('customsFieldsTransfer').classList.add('hidden');
-  document.getElementById('customsFieldsTravel').classList.add('hidden');
-  document.getElementById('customsFieldsFailure').classList.add('hidden');
-  document.getElementById('customsGuidanceCaptain').classList.add('hidden');
-  document.getElementById('customsGuidanceRelinquancy').classList.add('hidden');
-  document.getElementById('customsPriceBreakdown').classList.add('hidden');
-  document.getElementById('customsInboundCrew').value = '0';
-  document.getElementById('customsInboundGuests').value = '0';
-  document.getElementById('customsOutboundCrew').value = '0';
-  document.getElementById('customsOutboundGuests').value = '0';
-  document.getElementById('customsSignoffCount').value = '1';
-  document.getElementById('customsTransferCount').value = '1';
-  document.getElementById('customsTravelEdits').value = '0';
-  document.getElementById('customsFailureCount').value = '1';
-  // Restore billing sections visibility
-  document.getElementById('billingMethodSection').style.display = '';
-  document.getElementById('billingFieldsSection').style.display = '';
-  document.getElementById('clearedIn').value = '';
-  document.getElementById('clearedOut').value = '';
-  document.getElementById('marina').value = '';
-  document.getElementById('workCompleted').checked = false;
-  document.getElementById('futureTask').checked = false;
-  document.getElementById('futureFields').classList.add('hidden');
-  document.getElementById('etaField').value = '';
-  document.getElementById('etdField').value = '';
-  document.getElementById('crewArrival').value = '';
-  document.getElementById('crewDeparture').value = '';
-  document.getElementById('hoursWorked').value = '';
-  document.getElementById('agencyFee').value = '0';
-  document.getElementById('disbursementFee').value = '0';
-  document.getElementById('otherCharges').value = '0';
-  document.getElementById('specialNotes').value = '';
-  document.getElementById('internalNotes').value = '';
-  document.getElementById('clientNotes').value = '';
-  document.getElementById('manualNote').value = '';
-  document.getElementById('receiptPreview').innerHTML = '';
-  document.getElementById('duplicateWarning').classList.add('hidden');
-  uploadedFiles = [];
-  currentStatus = 'upcoming';
-  document.getElementById('serviceTime').value = '';
-  updateAutoStatus();
-
-  const newNow = new Date();
-  document.getElementById('submissionDateTime').value = newNow.toISOString().slice(0, 16);
-  document.getElementById('serviceDate').value = newNow.toISOString().slice(0, 10);
-  recalculate();
-}
-
-// ============================================================
-// EDIT ENTRY MODAL
-// ============================================================
-let editingEntryId = null;
-let editStatus = 'upcoming';
-
-function openEditModal(entryId) {
-  const entry = DB.entries.find(e => e.entryId === entryId);
-  if (!entry) { showToast('Entry not found.'); return; }
-  editingEntryId = entryId;
-  editStatus = normalizeStatus(entry.status || 'upcoming');
-
-  document.getElementById('editModalEntryId').textContent = entryId;
-
-  // Populate vessel dropdown
-  const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = [...DB.vessels].filter(v => typeof v === 'string').sort((a, b) => a.localeCompare(b)).map(v => '<option value="' + v + '"' + (v === entry.vessel ? ' selected' : '') + '>' + v + '</option>').join('');
-
-  // Populate staff dropdown
-  const staffSel = document.getElementById('editStaff');
-  const staffOptions = [];
-  document.querySelectorAll('#staffSelect option').forEach(opt => {
-    if (opt.value) staffOptions.push(opt.value);
-  });
-  staffSel.innerHTML = staffOptions.map(s => '<option value="' + s + '"' + (s === entry.staffMember ? ' selected' : '') + '>' + s + '</option>').join('');
-
-  const sd = entry.serviceDate || '';
-  document.getElementById('editServiceDate').value = sd.length > 10 ? sd.slice(0, 10) : sd;
-  document.getElementById('editCategory').value = entry.category || '';
-  document.getElementById('editServiceType').value = entry.serviceType || '';
-  document.getElementById('editDescription').value = entry.description || '';
-
-  // Status checkboxes + auto display
-  document.getElementById('editWorkCompleted').checked = entry.workCompleted || editStatus === 'completed';
-  document.getElementById('editAccountants').checked = editStatus === 'accountants';
-  updateEditAutoStatus();
-
-  // Billing
-  document.getElementById('editBillingType').value = entry.billingType || 'hourly';
-  document.getElementById('editCurrency').value = entry.currency || 'USD';
-  document.getElementById('editHours').value = entry.billingType === 'hourly' ? (entry.baseCharge && entry.baseCharge > 0 ? '' : '') : '';
-  document.getElementById('editRate').value = '';
-  document.getElementById('editFixedAmt').value = '';
-  document.getElementById('editFixedQty').value = '1';
-  document.getElementById('editBaseAmt').value = '';
-  document.getElementById('editPctRate').value = '';
-  document.getElementById('editManualAmt').value = '';
-
-  // Try to restore billing fields from stored data
-  if (entry.billingType === 'hourly') {
-    // Reverse-calc hours and rate if we have baseCharge
-    // We store them in the entry if available
-    document.getElementById('editHours').value = entry.hoursWorked || '';
-    document.getElementById('editRate').value = entry.hourlyRate || '';
-  } else if (entry.billingType === 'fixed') {
-    document.getElementById('editFixedAmt').value = entry.fixedAmount || entry.baseCharge || '';
-    document.getElementById('editFixedQty').value = entry.fixedQty || '1';
-  } else if (entry.billingType === 'percentage') {
-    document.getElementById('editBaseAmt').value = entry.percentBase || '';
-    document.getElementById('editPctRate').value = entry.percentRate || '';
-  } else if (entry.billingType === 'manual') {
-    document.getElementById('editManualAmt').value = entry.baseCharge || entry.totalCharge || '';
-  }
-
-  document.getElementById('editAgency').value = entry.agencyFee || 0;
-  document.getElementById('editDisbursement').value = entry.disbursementFee || 0;
-  document.getElementById('editOther').value = entry.otherCharges || 0;
-  document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
-
-  toggleEditBillingFields();
-  recalcEditTotal();
-
-  document.getElementById('editModal').classList.remove('hidden');
-}
-
-function closeEditModal() {
-  document.getElementById('editModal').classList.add('hidden');
-  editingEntryId = null;
-}
-
-function updateEditAutoStatus() {
-  const dateStr = document.getElementById('editServiceDate').value;
-  const completed = document.getElementById('editWorkCompleted').checked;
-  const accountants = document.getElementById('editAccountants').checked;
-  editStatus = computeAutoStatus(dateStr, completed, accountants);
-  const display = document.getElementById('editAutoStatusDisplay');
-  if (display) {
-    display.innerHTML = '<span class="status-pill active-' + editStatus + '" style="cursor:default;">' + getStatusLabel(editStatus) + '</span>';
-  }
-  // Toggle checked styling
-  const cc = document.getElementById('editCompletedCheck');
-  const ac = document.getElementById('editAccountantsCheck');
-  if (cc) cc.classList.toggle('checked', completed);
-  if (ac) ac.classList.toggle('checked', accountants);
-}
-
-function toggleEditBillingFields() {
-  const type = document.getElementById('editBillingType').value;
-  document.getElementById('editHourlyFields').style.display = type === 'hourly' ? '' : 'none';
-  document.getElementById('editHourlyRateField').style.display = type === 'hourly' ? '' : 'none';
-  document.getElementById('editFixedFields').style.display = type === 'fixed' ? '' : 'none';
-  document.getElementById('editFixedQtyField').style.display = type === 'fixed' ? '' : 'none';
-  document.getElementById('editPercentFields').style.display = type === 'percentage' ? '' : 'none';
-  document.getElementById('editPercentRateField').style.display = type === 'percentage' ? '' : 'none';
-  document.getElementById('editManualField').style.display = type === 'manual' ? '' : 'none';
-  recalcEditTotal();
-}
-
-function recalcEditTotal() {
-  const type = document.getElementById('editBillingType').value;
-  const currency = document.getElementById('editCurrency').value;
-  let base = 0;
-  if (type === 'hourly') {
-    base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
-  } else if (type === 'fixed') {
-    base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
-  } else if (type === 'percentage') {
-    base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
-  } else if (type === 'manual') {
-    base = parseFloat(document.getElementById('editManualAmt').value) || 0;
-  }
-  const agency = parseFloat(document.getElementById('editAgency').value) || 0;
-  const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
-  const other = parseFloat(document.getElementById('editOther').value) || 0;
-  const total = base + agency + disbursement + other;
-  document.getElementById('editTotalDisplay').value = currencySymbol(currency) + total.toFixed(2);
-}
-
-async function saveEditEntry() {
-  if (!editingEntryId) return;
-  const entries = DB.entries;
-  const idx = entries.findIndex(e => e.entryId === editingEntryId);
-  if (idx === -1) { showToast('Entry not found.'); return; }
-
-  const type = document.getElementById('editBillingType').value;
-  const currency = document.getElementById('editCurrency').value;
-  let base = 0;
-  if (type === 'hourly') {
-    base = (parseFloat(document.getElementById('editHours').value) || 0) * (parseFloat(document.getElementById('editRate').value) || 0);
-  } else if (type === 'fixed') {
-    base = (parseFloat(document.getElementById('editFixedAmt').value) || 0) * (parseInt(document.getElementById('editFixedQty').value) || 1);
-  } else if (type === 'percentage') {
-    base = (parseFloat(document.getElementById('editBaseAmt').value) || 0) * ((parseFloat(document.getElementById('editPctRate').value) || 0) / 100);
-  } else if (type === 'manual') {
-    base = parseFloat(document.getElementById('editManualAmt').value) || 0;
-  }
-  const agency = parseFloat(document.getElementById('editAgency').value) || 0;
-  const disbursement = parseFloat(document.getElementById('editDisbursement').value) || 0;
-  const other = parseFloat(document.getElementById('editOther').value) || 0;
-
-  // Update entry fields
-  entries[idx].vessel = document.getElementById('editVessel').value;
-  entries[idx].staffMember = document.getElementById('editStaff').value;
-  entries[idx].serviceDate = document.getElementById('editServiceDate').value;
-  entries[idx].description = document.getElementById('editDescription').value;
-  entries[idx].status = editStatus;
-  entries[idx].workCompleted = document.getElementById('editWorkCompleted').checked;
-  entries[idx].billingType = type;
-  entries[idx].currency = currency;
-  entries[idx].baseCharge = base;
-  entries[idx].agencyFee = agency;
-  entries[idx].disbursementFee = disbursement;
-  entries[idx].otherCharges = other;
-  entries[idx].totalCharge = base + agency + disbursement + other;
-  entries[idx].specialNotes = document.getElementById('editSpecialNotes').value;
-
-  DB.entries = entries;
-
-  // Sync to cloud
-  const result = await syncUpdateToCloud(entries[idx]);
-  if (result) {
-    showToast('Entry ' + editingEntryId + ' updated & synced!');
-  } else {
-    showToast('Entry ' + editingEntryId + ' updated locally (cloud sync pending).');
-  }
-
-  closeEditModal();
-  renderLog();
-  renderTimeline();
-}
-
-async function confirmDeleteEntry(entryId) {
-  if (!confirm('Are you sure you want to delete entry ' + entryId + '? This cannot be undone.')) return;
-
-  const entries = DB.entries.filter(e => e.entryId !== entryId);
-  DB.entries = entries;
-
-  const result = await syncDeleteFromCloud(entryId);
-  if (result) {
-    showToast('Entry ' + entryId + ' deleted & removed from cloud.');
-  } else {
-    showToast('Entry ' + entryId + ' deleted locally (cloud sync pending).');
-  }
-
-  renderLog();
-  renderTimeline();
-}
-
-// ============================================================
-// FRIENDLY DATE FORMATTER: "Monday 18th May 2026"
-// ============================================================
-function formatFriendlyDate(dateStr) {
-  if (!dateStr) return '\u2014';
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const day = d.getDate();
-  const suffix = (day === 1 || day === 21 || day === 31) ? 'st' : (day === 2 || day === 22) ? 'nd' : (day === 3 || day === 23) ? 'rd' : 'th';
-  return days[d.getDay()] + ' ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-}
-
-// ============================================================
-// RENDER SERVICE LOG
-// ============================================================
 function renderLog() {
-  const entries = DB.entries || [];
   const tbody = document.getElementById('logTableBody');
-  if (!tbody) return;
-  const searchEl = document.getElementById('logSearch');
-  const statusEl = document.getElementById('logStatusFilter');
-  const vesselEl = document.getElementById('logVesselFilter');
-  const search = (searchEl ? searchEl.value : '').toLowerCase();
-  const statusFilter = statusEl ? statusEl.value : '';
-  const vesselFilter = vesselEl ? vesselEl.value : '';
+  tbody.innerHTML = '';
 
-  let filtered = entries.filter(e => e.status !== 'draft');
-
-  if (search) {
-    filtered = filtered.filter(e =>
-      (e.vessel || '').toLowerCase().includes(search) ||
-      (e.serviceType || '').toLowerCase().includes(search) ||
-      (e.description || '').toLowerCase().includes(search) ||
-      (e.staffMember || '').toLowerCase().includes(search) ||
-      (e.entryId || '').toLowerCase().includes(search)
-    );
-  }
-  if (statusFilter) filtered = filtered.filter(e => e.status === statusFilter);
-  if (vesselFilter) filtered = filtered.filter(e => e.vessel === vesselFilter);
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--gray-500);">No entries found.</td></tr>';
-  } else {
-    tbody.innerHTML = filtered.sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || '')).map(e => {
-      const statusClass = getStatusClass(e.status);
-      const statusLabel = getStatusLabel(e.status);
-      const eid = (e.entryId || '').replace(/'/g, "\\'");
-      const isAcct = e.status === 'accountants';
-      const acctHtml = '<label class="acct-check' + (isAcct ? ' checked' : '') + '"><input type="checkbox"' + (isAcct ? ' checked' : '') + ' onchange="toggleAccountants(\'' + eid + '\', this.checked)"> Sent</label>';
-      return '<tr>' +
-        '<td><strong>' + (e.entryId || '\u2014') + '</strong></td>' +
-        '<td>' + formatFriendlyDate(e.serviceDate) + '</td>' +
-        '<td>' + (e.vessel || '\u2014') + '</td>' +
-        '<td>' + (e.serviceType || e.category || '\u2014') + '</td>' +
-        '<td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>' +
-        '<td>' + acctHtml + '</td>' +
-        '<td>' + formatCurrency(e.totalCharge || 0, e.currency || 'USD') + '</td>' +
-        '<td>' + (e.staffMember || '\u2014') + '</td>' +
-        '<td><div class="action-btns">' +
-          '<button class="edit-btn" onclick="openEditModal(\'' + eid + '\')">Edit</button>' +
-          '<button class="delete-btn" onclick="confirmDeleteEntry(\'' + eid + '\')">Delete</button>' +
-        '</div></td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  renderRunningTotals(entries.filter(e => e.status !== 'draft'));
-  updateVesselFilterDropdown();
-}
-
-function renderRunningTotals(entries) {
-  const totals = {};
-  entries.forEach(e => {
-    const v = e.vessel || 'Unknown';
-    if (!totals[v]) totals[v] = 0;
-    totals[v] += (e.totalCharge || 0);
-  });
-
-  const container = document.getElementById('runningTotals');
-  if (!container) return;
-  const vessels = Object.keys(totals);
-  if (vessels.length === 0) {
-    container.innerHTML = '<div class="calc-row" style="text-align:center; color:var(--gray-500); padding:12px;">No data yet.</div>';
-    return;
-  }
-
-  const grandTotal = Object.values(totals).reduce((s, v) => s + v, 0);
-  container.innerHTML = vessels.map(v =>
-    '<div class="calc-row"><span class="calc-label">' + v + '</span><span class="calc-value">$' + totals[v].toFixed(2) + '</span></div>'
-  ).join('') +
-  '<div class="calc-row total"><span class="calc-label">Grand Total</span><span class="calc-value">$' + grandTotal.toFixed(2) + '</span></div>';
-}
-
-function updateVesselFilterDropdown() {
-  const sel = document.getElementById('logVesselFilter');
-  const current = sel.value;
-  const vessels = DB.vessels;
-  sel.innerHTML = '<option value="">All Vessels</option>';
-  vessels.forEach(v => {
-    const opt = document.createElement('option');
-    opt.textContent = v; opt.value = v;
-    if (v === current) opt.selected = true;
-    sel.appendChild(opt);
+  allEntries.forEach(entry => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${entry.entryId}</td>
+      <td>${entry.vessel}</td>
+      <td>${entry.category}</td>
+      <td>${formatDate(entry.serviceDate)}</td>
+      <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
+      <td>$${parseFloat(entry.totalCharge || 0).toFixed(2)}</td>
+      <td><button onclick="alert('Edit not yet implemented')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+    `;
+    tbody.appendChild(row);
   });
 }
-
-// ============================================================
-// CALENDAR TIMELINE VIEW
-// ============================================================
-var calViewYear, calViewMonth;
-(function() { var d = new Date(); calViewYear = d.getFullYear(); calViewMonth = d.getMonth(); })();
-
-function getEntryDate(entry) {
-  var candidates = [entry.eta, entry.etd, entry.serviceDate];
-  for (var i = 0; i < candidates.length; i++) {
-    var raw = candidates[i];
-    if (!raw || typeof raw !== 'string') continue;
-    var d = new Date(raw);
-    if (isNaN(d.getTime())) continue;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return new Date(raw + 'T12:00:00');
-    return d;
-  }
-  return null;
-}
-
-function getEntryDateKey(entry) {
-  var d = getEntryDate(entry);
-  if (!d) return null;
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
-function calNavMonth(dir) { calViewMonth += dir; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; } else if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; } renderTimeline(); }
-function calGoToday() { var d = new Date(); calViewYear = d.getFullYear(); calViewMonth = d.getMonth(); renderTimeline(); }
 
 function renderTimeline() {
-  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var titleEl = document.getElementById('calMonthTitle');
-  if (titleEl) titleEl.textContent = MONTHS[calViewMonth] + ' ' + calViewYear;
-
-  // Build entries-by-date map
-  var entries = (DB.entries || []).filter(function(e) { return e.status !== 'draft'; });
-  var byDate = {};
-  entries.forEach(function(e) {
-    var key = getEntryDateKey(e);
-    if (key) { if (!byDate[key]) byDate[key] = []; byDate[key].push(e); }
-  });
-
-  var firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
-  var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
-  var prevMonthDays = new Date(calViewYear, calViewMonth, 0).getDate();
-  var today = new Date();
-  var todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-
-  var html = '';
-  // Day-of-week headers
-  DAYS.forEach(function(d) { html += '<div class="cal-dow">' + d + '</div>'; });
-
-  // Previous month trailing days
-  for (var p = firstDay - 1; p >= 0; p--) {
-    var pDay = prevMonthDays - p;
-    var pM = calViewMonth === 0 ? 12 : calViewMonth;
-    var pY = calViewMonth === 0 ? calViewYear - 1 : calViewYear;
-    var pKey = pY + '-' + String(pM).padStart(2, '0') + '-' + String(pDay).padStart(2, '0');
-    html += buildCalCell(pDay, pKey, byDate[pKey] || [], true, false);
-  }
-
-  // Current month days
-  for (var d = 1; d <= daysInMonth; d++) {
-    var key = calViewYear + '-' + String(calViewMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    var isToday = key === todayKey;
-    html += buildCalCell(d, key, byDate[key] || [], false, isToday);
-  }
-
-  // Next month leading days
-  var totalCells = firstDay + daysInMonth;
-  var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-  for (var n = 1; n <= remaining; n++) {
-    var nM = calViewMonth === 11 ? 1 : calViewMonth + 2;
-    var nY = calViewMonth === 11 ? calViewYear + 1 : calViewYear;
-    var nKey = nY + '-' + String(nM).padStart(2, '0') + '-' + String(n).padStart(2, '0');
-    html += buildCalCell(n, nKey, byDate[nKey] || [], true, false);
-  }
-
-  var gridEl = document.getElementById('calGrid');
-  if (gridEl) gridEl.innerHTML = html;
+  // Placeholder: Full calendar implementation
+  document.getElementById('calendarGrid').innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);">Calendar view coming soon</div>';
 }
 
-function buildCalCell(dayNum, dateKey, entries, isOtherMonth, isToday) {
-  var cls = 'cal-cell';
-  if (isOtherMonth) cls += ' other-month';
-  if (isToday) cls += ' today';
-
-  var dayHtml = isToday ? '<div class="cal-day"><div style="background:var(--teal);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">' + dayNum + '</div></div>' : '<div class="cal-day">' + dayNum + '</div>';
-
-  var pips = '';
-  var maxShow = 3;
-  var sorted = entries.sort(function(a, b) {
-    var da = getEntryDate(a) || new Date(0);
-    var db = getEntryDate(b) || new Date(0);
-    return da - db;
-  });
-  for (var i = 0; i < Math.min(sorted.length, maxShow); i++) {
-    var e = sorted[i];
-    var sc = e.status || 'upcoming';
-    pips += '<div class="cal-entry-pip ' + sc + '">' + (e.vessel || 'Job') + '</div>';
-  }
-  if (sorted.length > maxShow) {
-    pips += '<div class="cal-more">+' + (sorted.length - maxShow) + ' more</div>';
-  }
-
-  return '<div class="' + cls + '" data-date="' + dateKey + '" onclick="openDayDetail(\'' + dateKey + '\')">' + dayHtml + '<div class="cal-dots">' + pips + '</div></div>';
-}
-
-function openDayDetail(dateKey) {
-  var entries = DB.entries.filter(function(e) { return e.status !== 'draft' && getEntryDateKey(e) === dateKey; });
-  var sorted = entries.sort(function(a, b) {
-    var da = getEntryDate(a) || new Date(0);
-    var db = getEntryDate(b) || new Date(0);
-    return da - db;
-  });
-
-  var d = new Date(dateKey + 'T12:00:00');
-  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var dayNum = d.getDate();
-  var suffix = (dayNum === 1 || dayNum === 21 || dayNum === 31) ? 'st' : (dayNum === 2 || dayNum === 22) ? 'nd' : (dayNum === 3 || dayNum === 23) ? 'rd' : 'th';
-  var title = DAYS[d.getDay()] + ', ' + dayNum + suffix + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
-
-  var upcoming = sorted.filter(function(e) { return e.status === 'upcoming'; }).length;
-  var inProg = sorted.filter(function(e) { return e.status === 'progress'; }).length;
-  var completed = sorted.filter(function(e) { return e.status === 'completed'; }).length;
-  var overdue = sorted.filter(function(e) { return e.status === 'overdue'; }).length;
-  var totalCharge = sorted.reduce(function(sum, e) { return sum + (e.totalCharge || 0); }, 0);
-
-  var statsHtml = '<div class="day-detail-stats">' +
-    '<div class="day-stat"><div class="num">' + sorted.length + '</div><div class="label">Total Jobs</div></div>' +
-    '<div class="day-stat"><div class="num" style="color:var(--blue);">' + upcoming + '</div><div class="label">Upcoming</div></div>' +
-    '<div class="day-stat"><div class="num" style="color:var(--orange);">' + inProg + '</div><div class="label">In Progress</div></div>' +
-    '<div class="day-stat"><div class="num" style="color:var(--green);">' + completed + '</div><div class="label">Completed</div></div>' +
-    (overdue > 0 ? '<div class="day-stat"><div class="num" style="color:#d32f2f;">' + overdue + '</div><div class="label">Overdue</div></div>' : '') +
-    (totalCharge > 0 ? '<div class="day-stat"><div class="num">$' + totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div><div class="label">Total Charges</div></div>' : '') +
-    '</div>';
-
-  var jobsHtml = '';
-  if (sorted.length === 0) {
-    jobsHtml = '<div class="day-empty">No activity recorded for this date.</div>';
-  } else {
-    jobsHtml = '<div class="day-detail-list">' + sorted.map(function(e) {
-      var sc = e.status || 'upcoming';
-      var statusLabel = getStatusLabel(e.status);
-
-      var timesHtml = '';
-      var times = [];
-      if (e.eta) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETA: ' + new Date(e.eta).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>');
-      if (e.etd) times.push('<div class="day-job-time"><span class="time-icon">&#9201;</span> ETD: ' + new Date(e.etd).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>');
-      if (e.crewArrival) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew In: ' + e.crewArrival + '</div>');
-      if (e.crewDeparture) times.push('<div class="day-job-time"><span class="time-icon">&#128101;</span> Crew Out: ' + e.crewDeparture + '</div>');
-      if (e.marina) times.push('<div class="day-job-time"><span class="time-icon">&#9875;</span> ' + e.marina + '</div>');
-      if (times.length) timesHtml = '<div class="day-job-times">' + times.join('') + '</div>';
-
-      // Logged vs completed comparison
-      var compHtml = '';
-      if (e.submissionDate || e.createdAt) {
-        var logRaw = e.submissionDate || e.createdAt || '';
-        var logged = logRaw ? formatFriendlyDate(logRaw.substring(0, 10)) : '';
-        var svcDate = e.serviceDate ? formatFriendlyDate(e.serviceDate) : '—';
-        compHtml = '<div class="day-job-comparison">' +
-          '<span>&#128221; Logged: ' + logged + '</span>' +
-          '<span class="arrow">&#10132;</span>' +
-          '<span>&#128197; Service: ' + svcDate + '</span>' +
-          '</div>';
-      }
-
-      var chargeHtml = '';
-      if (e.totalCharge && e.totalCharge > 0) {
-        chargeHtml = '<div class="day-job-charge">' + (e.currency || 'USD') + ' $' + e.totalCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</div>';
-      }
-
-      var eid = (e.entryId || '').replace(/'/g, "\\'");
-      var actionsHtml = '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">';
-      actionsHtml += '<button onclick="closeDayDetail();openEditModal(\'' + eid + '\')" style="padding:5px 12px;border:1px solid var(--gray-300);border-radius:6px;background:var(--white);cursor:pointer;font-size:12px;font-weight:500;">&#9998; Edit</button>';
-      if (e.status !== 'completed' && e.status !== 'accountants') {
-        actionsHtml += '<button onclick="markEntryCompleted(\'' + eid + '\');closeDayDetail();openDayDetail(\'' + dateKey + '\')" style="padding:5px 12px;border:1px solid var(--green);border-radius:6px;background:var(--green-light);color:var(--green);cursor:pointer;font-size:12px;font-weight:600;">&#10003; Complete</button>';
-      }
-      var isAcct = e.status === 'accountants';
-      actionsHtml += '<label class="acct-check' + (isAcct ? ' checked' : '') + '" style="margin-left:auto;"><input type="checkbox"' + (isAcct ? ' checked' : '') + ' onchange="toggleAccountants(\'' + eid + '\', this.checked);closeDayDetail();openDayDetail(\'' + dateKey + '\')"> Submitted to Accountants</label>';
-      actionsHtml += '</div>';
-
-      return '<div class="day-job" style="cursor:pointer;" onclick="if(event.target.tagName!==\'BUTTON\'&&event.target.tagName!==\'INPUT\'&&event.target.tagName!==\'LABEL\'){closeDayDetail();openEditModal(\'' + eid + '\');}">' +
-        '<div class="day-job-header">' +
-        '<div><div class="day-job-vessel">' + (e.vessel || 'Unknown Vessel') + '</div>' +
-        '<div class="day-job-service">' + (e.category || '') + (e.serviceType ? ' &mdash; ' + e.serviceType : '') + (e.staffMember ? ' &middot; ' + e.staffMember : '') + '</div></div>' +
-        '<div class="day-job-status ' + sc + '">' + statusLabel + '</div>' +
-        '</div>' +
-        timesHtml +
-        compHtml +
-        chargeHtml +
-        (e.description ? '<div style="margin-top:8px;font-size:12px;color:var(--gray-600);">' + e.description + '</div>' : '') +
-        actionsHtml +
-        '</div>';
-    }).join('') + '</div>';
-  }
-
-  var container = document.getElementById('dayDetailContainer');
-  container.innerHTML = '<div class="day-detail-overlay" onclick="if(event.target===this)closeDayDetail()">' +
-    '<div class="day-detail-panel">' +
-    '<div class="day-detail-header"><h3>' + title + '</h3><button class="day-detail-close" onclick="closeDayDetail()">&times;</button></div>' +
-    statsHtml + jobsHtml +
-    '</div></div>';
-}
-
-function closeDayDetail() {
-  document.getElementById('dayDetailContainer').innerHTML = '';
-}
-
-
-// ============================================================
-// EXPORT FUNCTIONS
-// ============================================================
-function downloadExcelSpreadsheet() {
-  const entries = DB.entries.filter(e => e.status !== 'draft');
-  const vesselSpend = {};
-  const monthlyData = {};
-
-  entries.forEach(e => {
-    const v = e.vessel || 'Unknown';
-    if (!vesselSpend[v]) vesselSpend[v] = 0;
-    vesselSpend[v] += (e.totalCharge || 0);
-
-    const d = new Date(e.serviceDate || e.submissionDate || 0);
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    if (!monthlyData[key]) monthlyData[key] = 0;
-    monthlyData[key] += (e.totalCharge || 0);
-  });
-
-  // Service Log Sheet
-  const serviceLogData = entries.map(e => ({
-    'Entry ID': e.entryId,
-    'Date': e.serviceDate,
-    'Vessel': e.vessel,
-    'Staff': e.staffMember,
-    'Category': e.category,
-    'Service Type': e.serviceType,
-    'Status': e.status,
-    'Total': e.totalCharge,
-    'Currency': e.currency || 'USD',
-    'Description': e.description
-  }));
-
-  // Vessel Summary Sheet
-  const vesselSummaryData = Object.entries(vesselSpend).map(([vessel, total]) => ({
-    'Vessel': vessel,
-    'Total Spend': total,
-    'Total Entries': entries.filter(e => e.vessel === vessel).length
-  }));
-
-  // Monthly Summary Sheet
-  const monthlySummaryData = Object.entries(monthlyData).map(([month, total]) => ({
-    'Month': month,
-    'Total Spend': total
-  }));
-
-  // Staff Sheet
-  const staffData = STAFF_LIST.map(name => ({
-    'Name': name
-  }));
-
-  // Create workbook
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(serviceLogData), 'Service Log');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(vesselSummaryData), 'Vessel Summary');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthlySummaryData), 'Monthly Summary');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(staffData), 'Staff');
-
-  XLSX.writeFile(wb, 'anchor-concierge-' + new Date().toISOString().slice(0, 10) + '.xlsx');
-  showToast('Excel spreadsheet downloaded!');
-}
-
-function downloadCsvExport() {
-  const entries = DB.entries.filter(e => e.status !== 'draft');
-  if (entries.length === 0) { showToast('No entries to export.'); return; }
-
-  const headers = ['Entry ID', 'Date', 'Vessel', 'Staff', 'Category', 'Service Type', 'Status', 'Total', 'Currency', 'Description'];
-  const rows = entries.map(e => [
-    e.entryId, e.serviceDate, e.vessel, e.staffMember, e.category, e.serviceType,
-    e.status, e.totalCharge, e.currency || 'USD', e.description
-  ]);
-
-  let csv = headers.join(',') + '\n' + rows.map(row => row.map(cell => '"' + (cell || '') + '"').join(',')).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'anchor-concierge-' + new Date().toISOString().slice(0, 10) + '.csv';
-  a.click();
-  showToast('CSV file downloaded!');
-}
-
-function exportLocalData() {
-  const data = {
-    entries: DB.entries,
-    staff: STAFF_LIST,
-    vessels: DB.vessels,
-    exportedAt: new Date().toISOString()
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'anchor-concierge-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-  a.click();
-  showToast('Data exported!');
-}
-
-function importLocalData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data.entries) DB.entries = data.entries;
-      if (data.vessels) DB.vessels = data.vessels;
-      populateStaffDropdown();
-      populateVesselDropdowns();
-      showToast('Data imported! ' + (data.entries || []).length + ' entries loaded.');
-    } catch (err) {
-      showToast('Import error: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-// ============================================================
-// STAFF LIST (alphabetical)
-// ============================================================
-const STAFF_LIST = [
-  'Christina Francesconi',
-  'Daryl Otto',
-  'Eloise Green',
-  'Erica Lessey',
-  'Hannah L Gonsalves',
-  'Kamaal Adams',
-  'Ross Bloomfield',
-  'Shava Lapps'
-];
-
-function populateStaffDropdown() {
-  const staffSelect = document.getElementById('staffSelect');
-  const currentVal = staffSelect.value;
-  staffSelect.innerHTML = '<option value="">Select staff...</option>';
-  STAFF_LIST.forEach(name => {
-    const opt = document.createElement('option');
-    opt.textContent = name;
-    if (name === currentVal) opt.selected = true;
-    staffSelect.appendChild(opt);
-  });
-}
-
-// ============================================================
-// VESSEL MANAGEMENT
-// ============================================================
-function populateVesselDropdowns() {
-  const vessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
-  const sel = document.getElementById('vesselSelect');
-  const currentVal = sel.value;
-  sel.innerHTML = '<option value="">Select vessel...</option>';
-  vessels.forEach(v => {
-    const opt = document.createElement('option');
-    opt.textContent = v; opt.value = v;
-    if (v === currentVal) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-
-// ============================================================
-// SETTINGS MODAL
-// ============================================================
-let settingsActiveTab = 'vessels';
-
-function openSettingsModal() {
-  settingsActiveTab = 'vessels';
-  document.getElementById('settingsTabVessels').classList.add('active');
-  document.getElementById('settingsTabStaff').classList.remove('active');
-  document.getElementById('settingsAddInput').placeholder = 'Add new vessel...';
-  renderSettingsList();
-  document.getElementById('settingsModal').classList.remove('hidden');
-}
-
-function closeSettingsModal() {
-  document.getElementById('settingsModal').classList.add('hidden');
-}
-
-function switchSettingsTab(tab) {
-  settingsActiveTab = tab;
-  document.getElementById('settingsTabVessels').classList.toggle('active', tab === 'vessels');
-  document.getElementById('settingsTabStaff').classList.toggle('active', tab === 'staff');
-  document.getElementById('settingsVesselsList').style.display = tab === 'vessels' ? '' : 'none';
-  document.getElementById('settingsStaffList').style.display = tab === 'staff' ? '' : 'none';
-  document.getElementById('settingsAddInput').placeholder = tab === 'vessels' ? 'Add new vessel...' : 'Add new staff member...';
-  document.getElementById('settingsAddInput').value = '';
-  renderSettingsList();
-}
-
-function renderSettingsList() {
-  // Vessels list
-  const vList = document.getElementById('settingsVesselsList');
-  const sortedVessels = [...DB.vessels].sort((a, b) => a.localeCompare(b));
-  if (sortedVessels.length === 0) {
-    vList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No vessels added yet.</div>';
-  } else {
-    vList.innerHTML = sortedVessels.map(v =>
-      '<div class="settings-list-item"><span>' + v + '</span><button class="settings-delete-btn" onclick="deleteVessel(\'' + v.replace(/'/g, "\\'") + '\')">Delete</button></div>'
-    ).join('');
-  }
-  // Staff list
-  const sList = document.getElementById('settingsStaffList');
-  const sortedStaff = [...STAFF_LIST].sort((a, b) => a.localeCompare(b));
-  if (sortedStaff.length === 0) {
-    sList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px;">No staff members added yet.</div>';
-  } else {
-    sList.innerHTML = sortedStaff.map(s =>
-      '<div class="settings-list-item"><span>' + s + '</span><button class="settings-delete-btn" onclick="deleteStaff(\'' + s.replace(/'/g, "\\'") + '\')">Delete</button></div>'
-    ).join('');
-  }
-}
-
-function settingsAddItem() {
-  const input = document.getElementById('settingsAddInput');
-  const val = input.value.trim();
-  if (!val) return;
-  if (settingsActiveTab === 'vessels') {
-    if (!DB.vessels.includes(val)) {
-      const vessels = DB.vessels;
-      vessels.push(val);
-      DB.vessels = vessels;
-      syncVesselToCloud(val);
-      populateVesselDropdowns();
-      showToast(val + ' added to vessels.');
-    } else {
-      showToast('Vessel already exists.');
-    }
-  } else {
-    if (!STAFF_LIST.includes(val)) {
-      STAFF_LIST.push(val);
-      populateStaffDropdown();
-      showToast(val + ' added to staff.');
-    } else {
-      showToast('Staff member already exists.');
-    }
-  }
-  input.value = '';
-  renderSettingsList();
-}
-
-function deleteVessel(name) {
-  if (!confirm('Delete vessel "' + name + '"? This will not affect existing entries.')) return;
-  const vessels = DB.vessels;
-  const idx = vessels.indexOf(name);
-  if (idx > -1) {
-    vessels.splice(idx, 1);
-    DB.vessels = vessels;
-    apiPost({ action: 'removeVessel', vessel: name });
-    populateVesselDropdowns();
-    renderSettingsList();
-    showToast(name + ' removed from vessels.');
-  }
-}
-
-function deleteStaff(name) {
-  if (!confirm('Delete staff member "' + name + '"? This will not affect existing entries.')) return;
-  const idx = STAFF_LIST.indexOf(name);
-  if (idx > -1) {
-    STAFF_LIST.splice(idx, 1);
-    populateStaffDropdown();
-    renderSettingsList();
-    showToast(name + ' removed from staff.');
-  }
-}
-
-// ============================================================
-// TOAST
-// ============================================================
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -3115,23 +1605,110 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
 }
 
-// ============================================================
-// INITIALIZE ALL
-// ============================================================
-populateStaffDropdown();
-populateVesselDropdowns();
-recalculate();
+function checkOverdueEntries() {
+  const now = new Date();
+  allEntries.forEach(entry => {
+    if (entry.status !== 'completed' && entry.status !== 'cancelled') {
+      const serviceDate = new Date(entry.serviceDate);
+      if (serviceDate < now && entry.status !== 'overdue') {
+        // Mark as overdue in UI
+      }
+    }
+  });
+}
 
-// Load data from Google Sheets on startup
-(async function initCloud() {
-  updateSyncBadge();
-  const ok = await syncFromCloud();
-  if (ok) {
-    console.log('Data loaded from Google Sheets');
-  } else {
-    console.log('Using local data (offline mode)');
+function populateVesselSelect() {
+  const select = document.getElementById('vesselSelect');
+  select.innerHTML = '<option value="">Select vessel...</option>';
+  allVessels.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = v.name;
+    select.appendChild(opt);
+  });
+}
+
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function showAddModal(type) {
+  document.getElementById('addModalTitle').textContent = `Add ${type}`;
+  document.getElementById('addModalBody').innerHTML = `<input type="text" placeholder="Enter ${type} name">`;
+  document.getElementById('addModal').classList.remove('hidden');
+}
+
+function saveAddModalItem() {
+  // Placeholder
+  closeModal('addModal');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString();
+}
+
+function formatCurrency(val) {
+  return '$' + parseFloat(val || 0).toFixed(2);
+}
+
+function exportXLSX() {
+  // Placeholder: XLSX export
+}
+
+function exportCSV() {
+  // Placeholder: CSV export
+}
+
+function exportJSON() {
+  // Placeholder: JSON export
+}
+
+function previousMonth() {
+  // Placeholder
+}
+
+function nextMonth() {
+  // Placeholder
+}
+
+function closeDayDetail() {
+  document.getElementById('dayDetailOverlay').classList.add('hidden');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async function() {
+  const { data, error } = await supabase.auth.getSession();
+  if (data.session) {
+    currentUser = data.session.user;
+    await loadUserProfile();
+    document.getElementById('authGate').classList.add('hidden');
+    await loadEntries();
+    await loadVessels();
+    subscribeToChanges();
   }
-})();
+
+  document.getElementById('authEmail').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('authPassword').focus();
+  });
+  document.getElementById('authPassword').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+  document.getElementById('signupPassword').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSignup();
+  });
+
+  resetForm();
+  calculateTotal();
+  updateStatusPills();
+  updateBillingTypeBtns();
+});
 </script>
+
 </body>
 </html>
