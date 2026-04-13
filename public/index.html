@@ -1019,7 +1019,7 @@
 // ============================================
 const SUPABASE_URL = 'https://ahgrdvxrxaghnjqudwib.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoZ3JkdnhyeGFnaG5qcXVkd2liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTc1NzMsImV4cCI6MjA5MTYzMzU3M30.0S-gf62DmqYkR-jGYnDezUBuedITuoHrEk97nkw-HYw';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let allEntries = [];
@@ -1042,7 +1042,7 @@ async function handleLogin() {
 
   try {
     errorEl.style.display = 'none';
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
     currentUser = data.user;
@@ -1071,11 +1071,11 @@ async function handleSignup() {
 
   try {
     errorEl.style.display = 'none';
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({ email, password });
     if (error) throw error;
 
     currentUser = data.user;
-    await supabase.from('profiles').insert({
+    await sb.from('profiles').insert({
       id: currentUser.id,
       email,
       full_name: fullName,
@@ -1095,7 +1095,7 @@ async function handleSignup() {
 
 async function handleLogout() {
   try {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     currentUser = null;
     allEntries = [];
     allVessels = [];
@@ -1114,7 +1114,7 @@ function toggleAuthPanel(panel) {
 }
 
 async function loadUserProfile() {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+  const { data, error } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
   if (data) {
     currentUser.full_name = data.full_name;
     currentUser.role = data.role;
@@ -1137,7 +1137,7 @@ function updateHeaderWithUser() {
 // ============================================
 async function loadEntries() {
   try {
-    const { data, error } = await supabase.from('entries').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
+    const { data, error } = await sb.from('entries').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
     if (error) throw error;
     allEntries = (data || []).map(row => entryFromDb(row));
     renderLog();
@@ -1151,7 +1151,7 @@ async function loadEntries() {
 
 async function loadVessels() {
   try {
-    const { data, error } = await supabase.from('vessels').select('*').eq('is_active', true).order('name');
+    const { data, error } = await sb.from('vessels').select('*').eq('is_active', true).order('name');
     if (error) throw error;
     allVessels = data || [];
     populateVesselSelect();
@@ -1252,18 +1252,18 @@ async function submitEntry() {
     updateSyncBadge(true, 'Syncing');
 
     // Get next entry ID
-    const { data: idData, error: idError } = await supabase.rpc('next_entry_id');
+    const { data: idData, error: idError } = await sb.rpc('next_entry_id');
     if (idError) throw idError;
     entry.entryId = idData;
     entry.submissionDate = new Date().toISOString().split('T')[0];
     entry.createdBy = currentUser.id;
 
     // Insert entry
-    const { error: insertError } = await supabase.from('entries').insert([entryToDb(entry)]);
+    const { error: insertError } = await sb.from('entries').insert([entryToDb(entry)]);
     if (insertError) throw insertError;
 
     // Log audit
-    await supabase.from('audit_log').insert({
+    await sb.from('audit_log').insert({
       entry_id: entry.entryId,
       action: 'create',
       changed_fields: Object.keys(entry),
@@ -1289,7 +1289,7 @@ async function deleteEntry(entryId) {
 
   try {
     updateSyncBadge(true, 'Syncing');
-    const { error } = await supabase.from('entries').update({
+    const { error } = await sb.from('entries').update({
       is_deleted: true,
       deleted_at: new Date().toISOString(),
       deleted_by: currentUser.id
@@ -1297,7 +1297,7 @@ async function deleteEntry(entryId) {
 
     if (error) throw error;
 
-    await supabase.from('audit_log').insert({
+    await sb.from('audit_log').insert({
       entry_id: entryId,
       action: 'delete',
       performed_by: currentUser.id,
@@ -1324,7 +1324,7 @@ async function addVessel() {
   }
 
   try {
-    const { error } = await supabase.from('vessels').insert({
+    const { error } = await sb.from('vessels').insert({
       name,
       is_active: true,
       created_by: currentUser.id
@@ -1344,13 +1344,13 @@ async function addVessel() {
 function subscribeToChanges() {
   if (!supabase) return;
 
-  supabase.channel('entries-changes')
+  sb.channel('entries-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
       loadEntries();
     })
     .subscribe();
 
-  supabase.channel('vessels-changes')
+  sb.channel('vessels-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, (payload) => {
       loadVessels();
     })
@@ -1683,7 +1683,7 @@ function closeDayDetail() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await sb.auth.getSession();
   if (data.session) {
     currentUser = data.session.user;
     await loadUserProfile();
