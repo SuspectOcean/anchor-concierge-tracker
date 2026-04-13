@@ -542,7 +542,7 @@
             <label>Service Types <span class="required">*</span></label>
             <div class="customs-dropdown" id="customsDropdown">
               <div class="customs-dropdown-trigger" onclick="toggleCustomsDropdown(event)">
-                <span id="customsDropdownLabel" style="color:var(--gray-400);">Select services...</span>
+                <span id="customsDropdownLabel" style="color:var(--gray-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">Select services...</span>
                 <span style="font-size:10px;color:var(--gray-400);">&#9660;</span>
               </div>
               <div class="customs-dropdown-menu hidden" id="customsDropdownMenu">
@@ -1935,12 +1935,15 @@ function updateCustomsDropdownLabel() {
   if (checks.length === 0) {
     label.textContent = 'Select services...';
     label.style.color = 'var(--gray-400)';
-  } else {
+  } else if (checks.length <= 2) {
     const names = [];
     checks.forEach(cb => {
       names.push(cb.closest('[data-service]').querySelector('.ci-label').textContent);
     });
     label.textContent = names.join(', ');
+    label.style.color = 'var(--navy)';
+  } else {
+    label.textContent = checks.length + ' services selected';
     label.style.color = 'var(--navy)';
   }
 }
