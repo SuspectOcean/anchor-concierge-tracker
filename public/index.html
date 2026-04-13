@@ -1117,8 +1117,24 @@
             <input type="email" id="settingsEmail" readonly style="background:var(--gray-50);color:var(--gray-500);">
           </div>
           <div class="form-group">
-            <label>Name</label>
-            <input type="text" id="settingsName" readonly style="background:var(--gray-50);color:var(--gray-500);">
+            <label>Full Name</label>
+            <div class="inline-add">
+              <input type="text" id="settingsName" placeholder="Enter your name">
+              <button class="add-btn" onclick="saveProfileName()">Save</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Role</label>
+            <input type="text" id="settingsRole" readonly style="background:var(--gray-50);color:var(--gray-500);text-transform:capitalize;">
+          </div>
+          <div class="form-group">
+            <label>Phone (optional)</label>
+            <div class="inline-add">
+              <input type="tel" id="settingsPhone" placeholder="e.g. +1 268 555 1234">
+              <button class="add-btn" onclick="saveProfilePhone()">Save</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1310,10 +1326,32 @@ async function loadUserProfile() {
     currentUser.full_name = data.full_name;
     currentUser.role = data.role;
     currentUser.avatar_url = data.avatar_url;
+    currentUser.phone = data.phone || '';
     updateHeaderWithUser();
     document.getElementById('settingsEmail').value = currentUser.email || '';
     document.getElementById('settingsName').value = currentUser.full_name || '';
+    document.getElementById('settingsRole').value = currentUser.role || 'staff';
+    document.getElementById('settingsPhone').value = currentUser.phone || '';
   }
+}
+
+async function saveProfileName() {
+  const name = document.getElementById('settingsName').value.trim();
+  if (!name) { showToast('Name cannot be empty'); return; }
+  const { error } = await sb.from('profiles').update({ full_name: name }).eq('id', currentUser.id);
+  if (error) { showToast('Failed to save: ' + error.message); return; }
+  currentUser.full_name = name;
+  updateHeaderWithUser();
+  await loadStaff();
+  showToast('Name saved');
+}
+
+async function saveProfilePhone() {
+  const phone = document.getElementById('settingsPhone').value.trim();
+  const { error } = await sb.from('profiles').update({ phone: phone }).eq('id', currentUser.id);
+  if (error) { showToast('Failed to save: ' + error.message); return; }
+  currentUser.phone = phone;
+  showToast('Phone saved');
 }
 
 function updateHeaderWithUser() {
@@ -1361,11 +1399,47 @@ async function loadVessels() {
     if (error) throw error;
     allVessels = data || [];
     populateVesselSelect();
+    renderVesselList();
     updateSyncBadge(true);
   } catch (err) {
     console.error('Load vessels error:', err);
     updateSyncBadge(false);
   }
+}
+
+function renderVesselList() {
+  const el = document.getElementById('vesselList');
+  if (!el) return;
+  if (allVessels.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--gray-400);">No vessels yet.</p>';
+    return;
+  }
+  el.innerHTML = allVessels.map(v => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:500;color:var(--navy);">${v.name}</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="renameVessel('${v.id}','${v.name.replace(/'/g, "\\'")}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Rename</button>
+        <button onclick="deactivateVessel('${v.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function renameVessel(id, currentName) {
+  const newName = prompt('Rename vessel:', currentName);
+  if (!newName || newName.trim() === currentName) return;
+  const { error } = await sb.from('vessels').update({ name: newName.trim() }).eq('id', id);
+  if (error) { showToast('Failed: ' + error.message); return; }
+  await loadVessels();
+  showToast('Vessel renamed');
+}
+
+async function deactivateVessel(id) {
+  if (!confirm('Remove this vessel?')) return;
+  const { error } = await sb.from('vessels').update({ is_active: false }).eq('id', id);
+  if (error) { showToast('Failed: ' + error.message); return; }
+  await loadVessels();
+  showToast('Vessel removed');
 }
 
 function entryFromDb(row) {
