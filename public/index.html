@@ -1710,39 +1710,105 @@ function renderCalendar() {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
 
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
   const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
 
-  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div style="font-weight:bold;font-size:12px;padding:4px;">${d}</div>`);
+  let html = '';
+  // Day-of-week headers
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+    html += `<div class="cal-dow">${d}</div>`;
+  });
 
-  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+  // Previous month trailing days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = prevMonthDays - i;
+    html += `<div class="cal-cell other-month"><div class="cal-day">${d}</div></div>`;
+  }
 
+  // Current month days
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
-    const hasEntries = dayEntries.length > 0;
-    const statusColor = hasEntries ? (dayEntries.some(e => e.status === 'overdue') ? '#ef4444' : dayEntries.some(e => e.status === 'in-progress') ? '#f59e0b' : dayEntries.some(e => e.status === 'completed') ? '#22c55e' : '#3b82f6') : 'transparent';
-    html += `<div style="padding:8px;border-radius:6px;background:${hasEntries ? statusColor+'20' : '#f8f9fa'};border:1px solid ${hasEntries ? statusColor : '#e5e7eb'};cursor:${hasEntries ? 'pointer' : 'default'};font-size:14px;" ${hasEntries ? `onclick="showDayDetail('${dateStr}')"` : ''}>${day}${hasEntries ? `<div style="font-size:10px;color:${statusColor}">${dayEntries.length} svc</div>` : ''}</div>`;
+    const isToday = dateStr === todayStr;
+    const classes = ['cal-cell'];
+    if (isToday) classes.push('today');
+
+    html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
+    html += `<div class="cal-day">${day}</div>`;
+
+    if (dayEntries.length > 0) {
+      html += '<div class="cal-dots">';
+      const maxShow = 3;
+      dayEntries.slice(0, maxShow).forEach(e => {
+        const statusClass = e.status === 'in-progress' ? 'progress' : e.status === 'overdue' ? 'overdue' : e.status === 'completed' ? 'completed' : 'upcoming';
+        html += `<div class="cal-entry-pip ${statusClass}">${e.vessel || e.entryId}</div>`;
+      });
+      if (dayEntries.length > maxShow) {
+        html += `<div class="cal-more">+${dayEntries.length - maxShow} more</div>`;
+      }
+      html += '</div>';
+    }
+    html += '</div>';
   }
-  html += '</div>';
+
+  // Next month leading days to fill the grid
+  const totalCells = firstDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-cell other-month"><div class="cal-day">${i}</div></div>`;
+  }
+
   grid.innerHTML = html;
 }
 
 function showDayDetail(dateStr) {
   const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
-  const overlay = document.getElementById('dayDetailOverlay');
   const d = new Date(dateStr + 'T12:00:00');
   const formatted = d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  let html = `<h3 style="margin:0 0 12px">${formatted}</h3>`;
-  dayEntries.forEach(e => {
-    html += `<div style="padding:8px;margin-bottom:8px;background:#f8f9fa;border-radius:6px;">
-      <strong>${e.entryId}</strong> — ${e.vessel}<br>
-      <span style="font-size:13px;color:#666">${e.category} / ${e.serviceType || 'N/A'} — <span class="status-badge status-${e.status}">${e.status}</span></span>
-    </div>`;
-  });
-  overlay.querySelector('.day-detail-content') ? overlay.querySelector('.day-detail-content').innerHTML = html : overlay.innerHTML = `<div class="day-detail-content" style="background:white;padding:24px;border-radius:12px;max-width:500px;margin:auto;margin-top:100px;box-shadow:0 20px 60px rgba(0,0,0,.3)">${html}<button onclick="closeDayDetail()" style="margin-top:12px;padding:8px 16px;border:none;background:var(--primary);color:white;border-radius:6px;cursor:pointer">Close</button></div>`;
-  overlay.classList.remove('hidden');
+
+  // Update header
+  document.getElementById('dayDetailDate').textContent = formatted;
+
+  // Update stats
+  const total = dayEntries.length;
+  const upcoming = dayEntries.filter(e => e.status === 'upcoming').length;
+  const inProgress = dayEntries.filter(e => e.status === 'in-progress').length;
+  const completed = dayEntries.filter(e => e.status === 'completed').length;
+  const overdue = dayEntries.filter(e => e.status === 'overdue').length;
+  const statsEl = document.getElementById('dayDetailStats');
+  statsEl.innerHTML = `
+    <div class="day-stat"><div class="num">${total}</div><div class="label">Total</div></div>
+    ${upcoming ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${upcoming}</div><div class="label">Upcoming</div></div>` : ''}
+    ${inProgress ? `<div class="day-stat"><div class="num" style="color:var(--orange)">${inProgress}</div><div class="label">In Progress</div></div>` : ''}
+    ${completed ? `<div class="day-stat"><div class="num" style="color:var(--green)">${completed}</div><div class="label">Completed</div></div>` : ''}
+    ${overdue ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${overdue}</div><div class="label">Overdue</div></div>` : ''}
+  `;
+
+  // Update list
+  const listEl = document.getElementById('dayDetailList');
+  if (dayEntries.length === 0) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services scheduled for this day.</div>';
+  } else {
+    listEl.innerHTML = dayEntries.map(e => {
+      const statusClass = e.status === 'in-progress' ? 'progress' : e.status;
+      const statusColors = { upcoming: 'var(--blue)', 'in-progress': 'var(--orange)', completed: 'var(--green)', overdue: '#d32f2f' };
+      const bgColors = { upcoming: '#e8f0ff', 'in-progress': 'var(--orange-light)', completed: 'var(--green-light)', overdue: '#ffeaea' };
+      return `<div class="day-job">
+        <div class="day-job-header">
+          <span class="day-job-title">${e.entryId} — ${e.vessel || 'Unknown Vessel'}</span>
+          <span class="day-job-status" style="background:${bgColors[e.status] || '#e8f0ff'};color:${statusColors[e.status] || 'var(--blue)'}">${e.status}</span>
+        </div>
+        <div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>
+        ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
+        ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('dayDetailOverlay').classList.remove('hidden');
 }
 
 function closeDayDetail() {
