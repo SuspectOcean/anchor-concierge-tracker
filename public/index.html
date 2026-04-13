@@ -541,7 +541,7 @@
           <div class="form-group">
             <label>Service Types <span class="required">*</span></label>
             <div class="customs-dropdown" id="customsDropdown">
-              <div class="customs-dropdown-trigger" onclick="toggleCustomsDropdown()">
+              <div class="customs-dropdown-trigger" onclick="toggleCustomsDropdown(event)">
                 <span id="customsDropdownLabel" style="color:var(--gray-400);">Select services...</span>
                 <span style="font-size:10px;color:var(--gray-400);">&#9660;</span>
               </div>
@@ -1912,7 +1912,8 @@ function calculateTotal() {
   document.getElementById('displayTotal').textContent = '$' + total.toFixed(2);
 }
 
-function toggleCustomsDropdown() {
+function toggleCustomsDropdown(e) {
+  if (e) e.stopPropagation();
   const dd = document.getElementById('customsDropdown');
   const menu = document.getElementById('customsDropdownMenu');
   dd.classList.toggle('open');
