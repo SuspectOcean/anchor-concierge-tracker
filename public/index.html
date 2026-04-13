@@ -1704,7 +1704,7 @@ function nextMonth() {
 
 function renderCalendar() {
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const header = document.querySelector('#timelineContent h2');
+  const header = document.getElementById('calendarMonth');
   if (header) header.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
 
   const grid = document.getElementById('calendarGrid');
