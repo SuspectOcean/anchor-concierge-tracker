@@ -384,6 +384,10 @@
         <input type="text" id="signupName" placeholder="Your Name">
       </div>
       <div class="auth-group">
+        <label>Invite Code</label>
+        <input type="text" id="signupInviteCode" placeholder="Enter invite code">
+      </div>
+      <div class="auth-group">
         <label>Password</label>
         <input type="password" id="signupPassword" placeholder="••••••••">
       </div>
@@ -974,6 +978,20 @@
         </div>
       </div>
 
+      <div id="inviteCodeSection" class="hidden" style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Invite Code (Admin)</h3>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Current Invite Code</label>
+            <div class="inline-add">
+              <input type="text" id="currentInviteCode" placeholder="Loading...">
+              <button class="add-btn" onclick="updateInviteCode()">Update</button>
+            </div>
+            <p style="font-size:12px;color:var(--gray-500);margin-top:6px;">Share this code with staff so they can create accounts.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('settingsModal')">Close</button>
       </div>
@@ -1050,6 +1068,7 @@ async function handleLogin() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadStaff();
     subscribeToChanges();
   } catch (err) {
     errorEl.textContent = err.message || 'Login failed';
@@ -1060,10 +1079,11 @@ async function handleLogin() {
 async function handleSignup() {
   const email = document.getElementById('signupEmail').value.trim();
   const fullName = document.getElementById('signupName').value.trim();
+  const inviteCode = document.getElementById('signupInviteCode').value.trim();
   const password = document.getElementById('signupPassword').value;
   const errorEl = document.getElementById('signupError');
 
-  if (!email || !fullName || !password) {
+  if (!email || !fullName || !inviteCode || !password) {
     errorEl.textContent = 'Please fill in all fields';
     errorEl.style.display = 'block';
     return;
@@ -1071,6 +1091,15 @@ async function handleSignup() {
 
   try {
     errorEl.style.display = 'none';
+
+    const { data: valid, error: rpcError } = await sb.rpc('validate_invite_code', { code: inviteCode });
+    if (rpcError) throw rpcError;
+    if (!valid) {
+      errorEl.textContent = 'Invalid invite code. Contact your admin for access.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     const { data, error } = await sb.auth.signUp({ email, password });
     if (error) throw error;
 
@@ -1086,6 +1115,7 @@ async function handleSignup() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadStaff();
     subscribeToChanges();
   } catch (err) {
     errorEl.textContent = err.message || 'Signup failed';
@@ -1130,6 +1160,21 @@ function updateHeaderWithUser() {
   if (userSpan && currentUser) {
     userSpan.textContent = currentUser.full_name || currentUser.email;
   }
+}
+
+async function loadStaff() {
+  const { data, error } = await sb.from('profiles').select('id, full_name, email');
+  if (error || !data) return;
+  const select = document.getElementById('staffSelect');
+  const current = select.value;
+  select.innerHTML = '<option value="">Select staff...</option>';
+  data.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.full_name || p.email;
+    opt.textContent = p.full_name || p.email;
+    select.appendChild(opt);
+  });
+  if (current) select.value = current;
 }
 
 // ============================================
@@ -1629,6 +1674,28 @@ function populateVesselSelect() {
 
 function openSettingsModal() {
   document.getElementById('settingsModal').classList.remove('hidden');
+  const section = document.getElementById('inviteCodeSection');
+  if (currentUser && currentUser.role === 'admin') {
+    section.classList.remove('hidden');
+    loadInviteCode();
+  } else {
+    section.classList.add('hidden');
+  }
+}
+
+async function loadInviteCode() {
+  const { data, error } = await sb.from('app_settings').select('value').eq('key', 'invite_code').single();
+  if (!error && data) {
+    document.getElementById('currentInviteCode').value = data.value;
+  }
+}
+
+async function updateInviteCode() {
+  const newCode = document.getElementById('currentInviteCode').value.trim();
+  if (!newCode) return showToast('Invite code cannot be empty');
+  const { error } = await sb.from('app_settings').update({ value: newCode, updated_at: new Date().toISOString() }).eq('key', 'invite_code');
+  if (error) return showToast('Failed to update: ' + error.message);
+  showToast('Invite code updated');
 }
 
 function closeModal(id) {
@@ -1824,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadStaff();
     subscribeToChanges();
   }
 
