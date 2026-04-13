@@ -1593,8 +1593,7 @@ function renderLog() {
 }
 
 function renderTimeline() {
-  // Placeholder: Full calendar implementation
-  document.getElementById('calendarGrid').innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-500);">Calendar view coming soon</div>';
+  renderCalendar();
 }
 
 function showToast(msg) {
@@ -1657,24 +1656,93 @@ function formatCurrency(val) {
   return '$' + parseFloat(val || 0).toFixed(2);
 }
 
-function exportXLSX() {
-  // Placeholder: XLSX export
-}
-
 function exportCSV() {
-  // Placeholder: CSV export
+  if (!entries.length) { showToast('No entries to export'); return; }
+  const headers = ['Entry ID','Vessel','Category','Service Type','Service Date','Status','Staff','Description','Billable','Currency','Total Charge','Marina','Cleared In','Cleared Out','Special Notes'];
+  const rows = entries.map(e => [
+    e.entryId, e.vessel, e.category, e.serviceType, e.serviceDate, e.status,
+    e.staffMember, e.description, e.billable, e.currency, e.totalCharge,
+    e.marina, e.clearedIn, e.clearedOut, e.specialNotes
+  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`));
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `anchor-concierge-export-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV exported');
 }
 
 function exportJSON() {
-  // Placeholder: JSON export
+  if (!entries.length) { showToast('No entries to export'); return; }
+  const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `anchor-concierge-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('JSON exported');
 }
 
+function exportXLSX() {
+  showToast('XLSX export coming soon — use CSV for now');
+}
+
+let calendarMonth = new Date().getMonth();
+let calendarYear = new Date().getFullYear();
+
 function previousMonth() {
-  // Placeholder
+  calendarMonth--;
+  if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+  renderCalendar();
 }
 
 function nextMonth() {
-  // Placeholder
+  calendarMonth++;
+  if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const header = document.querySelector('#timelineContent h2');
+  if (header) header.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+  const grid = document.getElementById('calendarGrid');
+  if (!grid) return;
+
+  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div style="font-weight:bold;font-size:12px;padding:4px;">${d}</div>`);
+
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayEntries = entries.filter(e => e.serviceDate === dateStr);
+    const hasEntries = dayEntries.length > 0;
+    const statusColor = hasEntries ? (dayEntries.some(e => e.status === 'overdue') ? '#ef4444' : dayEntries.some(e => e.status === 'in-progress') ? '#f59e0b' : dayEntries.some(e => e.status === 'completed') ? '#22c55e' : '#3b82f6') : 'transparent';
+    html += `<div style="padding:8px;border-radius:6px;background:${hasEntries ? statusColor+'20' : '#f8f9fa'};border:1px solid ${hasEntries ? statusColor : '#e5e7eb'};cursor:${hasEntries ? 'pointer' : 'default'};font-size:14px;" ${hasEntries ? `onclick="showDayDetail('${dateStr}')"` : ''}>${day}${hasEntries ? `<div style="font-size:10px;color:${statusColor}">${dayEntries.length} svc</div>` : ''}</div>`;
+  }
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+function showDayDetail(dateStr) {
+  const dayEntries = entries.filter(e => e.serviceDate === dateStr);
+  const overlay = document.getElementById('dayDetailOverlay');
+  const d = new Date(dateStr + 'T12:00:00');
+  const formatted = d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  let html = `<h3 style="margin:0 0 12px">${formatted}</h3>`;
+  dayEntries.forEach(e => {
+    html += `<div style="padding:8px;margin-bottom:8px;background:#f8f9fa;border-radius:6px;">
+      <strong>${e.entryId}</strong> — ${e.vessel}<br>
+      <span style="font-size:13px;color:#666">${e.category} / ${e.serviceType || 'N/A'} — <span class="status-badge status-${e.status}">${e.status}</span></span>
+    </div>`;
+  });
+  overlay.querySelector('.day-detail-content') ? overlay.querySelector('.day-detail-content').innerHTML = html : overlay.innerHTML = `<div class="day-detail-content" style="background:white;padding:24px;border-radius:12px;max-width:500px;margin:auto;margin-top:100px;box-shadow:0 20px 60px rgba(0,0,0,.3)">${html}<button onclick="closeDayDetail()" style="margin-top:12px;padding:8px 16px;border:none;background:var(--primary);color:white;border-radius:6px;cursor:pointer">Close</button></div>`;
+  overlay.classList.remove('hidden');
 }
 
 function closeDayDetail() {
