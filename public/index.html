@@ -2009,13 +2009,30 @@ function closeModal(id) {
 
 function showAddModal(type) {
   document.getElementById('addModalTitle').textContent = `Add ${type}`;
-  document.getElementById('addModalBody').innerHTML = `<input type="text" placeholder="Enter ${type} name">`;
+  document.getElementById('addModalBody').innerHTML = `<input type="text" id="addModalInput" placeholder="Enter ${type} name">`;
+  document.getElementById('addModal').dataset.type = type;
   document.getElementById('addModal').classList.remove('hidden');
+  document.getElementById('addModalInput').focus();
 }
 
-function saveAddModalItem() {
-  // Placeholder
-  closeModal('addModal');
+async function saveAddModalItem() {
+  const type = document.getElementById('addModal').dataset.type;
+  const input = document.getElementById('addModalInput');
+  const name = input ? input.value.trim() : '';
+  if (!name) { showToast('Please enter a name'); return; }
+
+  try {
+    if (type === 'vessel') {
+      const { error } = await sb.from('vessels').insert({ name, is_active: true, created_by: currentUser.id });
+      if (error) throw error;
+      await loadVessels();
+      showToast('Vessel added');
+    }
+    closeModal('addModal');
+  } catch (err) {
+    console.error('Add item error:', err);
+    showToast('Failed to add: ' + err.message);
+  }
 }
 
 function formatDate(dateStr) {
