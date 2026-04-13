@@ -525,16 +525,16 @@
               <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Change of Captain</span> <span class="ci-price">$50</span>
             </label>
             <label class="customs-check-item" data-service="crew_guest_signoff">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Crew/Guest Sign off</span> <span class="ci-price">$50/person</span>
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Crew/Guest Sign off</span> <span class="ci-price">$50</span>
             </label>
             <label class="customs-check-item" data-service="transfer_of_crew">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Transfer of Crew</span> <span class="ci-price">$50/person</span>
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Transfer of Crew between Vessels</span> <span class="ci-price">$50</span>
             </label>
             <label class="customs-check-item" data-service="ok_to_travel">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Ok to Travel Letter</span> <span class="ci-price">$80 + $10/edit</span>
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Ok to Travel Letter</span> <span class="ci-price">$80</span>
             </label>
             <label class="customs-check-item" data-service="failure_signoff_letter">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Failure to Sign off Crew/Guests Letter</span> <span class="ci-price">$50 + per-person</span>
+              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Failure to Sign off Crew/Guests Letter</span> <span class="ci-price">$80</span>
             </label>
             <label class="customs-check-item" data-service="vessel_relinquancy">
               <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Vessel Relinquancy to Agent</span> <span class="ci-price">$50</span>
@@ -577,50 +577,6 @@
               <div class="form-group">
                 <label>Guest Count <span class="required">*</span></label>
                 <input type="number" id="customsOutboundGuests" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
-              </div>
-            </div>
-          </div>
-
-          <!-- Conditional fields for Crew/Guest Sign off -->
-          <div id="customsFieldsSignoff" class="customs-fields-group hidden">
-            <h4>Crew/Guest Sign off</h4>
-            <div class="form-row single">
-              <div class="form-group">
-                <label>Number of Persons <span class="required">*</span></label>
-                <input type="number" id="customsSignoffCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
-              </div>
-            </div>
-          </div>
-
-          <!-- Conditional fields for Transfer of Crew -->
-          <div id="customsFieldsTransfer" class="customs-fields-group hidden">
-            <h4>Transfer of Crew</h4>
-            <div class="form-row single">
-              <div class="form-group">
-                <label>Number of Persons <span class="required">*</span></label>
-                <input type="number" id="customsTransferCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
-              </div>
-            </div>
-          </div>
-
-          <!-- Conditional fields for Ok to Travel Letter -->
-          <div id="customsFieldsTravel" class="customs-fields-group hidden">
-            <h4>Ok to Travel Letter</h4>
-            <div class="form-row single">
-              <div class="form-group">
-                <label>Number of Edits</label>
-                <input type="number" id="customsTravelEdits" min="0" value="0" onchange="recalcCustoms()" oninput="recalcCustoms()">
-              </div>
-            </div>
-          </div>
-
-          <!-- Conditional fields for Failure to Sign off Letter -->
-          <div id="customsFieldsFailure" class="customs-fields-group hidden">
-            <h4>Failure to Sign off Crew/Guests Letter</h4>
-            <div class="form-row single">
-              <div class="form-group">
-                <label>Number of Persons <span class="required">*</span></label>
-                <input type="number" id="customsFailureCount" min="1" value="1" onchange="recalcCustoms()" oninput="recalcCustoms()">
               </div>
             </div>
           </div>
@@ -1786,13 +1742,9 @@ function onCustomsServiceChange() {
     services[svc] = cb.checked;
   });
 
-  // Toggle conditional field sections
+  // Toggle conditional field sections (only Inbound/Outbound need extra fields)
   document.getElementById('customsFieldsInbound').classList.toggle('hidden', !services.inbound);
   document.getElementById('customsFieldsOutbound').classList.toggle('hidden', !services.outbound);
-  document.getElementById('customsFieldsSignoff').classList.toggle('hidden', !services.crew_guest_signoff);
-  document.getElementById('customsFieldsTransfer').classList.toggle('hidden', !services.transfer_of_crew);
-  document.getElementById('customsFieldsTravel').classList.toggle('hidden', !services.ok_to_travel);
-  document.getElementById('customsFieldsFailure').classList.toggle('hidden', !services.failure_signoff_letter);
 
   // Guidance banners
   document.getElementById('customsGuidanceCaptain').classList.toggle('hidden', !services.change_of_captain);
@@ -1845,36 +1797,28 @@ function recalcCustoms() {
     total += 50;
   }
 
-  // Crew/Guest Sign off
+  // Crew/Guest Sign off — flat $50
   if (services.crew_guest_signoff) {
-    const count = parseInt(document.getElementById('customsSignoffCount').value) || 1;
-    const charge = count * 50;
-    rows.push({ label: `Crew/Guest Sign off (${count})`, amount: charge });
-    total += charge;
+    rows.push({ label: 'Crew/Guest Sign off', amount: 50 });
+    total += 50;
   }
 
-  // Transfer of Crew
+  // Transfer of Crew — flat $50
   if (services.transfer_of_crew) {
-    const count = parseInt(document.getElementById('customsTransferCount').value) || 1;
-    const charge = count * 50;
-    rows.push({ label: `Transfer of Crew (${count})`, amount: charge });
-    total += charge;
+    rows.push({ label: 'Transfer of Crew between Vessels', amount: 50 });
+    total += 50;
   }
 
-  // Ok to Travel Letter
+  // Ok to Travel Letter — flat $80
   if (services.ok_to_travel) {
-    const edits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
-    const charge = 80 + edits * 10;
-    rows.push({ label: `Ok to Travel Letter${edits > 0 ? ` + ${edits} edits` : ''}`, amount: charge });
-    total += charge;
+    rows.push({ label: 'Ok to Travel Letter', amount: 80 });
+    total += 80;
   }
 
-  // Failure to Sign off Letter
+  // Failure to Sign off Letter — flat $80
   if (services.failure_signoff_letter) {
-    const count = parseInt(document.getElementById('customsFailureCount').value) || 1;
-    const charge = 50 + count * 10;
-    rows.push({ label: `Failure to Sign off (${count})`, amount: charge });
-    total += charge;
+    rows.push({ label: 'Failure to Sign off Crew/Guests Letter', amount: 80 });
+    total += 80;
   }
 
   // Vessel Relinquancy
