@@ -1657,9 +1657,9 @@ function formatCurrency(val) {
 }
 
 function exportCSV() {
-  if (!entries.length) { showToast('No entries to export'); return; }
+  if (!allEntries.length) { showToast('No entries to export'); return; }
   const headers = ['Entry ID','Vessel','Category','Service Type','Service Date','Status','Staff','Description','Billable','Currency','Total Charge','Marina','Cleared In','Cleared Out','Special Notes'];
-  const rows = entries.map(e => [
+  const rows = allEntries.map(e => [
     e.entryId, e.vessel, e.category, e.serviceType, e.serviceDate, e.status,
     e.staffMember, e.description, e.billable, e.currency, e.totalCharge,
     e.marina, e.clearedIn, e.clearedOut, e.specialNotes
@@ -1674,8 +1674,8 @@ function exportCSV() {
 }
 
 function exportJSON() {
-  if (!entries.length) { showToast('No entries to export'); return; }
-  const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+  if (!allEntries.length) { showToast('No entries to export'); return; }
+  const blob = new Blob([JSON.stringify(allEntries, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `anchor-concierge-export-${new Date().toISOString().slice(0,10)}.json`;
@@ -1720,7 +1720,7 @@ function renderCalendar() {
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const dayEntries = entries.filter(e => e.serviceDate === dateStr);
+    const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
     const hasEntries = dayEntries.length > 0;
     const statusColor = hasEntries ? (dayEntries.some(e => e.status === 'overdue') ? '#ef4444' : dayEntries.some(e => e.status === 'in-progress') ? '#f59e0b' : dayEntries.some(e => e.status === 'completed') ? '#22c55e' : '#3b82f6') : 'transparent';
     html += `<div style="padding:8px;border-radius:6px;background:${hasEntries ? statusColor+'20' : '#f8f9fa'};border:1px solid ${hasEntries ? statusColor : '#e5e7eb'};cursor:${hasEntries ? 'pointer' : 'default'};font-size:14px;" ${hasEntries ? `onclick="showDayDetail('${dateStr}')"` : ''}>${day}${hasEntries ? `<div style="font-size:10px;color:${statusColor}">${dayEntries.length} svc</div>` : ''}</div>`;
@@ -1730,7 +1730,7 @@ function renderCalendar() {
 }
 
 function showDayDetail(dateStr) {
-  const dayEntries = entries.filter(e => e.serviceDate === dateStr);
+  const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
   const overlay = document.getElementById('dayDetailOverlay');
   const d = new Date(dateStr + 'T12:00:00');
   const formatted = d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
