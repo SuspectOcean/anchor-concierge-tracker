@@ -941,6 +941,167 @@
     </div>
   </div>
 
+  <!-- EDIT ENTRY MODAL -->
+  <div class="modal-overlay hidden" id="editEntryModal" onclick="if(event.target === this) closeModal('editEntryModal')">
+    <div class="modal-content" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h2 id="editEntryTitle">Edit Entry</h2>
+        <button class="modal-close" onclick="closeModal('editEntryModal')">✕</button>
+      </div>
+      <input type="hidden" id="editEntryId">
+
+      <!-- Vessel & Staff -->
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Vessel & Staff</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Vessel</label><select id="editVessel"></select></div>
+          <div class="form-group"><label>Staff Member</label><select id="editStaff"></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Service Date</label><input type="date" id="editServiceDate"></div>
+          <div class="form-group"><label>Service Time</label><input type="time" id="editServiceTime"></div>
+        </div>
+      </div>
+
+      <!-- Service Details -->
+      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Service Details</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="editCategory">
+              <option value="">Select...</option>
+              <option>Customs & Immigration</option>
+              <option>Provisioning & Sourcing</option>
+              <option>Logistics & Shipping</option>
+              <option>Crew Services</option>
+              <option>Berth & Marina</option>
+              <option>Consulting & Admin</option>
+              <option>Airport & Transport</option>
+              <option>Brokerage</option>
+              <option>General Support</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Service Type</label>
+            <input type="text" id="editServiceType" placeholder="Service type">
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group"><label>Description</label><textarea id="editDescription" rows="2"></textarea></div>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Location</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cleared In</label>
+            <select id="editClearedIn">
+              <option value="">Select...</option>
+              <option>North Sound, Crabbs</option>
+              <option>Jolly Harbour</option>
+              <option>English Harbour</option>
+              <option>St. Johns</option>
+              <option>Barbuda</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cleared Out</label>
+            <select id="editClearedOut">
+              <option value="">Select...</option>
+              <option>North Sound, Crabbs</option>
+              <option>Jolly Harbour</option>
+              <option>English Harbour</option>
+              <option>St. Johns</option>
+              <option>Barbuda</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group"><label>Marina / Berth</label><input type="text" id="editMarina"></div>
+        </div>
+      </div>
+
+      <!-- Status & Scheduling -->
+      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Status & Scheduling</h3>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="editStatus">
+              <option value="upcoming">Upcoming</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="overdue">Overdue</option>
+              <option value="on-hold">On Hold</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>ETA</label><input type="datetime-local" id="editEta"></div>
+          <div class="form-group"><label>ETD</label><input type="datetime-local" id="editEtd"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Crew Arrival</label><input type="datetime-local" id="editCrewArrival"></div>
+          <div class="form-group"><label>Crew Departure</label><input type="datetime-local" id="editCrewDeparture"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Work Completed</label>
+            <select id="editWorkCompleted"><option value="">No</option><option value="Yes">Yes</option></select>
+          </div>
+          <div class="form-group"><label>Future Task</label><input type="text" id="editFutureTask"></div>
+        </div>
+      </div>
+
+      <!-- Billing -->
+      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Billing & Charges</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Billing Type</label>
+            <select id="editBillingType"><option value="charged">Charged</option><option value="complimentary">Complimentary</option><option value="deferred">Deferred</option></select>
+          </div>
+          <div class="form-group">
+            <label>Currency</label>
+            <select id="editCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Base Charge</label><input type="number" id="editBaseCharge" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="form-group"><label>Addl Crew Charge</label><input type="number" id="editAdditionalCrewCharge" min="0" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Agency Fee</label><input type="number" id="editAgencyFee" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="form-group"><label>Disbursement Fee</label><input type="number" id="editDisbursementFee" min="0" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group"><label>Other Charges</label><input type="number" id="editOtherCharges" min="0" step="0.01" placeholder="0.00"></div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
+        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Notes</h3>
+        <div class="form-row single"><div class="form-group"><label>Special Notes</label><textarea id="editSpecialNotes" rows="2"></textarea></div></div>
+        <div class="form-row single"><div class="form-group"><label>Internal Notes</label><textarea id="editInternalNotes" rows="2"></textarea></div></div>
+        <div class="form-row single"><div class="form-group"><label>Client Notes</label><textarea id="editClientNotes" rows="2"></textarea></div></div>
+        <div class="form-row single"><div class="form-group"><label>Override Note</label><textarea id="editOverrideNote" rows="2"></textarea></div></div>
+      </div>
+
+      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <button onclick="confirmDeleteEntry()" style="background:#d32f2f;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Delete Entry</button>
+        <div>
+          <button class="btn-secondary" onclick="closeModal('editEntryModal')" style="margin-right:8px;">Cancel</button>
+          <button onclick="saveEditedEntry()" style="background:var(--teal);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div class="modal-overlay hidden" id="settingsModal" onclick="if(event.target === this) closeModal('settingsModal')">
     <div class="modal-content">
@@ -1863,7 +2024,7 @@ function showDayDetail(dateStr) {
       const statusClass = e.status === 'in-progress' ? 'progress' : e.status;
       const statusColors = { upcoming: 'var(--blue)', 'in-progress': 'var(--orange)', completed: 'var(--green)', overdue: '#d32f2f' };
       const bgColors = { upcoming: '#e8f0ff', 'in-progress': 'var(--orange-light)', completed: 'var(--green-light)', overdue: '#ffeaea' };
-      return `<div class="day-job">
+      return `<div class="day-job" onclick="openEditEntry('${e.entryId}')" style="cursor:pointer;" title="Click to edit">
         <div class="day-job-header">
           <span class="day-job-title">${e.entryId} — ${e.vessel || 'Unknown Vessel'}</span>
           <span class="day-job-status" style="background:${bgColors[e.status] || '#e8f0ff'};color:${statusColors[e.status] || 'var(--blue)'}">${e.status}</span>
@@ -1871,6 +2032,7 @@ function showDayDetail(dateStr) {
         <div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>
         ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
         ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
+        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>
       </div>`;
     }).join('');
   }
@@ -1880,6 +2042,190 @@ function showDayDetail(dateStr) {
 
 function closeDayDetail() {
   document.getElementById('dayDetailOverlay').classList.add('hidden');
+}
+
+function openEditEntry(entryId) {
+  const entry = allEntries.find(e => e.entryId === entryId);
+  if (!entry) return showToast('Entry not found');
+
+  document.getElementById('editEntryId').value = entryId;
+  document.getElementById('editEntryTitle').textContent = `Edit ${entryId}`;
+
+  // Populate vessel dropdown
+  const vesselSel = document.getElementById('editVessel');
+  vesselSel.innerHTML = '<option value="">Select vessel...</option>';
+  allVessels.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name; opt.textContent = v.name;
+    if (v.name === entry.vessel) opt.selected = true;
+    vesselSel.appendChild(opt);
+  });
+
+  // Populate staff dropdown
+  const staffSel = document.getElementById('editStaff');
+  const mainStaff = document.getElementById('staffSelect');
+  staffSel.innerHTML = mainStaff.innerHTML;
+  staffSel.value = entry.staffMember || '';
+
+  // Basic fields
+  document.getElementById('editServiceDate').value = entry.serviceDate || '';
+  document.getElementById('editServiceTime').value = entry.serviceTime || '';
+  document.getElementById('editCategory').value = entry.category || '';
+  document.getElementById('editServiceType').value = entry.serviceType || '';
+  document.getElementById('editDescription').value = entry.description || '';
+  document.getElementById('editClearedIn').value = entry.clearedIn || '';
+  document.getElementById('editClearedOut').value = entry.clearedOut || '';
+  document.getElementById('editMarina').value = entry.marina || '';
+  document.getElementById('editStatus').value = entry.status || 'upcoming';
+  document.getElementById('editEta').value = entry.eta || '';
+  document.getElementById('editEtd').value = entry.etd || '';
+  document.getElementById('editCrewArrival').value = entry.crewArrival || '';
+  document.getElementById('editCrewDeparture').value = entry.crewDeparture || '';
+  document.getElementById('editWorkCompleted').value = entry.workCompleted || '';
+  document.getElementById('editFutureTask').value = entry.futureTask || '';
+  document.getElementById('editBillingType').value = entry.billingType || 'charged';
+  document.getElementById('editCurrency').value = entry.currency || 'USD';
+  document.getElementById('editBaseCharge').value = entry.baseCharge || '';
+  document.getElementById('editAdditionalCrewCharge').value = entry.additionalCrewCharge || '';
+  document.getElementById('editAgencyFee').value = entry.agencyFee || '';
+  document.getElementById('editDisbursementFee').value = entry.disbursementFee || '';
+  document.getElementById('editOtherCharges').value = entry.otherCharges || '';
+  document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
+  document.getElementById('editInternalNotes').value = entry.internalNotes || '';
+  document.getElementById('editClientNotes').value = entry.clientNotes || '';
+  document.getElementById('editOverrideNote').value = entry.overrideNote || '';
+
+  document.getElementById('editEntryModal').classList.remove('hidden');
+}
+
+async function saveEditedEntry() {
+  const entryId = document.getElementById('editEntryId').value;
+  const entry = allEntries.find(e => e.entryId === entryId);
+  if (!entry) return;
+
+  const updated = {
+    vessel: document.getElementById('editVessel').value,
+    staffMember: document.getElementById('editStaff').value,
+    serviceDate: document.getElementById('editServiceDate').value,
+    serviceTime: document.getElementById('editServiceTime').value,
+    category: document.getElementById('editCategory').value,
+    serviceType: document.getElementById('editServiceType').value,
+    description: document.getElementById('editDescription').value,
+    clearedIn: document.getElementById('editClearedIn').value,
+    clearedOut: document.getElementById('editClearedOut').value,
+    marina: document.getElementById('editMarina').value,
+    status: document.getElementById('editStatus').value,
+    eta: document.getElementById('editEta').value || null,
+    etd: document.getElementById('editEtd').value || null,
+    crewArrival: document.getElementById('editCrewArrival').value || null,
+    crewDeparture: document.getElementById('editCrewDeparture').value || null,
+    workCompleted: document.getElementById('editWorkCompleted').value,
+    futureTask: document.getElementById('editFutureTask').value,
+    billingType: document.getElementById('editBillingType').value,
+    currency: document.getElementById('editCurrency').value,
+    baseCharge: document.getElementById('editBaseCharge').value,
+    additionalCrewCharge: document.getElementById('editAdditionalCrewCharge').value,
+    agencyFee: document.getElementById('editAgencyFee').value,
+    disbursementFee: document.getElementById('editDisbursementFee').value,
+    otherCharges: document.getElementById('editOtherCharges').value,
+    specialNotes: document.getElementById('editSpecialNotes').value,
+    internalNotes: document.getElementById('editInternalNotes').value,
+    clientNotes: document.getElementById('editClientNotes').value,
+    overrideNote: document.getElementById('editOverrideNote').value
+  };
+
+  // Calc total
+  updated.totalCharge = (parseFloat(updated.baseCharge) || 0) +
+    (parseFloat(updated.additionalCrewCharge) || 0) +
+    (parseFloat(updated.agencyFee) || 0) +
+    (parseFloat(updated.disbursementFee) || 0) +
+    (parseFloat(updated.otherCharges) || 0);
+
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const dbData = entryToDb({ ...entry, ...updated, entryId });
+    delete dbData.entry_id;
+
+    const { error } = await sb.from('entries').update(dbData).eq('entry_id', entryId);
+    if (error) throw error;
+
+    await sb.from('audit_log').insert({
+      entry_id: entryId,
+      action: 'update',
+      changed_fields: Object.keys(updated),
+      new_values: updated,
+      performed_by: currentUser.id,
+      performed_by_name: currentUser.full_name || currentUser.email
+    });
+
+    // Update local
+    Object.assign(entry, updated);
+    closeModal('editEntryModal');
+    showDayDetail(entry.serviceDate);
+    renderLog();
+    renderCalendar();
+    showToast('Entry updated');
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Update error:', err);
+    showToast('Failed to update: ' + err.message);
+    updateSyncBadge(false);
+  }
+}
+
+function confirmDeleteEntry() {
+  const entryId = document.getElementById('editEntryId').value;
+  if (!entryId) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'deleteConfirmOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;max-width:380px;width:90%;text-align:center;">
+      <h3 style="margin:0 0 8px;color:var(--navy);">Delete Entry?</h3>
+      <p style="color:var(--gray-500);margin:0 0 20px;font-size:14px;">This will permanently remove <strong>${entryId}</strong>. This cannot be undone.</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="padding:10px 24px;border:1px solid var(--gray-300);background:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
+        <button onclick="executeDeleteEntry('${entryId}')" style="padding:10px 24px;background:#d32f2f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Delete</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function executeDeleteEntry(entryId) {
+  const confirmEl = document.getElementById('deleteConfirmOverlay');
+  if (confirmEl) confirmEl.remove();
+
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const { error } = await sb.from('entries').update({
+      is_deleted: true,
+      deleted_at: new Date().toISOString(),
+      deleted_by: currentUser.id
+    }).eq('entry_id', entryId);
+
+    if (error) throw error;
+
+    await sb.from('audit_log').insert({
+      entry_id: entryId,
+      action: 'delete',
+      performed_by: currentUser.id,
+      performed_by_name: currentUser.full_name || currentUser.email
+    });
+
+    allEntries = allEntries.filter(e => e.entryId !== entryId);
+    closeModal('editEntryModal');
+    closeDayDetail();
+    renderLog();
+    renderCalendar();
+    showToast('Entry deleted');
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast('Failed to delete: ' + err.message);
+    updateSyncBadge(false);
+  }
 }
 
 // Initialize on page load
