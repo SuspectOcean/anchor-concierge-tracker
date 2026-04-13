@@ -1818,11 +1818,28 @@ function updateBillingTypeBtns() {
 function updateServiceTypes() {
   const category = document.getElementById('serviceCategory').value;
   const typeSelect = document.getElementById('serviceType');
+  const customsPanel = document.getElementById('customsServicesPanel');
+  const typeGroup = typeSelect.closest('.form-group');
+  const isCustoms = category === 'Customs & Immigration';
+
+  // Toggle customs panel vs regular dropdown
+  customsPanel.classList.toggle('hidden', !isCustoms);
+  typeGroup.style.display = isCustoms ? 'none' : '';
+  window.isCustomsCategory = isCustoms;
+
+  if (isCustoms) {
+    // Set serviceType to 'Customs' so validation passes
+    typeSelect.innerHTML = '<option value="Customs" selected>Customs</option>';
+    return;
+  }
+
   const types = {
-    'Customs & Immigration': ['Inbound', 'Outbound', 'Change of Captain', 'Crew Signoff'],
     'Provisioning & Sourcing': ['Food', 'Beverages', 'Supplies', 'Equipment'],
     'Crew Services': ['Crew Change', 'Training', 'Recruitment', 'Medical'],
-    'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance']
+    'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance'],
+    'Airport & Transport': ['Airport Transfer', 'Car Rental', 'Taxi', 'Courier'],
+    'Brokerage': ['Charter', 'Sale', 'Purchase', 'Valuation'],
+    'General Support': ['Concierge', 'Admin', 'Other']
   };
 
   typeSelect.innerHTML = '<option value="">Select type...</option>';
