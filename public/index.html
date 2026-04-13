@@ -118,6 +118,35 @@
   select { cursor: pointer; appearance: auto; }
   .inline-add { display: flex; gap: 8px; align-items: center; }
   .inline-add select, .inline-add input { flex: 1; }
+
+  /* Customs multi-select dropdown */
+  .customs-dropdown { position: relative; }
+  .customs-dropdown-trigger {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 10px;
+    background: #fff; cursor: pointer; font-size: 14px; min-height: 44px;
+    transition: border-color 0.15s;
+  }
+  .customs-dropdown-trigger:hover { border-color: var(--teal); }
+  .customs-dropdown.open .customs-dropdown-trigger { border-color: var(--teal); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .customs-dropdown-menu {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+    background: #fff; border: 1px solid var(--teal); border-top: none;
+    border-radius: 0 0 10px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    max-height: 320px; overflow-y: auto;
+  }
+  .customs-check-list { display: flex; flex-direction: column; }
+  .customs-check-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; font-size: 14px;
+    transition: background 0.1s; border-bottom: 1px solid var(--gray-100);
+  }
+  .customs-check-item:last-child { border-bottom: none; }
+  .customs-check-item:hover { background: var(--teal-light); }
+  .customs-check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--teal); flex-shrink: 0; cursor: pointer; }
+  .ci-label { flex: 1; color: var(--navy); font-weight: 500; }
+  .ci-price { font-size: 12px; color: var(--gray-400); white-space: nowrap; }
+
   .add-btn {
     background: var(--teal-light); color: var(--teal); border: 1px solid var(--teal);
     border-radius: 6px; padding: 10px 14px; cursor: pointer; font-size: 13px;
@@ -509,46 +538,60 @@
             </div>
           </div>
         </div>
-        <!-- Customs & Immigration Multi-Select Panel -->
-        <div id="customsServicesPanel" class="customs-services-panel hidden">
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label>Service Types <span class="required">*</span> <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-500);">(select all that apply)</span></label>
-          </div>
-          <div class="customs-check-list" id="customsCheckList">
-            <label class="customs-check-item" data-service="inbound">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Inbound</span> <span class="ci-price">from $200</span>
-            </label>
-            <label class="customs-check-item" data-service="outbound">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Outbound</span> <span class="ci-price">from $200</span>
-            </label>
-            <label class="customs-check-item" data-service="change_of_captain">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Change of Captain</span> <span class="ci-price">$50</span>
-            </label>
-            <label class="customs-check-item" data-service="crew_guest_signoff">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Crew/Guest Sign off</span> <span class="ci-price">$50/person</span>
-            </label>
-            <label class="customs-check-item" data-service="transfer_of_crew">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Transfer of Crew between Vessels</span> <span class="ci-price">$50/person</span>
-            </label>
-            <label class="customs-check-item" data-service="ok_to_travel">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Ok to Travel Letter</span> <span class="ci-price">$80 + $10/edit</span>
-            </label>
-            <label class="customs-check-item" data-service="failure_signoff_letter">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Failure to Sign off Crew/Guests Letter</span> <span class="ci-price">$80 + per crew</span>
-            </label>
-            <label class="customs-check-item" data-service="vessel_relinquancy">
-              <input type="checkbox" onchange="onCustomsServiceChange()"> <span class="ci-label">Vessel Relinquancy to Agent</span> <span class="ci-price">$50</span>
-            </label>
-          </div>
-
-          <!-- Guidance banners (shown conditionally) -->
-          <div id="customsGuidanceCaptain" class="customs-guidance hidden">
-            <span class="guide-icon">&#128161;</span>
-            <span>Change of Captain often requires a <strong>Crew/Guest Sign off</strong>. Consider selecting it above if applicable.</span>
-          </div>
-          <div id="customsGuidanceRelinquancy" class="customs-guidance hidden">
-            <span class="guide-icon">&#128161;</span>
-            <span>Vessel Relinquancy typically requires a <strong>Crew/Guest Sign off</strong> as well. Consider selecting it above.</span>
+        <!-- Customs & Immigration Multi-Select Dropdown -->
+        <div id="customsServicesPanel" class="hidden" style="margin-top:8px;">
+          <div class="form-group">
+            <label>Service Types <span class="required">*</span></label>
+            <div class="customs-dropdown" id="customsDropdown">
+              <div class="customs-dropdown-trigger" onclick="toggleCustomsDropdown()">
+                <span id="customsDropdownLabel" style="color:var(--gray-400);">Select services...</span>
+                <span style="font-size:10px;color:var(--gray-400);">&#9660;</span>
+              </div>
+              <div class="customs-dropdown-menu hidden" id="customsDropdownMenu">
+                <div class="customs-check-list" id="customsCheckList">
+                  <label class="customs-check-item" data-service="inbound">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Inbound</span>
+                    <span class="ci-price">from $200</span>
+                  </label>
+                  <label class="customs-check-item" data-service="outbound">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Outbound</span>
+                    <span class="ci-price">from $200</span>
+                  </label>
+                  <label class="customs-check-item" data-service="change_of_captain">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Change of Captain</span>
+                    <span class="ci-price">$50</span>
+                  </label>
+                  <label class="customs-check-item" data-service="crew_guest_signoff">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Crew/Guest Sign off</span>
+                    <span class="ci-price">$50/person</span>
+                  </label>
+                  <label class="customs-check-item" data-service="transfer_of_crew">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Transfer of Crew between Vessels</span>
+                    <span class="ci-price">$50/person</span>
+                  </label>
+                  <label class="customs-check-item" data-service="ok_to_travel">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Ok to Travel Letter</span>
+                    <span class="ci-price">$80 + $10/edit</span>
+                  </label>
+                  <label class="customs-check-item" data-service="failure_signoff_letter">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Failure to Sign off Crew/Guests Letter</span>
+                    <span class="ci-price">$80 + per crew</span>
+                  </label>
+                  <label class="customs-check-item" data-service="vessel_relinquancy">
+                    <input type="checkbox" onchange="onCustomsServiceChange()">
+                    <span class="ci-label">Vessel Relinquancy to Agent</span>
+                    <span class="ci-price">$50</span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Conditional fields for Inbound -->
@@ -1871,6 +1914,38 @@ function calculateTotal() {
   document.getElementById('displayTotal').textContent = '$' + total.toFixed(2);
 }
 
+function toggleCustomsDropdown() {
+  const dd = document.getElementById('customsDropdown');
+  const menu = document.getElementById('customsDropdownMenu');
+  dd.classList.toggle('open');
+  menu.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('customsDropdown');
+  if (dd && !dd.contains(e.target)) {
+    dd.classList.remove('open');
+    document.getElementById('customsDropdownMenu').classList.add('hidden');
+  }
+});
+
+function updateCustomsDropdownLabel() {
+  const checks = document.querySelectorAll('#customsCheckList input[type="checkbox"]:checked');
+  const label = document.getElementById('customsDropdownLabel');
+  if (checks.length === 0) {
+    label.textContent = 'Select services...';
+    label.style.color = 'var(--gray-400)';
+  } else {
+    const names = [];
+    checks.forEach(cb => {
+      names.push(cb.closest('[data-service]').querySelector('.ci-label').textContent);
+    });
+    label.textContent = names.join(', ');
+    label.style.color = 'var(--navy)';
+  }
+}
+
 function onCustomsServiceChange() {
   const checks = document.querySelectorAll('#customsCheckList input[type="checkbox"]');
   const services = {};
@@ -1879,6 +1954,9 @@ function onCustomsServiceChange() {
     services[svc] = cb.checked;
   });
 
+  // Update dropdown label
+  updateCustomsDropdownLabel();
+
   // Toggle conditional field sections
   document.getElementById('customsFieldsInbound').classList.toggle('hidden', !services.inbound);
   document.getElementById('customsFieldsOutbound').classList.toggle('hidden', !services.outbound);
@@ -1886,10 +1964,6 @@ function onCustomsServiceChange() {
   document.getElementById('customsFieldsTransfer').classList.toggle('hidden', !services.transfer_of_crew);
   document.getElementById('customsFieldsTravel').classList.toggle('hidden', !services.ok_to_travel);
   document.getElementById('customsFieldsFailure').classList.toggle('hidden', !services.failure_signoff_letter);
-
-  // Guidance banners
-  document.getElementById('customsGuidanceCaptain').classList.toggle('hidden', !services.change_of_captain);
-  document.getElementById('customsGuidanceRelinquancy').classList.toggle('hidden', !services.vessel_relinquancy);
 
   recalcCustoms();
 }
