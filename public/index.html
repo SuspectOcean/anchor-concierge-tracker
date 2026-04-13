@@ -1627,6 +1627,32 @@ function validateEntry(entry) {
   if (!entry.serviceDate) return { valid: false, message: 'Please select a service date' };
   if (!entry.category) return { valid: false, message: 'Please select a service category' };
   if (!entry.serviceType) return { valid: false, message: 'Please select a service type' };
+
+  // Customs & Immigration validation
+  if (entry.category === 'Customs & Immigration') {
+    const checks = document.querySelectorAll('#customsCheckList input[type="checkbox"]');
+    const services = {};
+    checks.forEach(cb => {
+      const svc = cb.closest('[data-service]').dataset.service;
+      services[svc] = cb.checked;
+    });
+
+    if (services.inbound) {
+      const crew = parseInt(document.getElementById('customsInboundCrew').value) || 0;
+      const guests = parseInt(document.getElementById('customsInboundGuests').value) || 0;
+      if (crew + guests <= 0) return { valid: false, message: 'Inbound requires crew and/or guest count' };
+      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Inbound requires a "Cleared in at" location' };
+    }
+
+    if (services.outbound) {
+      const crew = parseInt(document.getElementById('customsOutboundCrew').value) || 0;
+      const guests = parseInt(document.getElementById('customsOutboundGuests').value) || 0;
+      if (crew + guests <= 0) return { valid: false, message: 'Outbound requires crew and/or guest count' };
+      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Outbound requires a "Cleared in at" location' };
+      if (!document.getElementById('clearedOut').value) return { valid: false, message: 'Outbound requires a "Cleared out at" location' };
+    }
+  }
+
   return { valid: true };
 }
 
@@ -1753,11 +1779,129 @@ function calculateTotal() {
 }
 
 function onCustomsServiceChange() {
-  // Placeholder for customs logic
+  const checks = document.querySelectorAll('#customsCheckList input[type="checkbox"]');
+  const services = {};
+  checks.forEach(cb => {
+    const svc = cb.closest('[data-service]').dataset.service;
+    services[svc] = cb.checked;
+  });
+
+  // Toggle conditional field sections
+  document.getElementById('customsFieldsInbound').classList.toggle('hidden', !services.inbound);
+  document.getElementById('customsFieldsOutbound').classList.toggle('hidden', !services.outbound);
+  document.getElementById('customsFieldsSignoff').classList.toggle('hidden', !services.crew_guest_signoff);
+  document.getElementById('customsFieldsTransfer').classList.toggle('hidden', !services.transfer_of_crew);
+  document.getElementById('customsFieldsTravel').classList.toggle('hidden', !services.ok_to_travel);
+  document.getElementById('customsFieldsFailure').classList.toggle('hidden', !services.failure_signoff_letter);
+
+  // Guidance banners
+  document.getElementById('customsGuidanceCaptain').classList.toggle('hidden', !services.change_of_captain);
+  document.getElementById('customsGuidanceRelinquancy').classList.toggle('hidden', !services.vessel_relinquancy);
+
+  recalcCustoms();
+}
+
+function calcPersonCharge(crew, guests) {
+  const total = (parseInt(crew) || 0) + (parseInt(guests) || 0);
+  if (total <= 0) return 0;
+  if (total <= 10) return 200;
+  return 200 + (total - 10) * 35;
 }
 
 function recalcCustoms() {
-  // Placeholder for customs calculation
+  const checks = document.querySelectorAll('#customsCheckList input[type="checkbox"]');
+  const services = {};
+  checks.forEach(cb => {
+    const svc = cb.closest('[data-service]').dataset.service;
+    services[svc] = cb.checked;
+  });
+
+  let total = 0;
+  let rows = [];
+
+  // Inbound
+  if (services.inbound) {
+    const crew = document.getElementById('customsInboundCrew').value;
+    const guests = document.getElementById('customsInboundGuests').value;
+    const charge = calcPersonCharge(crew, guests);
+    const persons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
+    rows.push({ label: `Inbound (${persons} persons)`, amount: charge });
+    total += charge;
+  }
+
+  // Outbound
+  if (services.outbound) {
+    const crew = document.getElementById('customsOutboundCrew').value;
+    const guests = document.getElementById('customsOutboundGuests').value;
+    const charge = calcPersonCharge(crew, guests);
+    const persons = (parseInt(crew) || 0) + (parseInt(guests) || 0);
+    rows.push({ label: `Outbound (${persons} persons)`, amount: charge });
+    total += charge;
+  }
+
+  // Change of Captain
+  if (services.change_of_captain) {
+    rows.push({ label: 'Change of Captain', amount: 50 });
+    total += 50;
+  }
+
+  // Crew/Guest Sign off
+  if (services.crew_guest_signoff) {
+    const count = parseInt(document.getElementById('customsSignoffCount').value) || 1;
+    const charge = count * 50;
+    rows.push({ label: `Crew/Guest Sign off (${count})`, amount: charge });
+    total += charge;
+  }
+
+  // Transfer of Crew
+  if (services.transfer_of_crew) {
+    const count = parseInt(document.getElementById('customsTransferCount').value) || 1;
+    const charge = count * 50;
+    rows.push({ label: `Transfer of Crew (${count})`, amount: charge });
+    total += charge;
+  }
+
+  // Ok to Travel Letter
+  if (services.ok_to_travel) {
+    const edits = parseInt(document.getElementById('customsTravelEdits').value) || 0;
+    const charge = 80 + edits * 10;
+    rows.push({ label: `Ok to Travel Letter${edits > 0 ? ` + ${edits} edits` : ''}`, amount: charge });
+    total += charge;
+  }
+
+  // Failure to Sign off Letter
+  if (services.failure_signoff_letter) {
+    const count = parseInt(document.getElementById('customsFailureCount').value) || 1;
+    const charge = 50 + count * 10;
+    rows.push({ label: `Failure to Sign off (${count})`, amount: charge });
+    total += charge;
+  }
+
+  // Vessel Relinquancy
+  if (services.vessel_relinquancy) {
+    rows.push({ label: 'Vessel Relinquancy to Agent', amount: 50 });
+    total += 50;
+  }
+
+  // Show breakdown
+  const breakdownEl = document.getElementById('customsPriceBreakdown');
+  const rowsEl = document.getElementById('customsPriceRows');
+  if (rows.length > 0) {
+    breakdownEl.classList.remove('hidden');
+    rowsEl.innerHTML = rows.map(r =>
+      `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;">
+        <span>${r.label}</span><span style="font-weight:600;">$${r.amount.toFixed(2)}</span>
+      </div>`
+    ).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--gray-200);font-weight:700;font-size:14px;">
+      <span>Total</span><span>$${total.toFixed(2)}</span>
+    </div>`;
+  } else {
+    breakdownEl.classList.add('hidden');
+  }
+
+  // Push total to billing fields
+  document.getElementById('baseCharge').value = total.toFixed(2);
+  calculateTotal();
 }
 
 function toggleSection(header) {
@@ -1792,7 +1936,7 @@ function renderLog() {
       <td>${formatDate(entry.serviceDate)}</td>
       <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
       <td>$${parseFloat(entry.totalCharge || 0).toFixed(2)}</td>
-      <td><button onclick="alert('Edit not yet implemented')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+      <td><button onclick="openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
     `;
     tbody.appendChild(row);
   });
