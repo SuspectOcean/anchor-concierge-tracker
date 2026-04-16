@@ -1922,7 +1922,9 @@ function entryFromDb(row) {
     transferFlightNumber: row.transfer_notes && row.transfer_notes.startsWith('Flight: ')
       ? row.transfer_notes.match(/^Flight: ([^\n]*)/)?.[1] || ''
       : '',
-    transferFlightArrival: row.eta || ''
+    transferFlightArrival: row.eta || '',
+    lastEditedBy: row.last_edited_by || '',
+    lastEditedAt: row.last_edited_at || ''
   };
 }
 
@@ -1996,6 +1998,8 @@ async function submitEntry() {
       const updated = { ...existing, ...entry };
       const dbData = entryToDb(updated);
       delete dbData.entry_id;
+      dbData.last_edited_by = currentUser.full_name || currentUser.email;
+      dbData.last_edited_at = new Date().toISOString();
 
       const { error } = await sb.from('entries').update(dbData).eq('entry_id', editingEntryId);
       if (error) throw error;
@@ -2011,7 +2015,11 @@ async function submitEntry() {
 
       // Update in-memory
       const idx = allEntries.findIndex(e => e.entryId === editingEntryId);
-      if (idx !== -1) allEntries[idx] = updated;
+      if (idx !== -1) {
+        updated.lastEditedBy = currentUser.full_name || currentUser.email;
+        updated.lastEditedAt = new Date().toISOString();
+        allEntries[idx] = updated;
+      }
 
       exitEditMode();
       showView('log');
@@ -2795,6 +2803,7 @@ function renderLog() {
           '<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--gray-300);padding-top:6px;margin-top:6px;"><span>Total</span><span>' + symbol + total.toFixed(2) + '</span></div>' +
           (currency === 'USD' ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in XCD</span><span>EC$' + (total * XCD_RATE).toFixed(2) + '</span></div>' : '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in USD</span><span>$' + (total / XCD_RATE).toFixed(2) + '</span></div>') +
           (entry.description ? '<div style="margin-top:8px;color:var(--gray-600);font-size:12px;"><strong>Notes:</strong> ' + entry.description + '</div>' : '') +
+          (entry.lastEditedBy ? '<div style="margin-top:6px;color:var(--gray-400);font-size:11px;font-style:italic;">Last edited by ' + entry.lastEditedBy + (entry.lastEditedAt ? ' on ' + formatDate(entry.lastEditedAt.split('T')[0]) : '') + '</div>' : '') +
           '</div></td>';
         this.after(detail);
       }
@@ -3328,7 +3337,9 @@ async function submitMovement() {
         special_notes: time,
         cleared_out: from,
         cleared_in: to,
-        description: notes
+        description: notes,
+        last_edited_by: currentUser.full_name || currentUser.email,
+        last_edited_at: new Date().toISOString()
       };
       const { error } = await sb.from('entries').update(dbUpdate).eq('entry_id', editingMovementId);
       if (error) throw error;
@@ -3739,6 +3750,8 @@ async function saveEditedEntry() {
     updateSyncBadge(true, 'Syncing');
     const dbData = entryToDb({ ...entry, ...updated, entryId });
     delete dbData.entry_id;
+    dbData.last_edited_by = currentUser.full_name || currentUser.email;
+    dbData.last_edited_at = new Date().toISOString();
 
     const { error } = await sb.from('entries').update(dbData).eq('entry_id', entryId);
     if (error) throw error;
@@ -3754,6 +3767,8 @@ async function saveEditedEntry() {
 
     // Update local
     Object.assign(entry, updated);
+    entry.lastEditedBy = currentUser.full_name || currentUser.email;
+    entry.lastEditedAt = new Date().toISOString();
     closeModal('editEntryModal');
     showDayDetail(entry.serviceDate);
     renderLog();
