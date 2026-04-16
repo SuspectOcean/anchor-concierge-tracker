@@ -2541,16 +2541,51 @@ function renderLog() {
 
   allEntries.forEach(entry => {
     const displayStatus = computeStatus(entry);
+    const currency = entry.currency || 'USD';
+    const symbol = currency === 'XCD' ? 'EC$' : '$';
+    const base = parseFloat(entry.baseCharge) || 0;
+    const agency = parseFloat(entry.agencyFee) || 0;
+    const other = parseFloat(entry.otherCharges) || 0;
+    const total = base + agency + other;
+
+    // Parse additional costs from overrideNote
+    let addCostsHtml = '';
+    try {
+      const costs = JSON.parse(entry.overrideNote || '[]');
+      if (Array.isArray(costs) && costs.length > 0) {
+        addCostsHtml = costs.map(c => `<div style="display:flex;justify-content:space-between;"><span>${c.label || 'Additional'}</span><span>${symbol}${c.amount.toFixed(2)}</span></div>`).join('');
+      }
+    } catch(e) {}
+
     const row = document.createElement('tr');
+    row.style.cursor = 'pointer';
     row.innerHTML = `
       <td>${entry.entryId}</td>
       <td>${entry.vessel}</td>
-      <td>${entry.category}</td>
+      <td>${entry.category}${entry.serviceType ? ' — ' + entry.serviceType : ''}</td>
       <td>${formatDate(entry.serviceDate)}</td>
       <td><span class="status-badge status-${displayStatus}">${displayStatus}</span></td>
-      <td>$${parseFloat(entry.totalCharge || 0).toFixed(2)}</td>
-      <td><button onclick="openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+      <td style="font-weight:600;">${symbol}${total.toFixed(2)}</td>
+      <td><button onclick="event.stopPropagation();openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="event.stopPropagation();deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
     `;
+    row.onclick = function() {
+      const next = this.nextElementSibling;
+      if (next && next.classList.contains('log-detail-row')) {
+        next.remove();
+      } else {
+        const detail = document.createElement('tr');
+        detail.className = 'log-detail-row';
+        detail.innerHTML = '<td colspan="7" style="padding:12px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><div style="max-width:400px;font-size:13px;">' +
+          (base > 0 ? '<div style="display:flex;justify-content:space-between;"><span>Base Charge</span><span>' + symbol + base.toFixed(2) + '</span></div>' : '') +
+          (agency > 0 ? '<div style="display:flex;justify-content:space-between;"><span>Agency Fee</span><span>' + symbol + agency.toFixed(2) + '</span></div>' : '') +
+          addCostsHtml +
+          '<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--gray-300);padding-top:6px;margin-top:6px;"><span>Total</span><span>' + symbol + total.toFixed(2) + '</span></div>' +
+          (currency === 'USD' ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in XCD</span><span>EC$' + (total * XCD_RATE).toFixed(2) + '</span></div>' : '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in USD</span><span>$' + (total / XCD_RATE).toFixed(2) + '</span></div>') +
+          (entry.description ? '<div style="margin-top:8px;color:var(--gray-600);font-size:12px;"><strong>Notes:</strong> ' + entry.description + '</div>' : '') +
+          '</div></td>';
+        this.after(detail);
+      }
+    };
     tbody.appendChild(row);
   });
 }
