@@ -301,9 +301,7 @@
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
-  .cal-cell.vessel-present { background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); }
-  .cal-cell.vessel-present.today { background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); }
-  .cal-presence-bar { font-size: 9px; padding: 1px 4px; border-radius: 2px; background: #00695c; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; opacity: 0.85; }
+  .cal-presence-bar { font-size: 9px; padding: 0 4px; border-radius: 3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; line-height: 15px; height: 15px; font-weight: 600; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -2928,6 +2926,20 @@ let calendarYear = new Date().getFullYear();
 
 // ========== VESSEL PRESENCE ==========
 
+const VESSEL_COLORS = [
+  '#00695c', '#1565c0', '#6a1b9a', '#c62828', '#e65100',
+  '#2e7d32', '#ad1457', '#4527a0', '#00838f', '#bf360c',
+  '#283593', '#558b2f', '#d84315', '#0277bd', '#7b1fa2'
+];
+const _vesselColorMap = {};
+function getVesselColor(vesselName) {
+  if (!_vesselColorMap[vesselName]) {
+    const idx = Object.keys(_vesselColorMap).length % VESSEL_COLORS.length;
+    _vesselColorMap[vesselName] = VESSEL_COLORS[idx];
+  }
+  return _vesselColorMap[vesselName];
+}
+
 function getVesselPresenceRanges(vesselName) {
   // Get all movements for this vessel, sorted by date+time
   const movements = allEntries
@@ -3045,19 +3057,19 @@ function renderCalendar() {
     const presentVessels = presenceMap[dateStr] || [];
     const classes = ['cal-cell'];
     if (isToday) classes.push('today');
-    if (presentVessels.length > 0) classes.push('vessel-present');
 
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
 
-    // Presence bars (show which vessels are in port)
+    // Presence bars — thin colored lines per vessel
     if (presentVessels.length > 0) {
-      const maxBars = 2;
+      const maxBars = 3;
       presentVessels.slice(0, maxBars).forEach(v => {
-        html += `<div class="cal-presence-bar">⚓ ${v}</div>`;
+        const color = getVesselColor(v);
+        html += `<div class="cal-presence-bar" style="background:${color};">${v}</div>`;
       });
       if (presentVessels.length > maxBars) {
-        html += `<div class="cal-presence-bar" style="opacity:0.6;">+${presentVessels.length - maxBars} more</div>`;
+        html += `<div class="cal-presence-bar" style="background:var(--gray-500);">+${presentVessels.length - maxBars} more</div>`;
       }
     }
 
@@ -3134,9 +3146,12 @@ function showDayDetail(dateStr) {
   // Vessel presence banner
   let presenceHtml = '';
   if (presentVessels.length > 0) {
-    presenceHtml = `<div style="background:#e0f2f1;border:1px solid #80cbc4;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-      <div style="font-size:12px;font-weight:600;color:#00695c;margin-bottom:4px;">⚓ Vessels in Port</div>
-      ${presentVessels.map(v => `<div style="font-size:13px;color:#004d40;padding:2px 0;">${v}</div>`).join('')}
+    presenceHtml = `<div style="background:var(--gray-50);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">⚓ Vessels in Port</div>
+      ${presentVessels.map(v => {
+        const color = getVesselColor(v);
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${v}</span></div>`;
+      }).join('')}
     </div>`;
   }
 
