@@ -2494,9 +2494,14 @@ function recalcCustoms() {
     breakdownEl.classList.add('hidden');
   }
 
-  // Push total to billing fields as hours
-  const rate = parseFloat(document.getElementById('hourlyRate').value) || 80;
-  document.getElementById('serviceHours').value = (total / rate).toFixed(2);
+  // Push customs charges into Additional Costs
+  // First remove any previous customs-generated costs
+  document.querySelectorAll('.customs-generated').forEach(el => el.remove());
+  const container = document.getElementById('additionalCostsContainer');
+  rows.forEach(r => {
+    const row = addAdditionalCost(r.label, r.amount);
+    row.classList.add('customs-generated');
+  });
   calculateTotal();
 }
 
