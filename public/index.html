@@ -2532,6 +2532,10 @@ function showView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
 
+  // Show submit bar only on new entry form
+  const submitBar = document.getElementById('submitBar');
+  if (submitBar) submitBar.style.display = view === 'new' ? '' : 'none';
+
   if (view === 'new') updateSubmissionDateTime();
   if (view === 'timeline') renderTimeline();
 }
