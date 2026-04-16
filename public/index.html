@@ -301,8 +301,7 @@
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
-  .cal-presence-bar { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 1px 1px 0; }
-  .cal-presence-row { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2px; align-items: center; }
+  .cal-presence-bar { font-size: 9px; padding: 0 4px; border-radius: 3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; line-height: 15px; height: 15px; font-weight: 600; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -3063,14 +3062,19 @@ function renderCalendar() {
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
 
-    // Presence dots — small colored circles per vessel
+    // Presence bars — colored bars per vessel, with emoji if movement on this day
     if (presentVessels.length > 0) {
-      html += '<div class="cal-presence-row">';
-      presentVessels.forEach(v => {
+      const maxBars = 3;
+      const dayMovements = dayEntries.filter(e => e.category === 'Vessel Movement');
+      presentVessels.slice(0, maxBars).forEach(v => {
         const color = getVesselColor(v);
-        html += `<div class="cal-presence-bar" style="background:${color};" title="${v}"></div>`;
+        const mv = dayMovements.find(e => e.vessel === v);
+        const emoji = mv ? (mv.serviceType === 'Arrival' ? '⚓ ' : mv.serviceType === 'Departure' ? '🚢 ' : '↔️ ') : '';
+        html += `<div class="cal-presence-bar" style="background:${color};">${emoji}${v}</div>`;
       });
-      html += '</div>';
+      if (presentVessels.length > maxBars) {
+        html += `<div class="cal-presence-bar" style="background:var(--gray-500);">+${presentVessels.length - maxBars} more</div>`;
+      }
     }
 
     if (dayEntries.length > 0) {
