@@ -179,10 +179,9 @@
   }
   .status-pill:hover { border-color: var(--gray-400); }
   .status-pill.active-upcoming { border-color: var(--blue); background: #e8f0ff; color: var(--blue); }
-  .status-pill.active-progress { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
   .status-pill.active-completed { border-color: var(--green); background: var(--green-light); color: var(--green); }
   .status-pill.active-overdue { border-color: #d32f2f; background: #ffeaea; color: #d32f2f; }
-  .status-pill.active-accountants { border-color: #7b1fa2; background: #f3e5f5; color: #7b1fa2; }
+  .status-pill.active-cancelled { border-color: var(--gray-600); background: var(--gray-100); color: var(--gray-600); }
   .billing-type-selector { display: flex; gap: 8px; margin-bottom: 16px; }
   .billing-type-btn {
     flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius);
@@ -269,13 +268,13 @@
     font-size: 11px; font-weight: 600;
   }
   .status-upcoming { background: #e8f0ff; color: var(--blue); }
-  .status-inprogress { background: var(--orange-light); color: var(--orange); }
   .status-completed { background: var(--green-light); color: var(--green); }
   .status-overdue { background: #ffeaea; color: #d32f2f; }
-  .status-accountants { background: #f3e5f5; color: #7b1fa2; }
-  .acct-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-500); }
-  .acct-check input { width: 14px; height: 14px; accent-color: #7b1fa2; cursor: pointer; }
-  .acct-check.checked { color: #7b1fa2; font-weight: 600; }
+  .status-cancelled { background: var(--gray-100); color: var(--gray-600); }
+  .status-invoiced { background: #f3e5f5; color: #7b1fa2; }
+  .invoiced-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-500); }
+  .invoiced-check input { width: 14px; height: 14px; accent-color: #7b1fa2; cursor: pointer; }
+  .invoiced-check.checked { color: #7b1fa2; font-weight: 600; }
 
   /* Timeline Styles */
   /* Calendar View */
@@ -296,20 +295,19 @@
   .cal-dots { display: flex; flex-direction: column; gap: 2px; }
   .cal-entry-pip { font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.4; }
   .cal-entry-pip.upcoming { background: #e8f0ff; color: var(--blue); }
-  .cal-entry-pip.progress { background: var(--orange-light); color: var(--orange); }
   .cal-entry-pip.completed { background: var(--green-light); color: var(--green); }
   .cal-entry-pip.overdue { background: #ffeaea; color: #d32f2f; }
-  .cal-entry-pip.accountants { background: #f3e5f5; color: #7b1fa2; }
+  .cal-entry-pip.cancelled { background: var(--gray-100); color: var(--gray-600); }
+  .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
   .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
   .cal-legend-dot.upcoming { background: var(--blue); }
-  .cal-legend-dot.progress { background: var(--orange); }
   .cal-legend-dot.completed { background: var(--green); }
   .cal-legend-dot.overdue { background: #d32f2f; }
-  .cal-legend-dot.accountants { background: #7b1fa2; }
+  .cal-legend-dot.cancelled { background: var(--gray-600); }
 
   /* Day Detail Panel */
   .day-detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s ease; }
@@ -372,6 +370,110 @@
     box-shadow: var(--shadow-md); max-width: 300px; word-wrap: break-word;
   }
   #toast.hidden { display: none; }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    /* Header: compact layout */
+    .header-inner {
+      flex-wrap: wrap; gap: 8px;
+    }
+    .header-brand h1 { font-size: 16px; }
+    .header-brand .subtitle { font-size: 10px; letter-spacing: 1px; }
+    .header-brand .anchor-icon { font-size: 24px; }
+    .header-actions {
+      display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    }
+    .header-actions button { padding: 6px 8px; font-size: 11px; }
+
+    /* Main content: tighter padding */
+    .app-main { padding: 12px 10px 90px; }
+
+    /* Tab bar: bigger touch targets */
+    .tab-bar { gap: 2px; padding: 3px; margin-bottom: 14px; border-radius: var(--radius); }
+    .tab-btn { padding: 11px 8px; font-size: 13px; font-weight: 600; border-radius: 6px; }
+
+    /* Section cards */
+    .section-header { padding: 12px 14px; }
+    .section-header h2 { font-size: 14px; }
+    .section-body { padding: 14px; }
+
+    /* Form rows: STACK to single column */
+    .form-row { grid-template-columns: 1fr !important; gap: 10px; margin-bottom: 10px; }
+
+    /* Larger touch targets for inputs */
+    input, select, textarea { padding: 12px; font-size: 16px; border-radius: 8px; }
+    select { min-height: 46px; }
+
+    /* Labels: slightly larger for readability */
+    label { font-size: 11px; margin-bottom: 2px; }
+
+    /* Add buttons: bigger touch target */
+    .add-btn { padding: 12px 14px; font-size: 13px; min-height: 46px; }
+
+    /* Inline-add: full width friendly */
+    .inline-add { gap: 6px; }
+    .inline-add select { min-width: 0; }
+
+    /* Status pills: wrap nicely */
+    .status-options { gap: 6px; }
+    .status-pill { padding: 10px 14px; font-size: 13px; }
+
+    /* Billing type buttons */
+    .billing-type-selector { gap: 6px; }
+    .billing-type-btn { padding: 10px 8px; }
+    .billing-type-btn .icon { font-size: 20px; }
+    .billing-type-btn .label { font-size: 11px; }
+
+    /* Submit bar: compact */
+    .submit-bar { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0)); }
+    .submit-inner { gap: 8px; }
+    .submit-total .amount { font-size: 18px; }
+    .submit-total .label { font-size: 10px; }
+    .btn-submit { padding: 12px 20px; font-size: 14px; }
+    .btn-secondary { padding: 12px 14px; font-size: 13px; }
+
+    /* Log table */
+    .log-table { font-size: 12px; }
+    .log-table th { padding: 8px 10px; font-size: 10px; }
+    .log-table td { padding: 8px 10px; }
+
+    /* Calendar / Timeline */
+    .day-detail-panel { width: 95%; max-height: 85vh; }
+    .day-stats { flex-wrap: wrap; }
+    .day-stat { min-width: 60px; }
+
+    /* Modals */
+    .modal-content { width: 95%; padding: 18px; }
+
+    /* Auth card */
+    .auth-card { padding: 24px 20px; width: 95%; }
+
+    /* Calc summary */
+    .calc-row { font-size: 13px; }
+    .calc-row.total { font-size: 15px; }
+
+    /* Upload area */
+    .upload-area { padding: 20px; }
+    .upload-area .icon { font-size: 28px; }
+
+    /* Toast */
+    #toast { bottom: 100px; left: 12px; right: 12px; max-width: none; text-align: center; }
+
+    /* Toggle rows */
+    .toggle-label { font-size: 13px; }
+    .toggle-label .hint { font-size: 11px; }
+
+    /* Transfer panel fields */
+    .transfer-panel input, .transfer-panel select { font-size: 16px; }
+  }
+
+  /* Extra small phones */
+  @media (max-width: 380px) {
+    .app-main { padding: 10px 8px 90px; }
+    .section-body { padding: 12px 10px; }
+    .header-brand h1 { font-size: 14px; }
+    .tab-btn { font-size: 12px; padding: 10px 6px; }
+  }
 </style>
 </head>
 
@@ -443,7 +545,7 @@
         <div class="subtitle">Super Yacht Services</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
       <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
       <button onclick="loadEntries().then(()=>showToast('Data refreshed.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
@@ -710,6 +812,16 @@
             </div>
             <div class="form-row">
               <div class="form-group">
+                <label>Flight Number</label>
+                <input type="text" id="transferFlightNumber" placeholder="e.g. BA2157" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Flight Arrival Time</label>
+                <input type="datetime-local" id="transferFlightArrival" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label>Pickup Time <span class="required">*</span></label>
                 <input type="time" id="transferPickupTime" class="form-control">
               </div>
@@ -812,36 +924,11 @@
       <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Status <span class="required">*</span></label>
-            <div class="status-options">
-              <button type="button" class="status-pill active-upcoming" data-status="upcoming" onclick="selectStatus('upcoming')">📅 Upcoming</button>
-              <button type="button" class="status-pill" data-status="in-progress" onclick="selectStatus('in-progress')">⏳ In Progress</button>
-              <button type="button" class="status-pill" data-status="completed" onclick="selectStatus('completed')">✓ Completed</button>
-              <button type="button" class="status-pill" data-status="overdue" onclick="selectStatus('overdue')">⚠️ Overdue</button>
-              <button type="button" class="status-pill" data-status="on-hold" onclick="selectStatus('on-hold')">⏸ On Hold</button>
-              <button type="button" class="status-pill" data-status="cancelled" onclick="selectStatus('cancelled')">✕ Cancelled</button>
+            <label>Status</label>
+            <div style="font-size:13px;color:var(--gray-600);padding:8px 0;">
+              Status is set automatically based on service date. Mark entries as Completed or Cancelled from the Service Log.
             </div>
             <input type="hidden" id="statusInput" value="upcoming">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>ETA (Estimated Time of Arrival)</label>
-            <input type="datetime-local" id="eta">
-          </div>
-          <div class="form-group">
-            <label>ETD (Estimated Time of Departure)</label>
-            <input type="datetime-local" id="etd">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Crew Arrival</label>
-            <input type="datetime-local" id="crewArrival">
-          </div>
-          <div class="form-group">
-            <label>Crew Departure</label>
-            <input type="datetime-local" id="crewDeparture">
           </div>
         </div>
         <div class="form-row">
@@ -1040,9 +1127,9 @@
         </div>
         <div class="cal-legend">
           <div class="cal-legend-item"><div class="cal-legend-dot upcoming"></div> Upcoming</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot progress"></div> In Progress</div>
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
           <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cancelled"></div> Cancelled</div>
         </div>
       </div>
     </div>
@@ -1155,21 +1242,11 @@
             <label>Status</label>
             <select id="editStatus">
               <option value="upcoming">Upcoming</option>
-              <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="overdue">Overdue</option>
-              <option value="on-hold">On Hold</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>ETA</label><input type="datetime-local" id="editEta"></div>
-          <div class="form-group"><label>ETD</label><input type="datetime-local" id="editEtd"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Crew Arrival</label><input type="datetime-local" id="editCrewArrival"></div>
-          <div class="form-group"><label>Crew Departure</label><input type="datetime-local" id="editCrewDeparture"></div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -1740,7 +1817,13 @@ function entryFromDb(row) {
     transferVehicleType: row.transfer_vehicle_type,
     transferExtraVehicle: row.transfer_extra_vehicle,
     transferExtraVehicleCount: row.transfer_extra_vehicle_count,
-    transferNotes: row.transfer_notes
+    transferNotes: row.transfer_notes && row.transfer_notes.startsWith('Flight: ')
+      ? row.transfer_notes.replace(/^Flight: [^\n]*\n?/, '')
+      : row.transfer_notes,
+    transferFlightNumber: row.transfer_notes && row.transfer_notes.startsWith('Flight: ')
+      ? row.transfer_notes.match(/^Flight: ([^\n]*)/)?.[1] || ''
+      : '',
+    transferFlightArrival: row.eta || ''
   };
 }
 
@@ -1762,7 +1845,7 @@ function entryToDb(entry) {
     country: entry.country,
     jurisdiction: entry.jurisdiction,
     future_task: entry.futureTask,
-    eta: entry.eta || null,
+    eta: entry.transferFlightArrival || entry.eta || null,
     etd: entry.etd || null,
     crew_arrival: entry.crewArrival || null,
     crew_departure: entry.crewDeparture || null,
@@ -1789,7 +1872,9 @@ function entryToDb(entry) {
     transfer_vehicle_type: entry.transferVehicleType || '',
     transfer_extra_vehicle: entry.transferExtraVehicle || false,
     transfer_extra_vehicle_count: parseInt(entry.transferExtraVehicleCount) || 0,
-    transfer_notes: entry.transferNotes || ''
+    transfer_notes: entry.transferFlightNumber
+      ? ('Flight: ' + entry.transferFlightNumber + (entry.transferNotes ? '\n' + entry.transferNotes : ''))
+      : (entry.transferNotes || '')
   };
 }
 
@@ -1949,10 +2034,10 @@ function gatherFormData() {
     country: '',
     jurisdiction: '',
     futureTask: document.getElementById('futureTask').value,
-    eta: document.getElementById('eta').value,
-    etd: document.getElementById('etd').value,
-    crewArrival: document.getElementById('crewArrival').value,
-    crewDeparture: document.getElementById('crewDeparture').value,
+    eta: document.getElementById('transferFlightArrival')?.value || null,
+    etd: null,
+    crewArrival: null,
+    crewDeparture: null,
     billingType: document.getElementById('billingTypeInput').value,
     billable: document.getElementById('billable').value,
     currency: document.getElementById('currency').value,
@@ -1976,7 +2061,9 @@ function gatherFormData() {
     transferVehicleType: document.getElementById('transferVehicleType')?.value || '',
     transferExtraVehicle: document.getElementById('transferExtraVehicle')?.checked || false,
     transferExtraVehicleCount: document.getElementById('transferExtraVehicleCount')?.value || 0,
-    transferNotes: document.getElementById('transferNotes')?.value || ''
+    transferNotes: document.getElementById('transferNotes')?.value || '',
+    transferFlightNumber: document.getElementById('transferFlightNumber')?.value || '',
+    transferFlightArrival: document.getElementById('transferFlightArrival')?.value || ''
   };
 }
 
@@ -2034,11 +2121,6 @@ function resetForm() {
   document.getElementById('clearedOut').value = '';
   document.getElementById('marina').value = '';
   document.getElementById('statusInput').value = 'upcoming';
-  updateStatusPills();
-  document.getElementById('eta').value = '';
-  document.getElementById('etd').value = '';
-  document.getElementById('crewArrival').value = '';
-  document.getElementById('crewDeparture').value = '';
   document.getElementById('workCompleted').value = '';
   document.getElementById('futureTask').value = '';
   document.getElementById('billingTypeInput').value = 'charged';
@@ -2064,6 +2146,8 @@ function resetForm() {
   if (document.getElementById('transferPaxCount')) document.getElementById('transferPaxCount').value = '1';
   if (document.getElementById('transferVehicleType')) document.getElementById('transferVehicleType').value = '';
   if (document.getElementById('transferNotes')) document.getElementById('transferNotes').value = '';
+  if (document.getElementById('transferFlightNumber')) document.getElementById('transferFlightNumber').value = '';
+  if (document.getElementById('transferFlightArrival')) document.getElementById('transferFlightArrival').value = '';
   if (document.getElementById('transferExtraVehicle')) document.getElementById('transferExtraVehicle').checked = false;
   if (document.getElementById('transferExtraVehicleCount')) document.getElementById('transferExtraVehicleCount').value = '1';
   if (document.getElementById('transferExtraVehicleCountRow')) document.getElementById('transferExtraVehicleCountRow').classList.add('hidden');
@@ -2080,11 +2164,20 @@ function updateAutoStatus() {
 
   if (serviceDate < today) {
     selectStatus('overdue');
-  } else if (serviceDate.getTime() === today.getTime()) {
-    selectStatus('in-progress');
   } else {
     selectStatus('upcoming');
   }
+}
+
+function computeStatus(entry) {
+  if (entry.status === 'cancelled') return 'cancelled';
+  if (entry.status === 'completed') return 'completed';
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const serviceDate = new Date(entry.serviceDate);
+  serviceDate.setHours(0,0,0,0);
+  if (serviceDate < today) return 'overdue';
+  return 'upcoming';
 }
 
 function normalizeStatus(status) {
@@ -2098,13 +2191,7 @@ function selectStatus(status) {
 }
 
 function updateStatusPills() {
-  const status = document.getElementById('statusInput').value;
-  document.querySelectorAll('.status-pill').forEach(pill => {
-    pill.classList.remove('active-upcoming', 'active-progress', 'active-completed', 'active-overdue', 'active-accountants');
-    if (pill.dataset.status === status) {
-      pill.classList.add(`active-${status}`);
-    }
-  });
+  // Status pills removed — status is now auto-computed
 }
 
 function selectBillingType(type) {
@@ -2380,13 +2467,14 @@ function renderLog() {
   tbody.innerHTML = '';
 
   allEntries.forEach(entry => {
+    const displayStatus = computeStatus(entry);
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${entry.entryId}</td>
       <td>${entry.vessel}</td>
       <td>${entry.category}</td>
       <td>${formatDate(entry.serviceDate)}</td>
-      <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
+      <td><span class="status-badge status-${displayStatus}">${displayStatus}</span></td>
       <td>$${parseFloat(entry.totalCharge || 0).toFixed(2)}</td>
       <td><button onclick="openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
     `;
@@ -2586,7 +2674,8 @@ function renderCalendar() {
       const maxShow = 3;
       dayEntries.slice(0, maxShow).forEach(e => {
         const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
-        const statusClass = isTransfer ? 'transfer' : (e.status === 'in-progress' ? 'progress' : e.status === 'overdue' ? 'overdue' : e.status === 'completed' ? 'completed' : 'upcoming');
+        const cs = computeStatus(e);
+        const statusClass = isTransfer ? 'transfer' : cs;
         const label = isTransfer ? `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim() : (e.vessel || e.entryId);
         html += `<div class="cal-entry-pip ${statusClass}">${label}</div>`;
       });
@@ -2618,17 +2707,17 @@ function showDayDetail(dateStr) {
 
   // Update stats
   const total = dayEntries.length;
-  const upcoming = dayEntries.filter(e => e.status === 'upcoming').length;
-  const inProgress = dayEntries.filter(e => e.status === 'in-progress').length;
-  const completed = dayEntries.filter(e => e.status === 'completed').length;
-  const overdue = dayEntries.filter(e => e.status === 'overdue').length;
+  const upcoming = dayEntries.filter(e => computeStatus(e) === 'upcoming').length;
+  const completed = dayEntries.filter(e => computeStatus(e) === 'completed').length;
+  const overdue = dayEntries.filter(e => computeStatus(e) === 'overdue').length;
+  const cancelled = dayEntries.filter(e => computeStatus(e) === 'cancelled').length;
   const statsEl = document.getElementById('dayDetailStats');
   statsEl.innerHTML = `
     <div class="day-stat"><div class="num">${total}</div><div class="label">Total</div></div>
     ${upcoming ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${upcoming}</div><div class="label">Upcoming</div></div>` : ''}
-    ${inProgress ? `<div class="day-stat"><div class="num" style="color:var(--orange)">${inProgress}</div><div class="label">In Progress</div></div>` : ''}
     ${completed ? `<div class="day-stat"><div class="num" style="color:var(--green)">${completed}</div><div class="label">Completed</div></div>` : ''}
     ${overdue ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${overdue}</div><div class="label">Overdue</div></div>` : ''}
+    ${cancelled ? `<div class="day-stat"><div class="num" style="color:var(--gray-600)">${cancelled}</div><div class="label">Cancelled</div></div>` : ''}
   `;
 
   // Update list
@@ -2637,9 +2726,10 @@ function showDayDetail(dateStr) {
     listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services scheduled for this day.</div>';
   } else {
     listEl.innerHTML = dayEntries.map(e => {
-      const statusClass = e.status === 'in-progress' ? 'progress' : e.status;
-      const statusColors = { upcoming: 'var(--blue)', 'in-progress': 'var(--orange)', completed: 'var(--green)', overdue: '#d32f2f' };
-      const bgColors = { upcoming: '#e8f0ff', 'in-progress': 'var(--orange-light)', completed: 'var(--green-light)', overdue: '#ffeaea' };
+      const cs = computeStatus(e);
+      const statusClass = cs;
+      const statusColors = { upcoming: 'var(--blue)', completed: 'var(--green)', overdue: '#d32f2f', cancelled: 'var(--gray-600)' };
+      const bgColors = { upcoming: '#e8f0ff', completed: 'var(--green-light)', overdue: '#ffeaea', cancelled: 'var(--gray-100)' };
       const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
       const driver = isTransfer && e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
       const transferInfo = isTransfer ? `
@@ -2657,7 +2747,7 @@ function showDayDetail(dateStr) {
       return `<div class="day-job" onclick="openEditEntry('${e.entryId}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to edit">
         <div class="day-job-header">
           <span class="day-job-title">${e.entryId} — ${e.vessel || 'Unknown Vessel'}</span>
-          <span class="day-job-status" style="background:${isTransfer ? '#fff8e1' : (bgColors[e.status] || '#e8f0ff')};color:${isTransfer ? '#f9a825' : (statusColors[e.status] || 'var(--blue)')}">${isTransfer ? e.serviceType : e.status}</span>
+          <span class="day-job-status" style="background:${isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff')};color:${isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)')}">${isTransfer ? e.serviceType : cs}</span>
         </div>
         <div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>
         ${transferInfo}
@@ -2708,10 +2798,6 @@ function openEditEntry(entryId) {
   document.getElementById('editClearedOut').value = entry.clearedOut || '';
   document.getElementById('editMarina').value = entry.marina || '';
   document.getElementById('editStatus').value = entry.status || 'upcoming';
-  document.getElementById('editEta').value = entry.eta || '';
-  document.getElementById('editEtd').value = entry.etd || '';
-  document.getElementById('editCrewArrival').value = entry.crewArrival || '';
-  document.getElementById('editCrewDeparture').value = entry.crewDeparture || '';
   document.getElementById('editWorkCompleted').value = entry.workCompleted || '';
   document.getElementById('editFutureTask').value = entry.futureTask || '';
   document.getElementById('editBillingType').value = entry.billingType || 'charged';
@@ -2746,10 +2832,6 @@ async function saveEditedEntry() {
     clearedOut: document.getElementById('editClearedOut').value,
     marina: document.getElementById('editMarina').value,
     status: document.getElementById('editStatus').value,
-    eta: document.getElementById('editEta').value || null,
-    etd: document.getElementById('editEtd').value || null,
-    crewArrival: document.getElementById('editCrewArrival').value || null,
-    crewDeparture: document.getElementById('editCrewDeparture').value || null,
     workCompleted: document.getElementById('editWorkCompleted').value,
     futureTask: document.getElementById('editFutureTask').value,
     billingType: document.getElementById('editBillingType').value,
