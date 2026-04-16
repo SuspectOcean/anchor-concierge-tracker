@@ -586,7 +586,7 @@
               <button class="add-btn" onclick="showAddModal('vessel')">+ Add</button>
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="staffGroup">
             <label>Staff Member <span class="hint-inline">(optional)</span></label>
             <select id="staffSelect">
               <option value="">Select staff...</option>
@@ -1056,6 +1056,7 @@
               <tr>
                 <th>Entry ID</th>
                 <th>Vessel</th>
+                <th>Staff</th>
                 <th>Category</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -1687,15 +1688,28 @@ async function loadStaff() {
   const { data, error } = await sb.from('profiles').select('id, full_name, email');
   if (error || !data) return;
   const select = document.getElementById('staffSelect');
-  const current = select.value;
-  select.innerHTML = '<option value="">Select staff...</option>';
-  data.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.full_name || p.email;
-    opt.textContent = p.full_name || p.email;
-    select.appendChild(opt);
-  });
-  if (current) select.value = current;
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const staffGroup = document.getElementById('staffGroup');
+
+  if (!isAdmin) {
+    // Non-admin: auto-assign own name, hide selector
+    const myName = currentUser.full_name || currentUser.email;
+    select.innerHTML = `<option value="${myName}">${myName}</option>`;
+    select.value = myName;
+    if (staffGroup) staffGroup.style.display = 'none';
+  } else {
+    // Admin: show all staff
+    const current = select.value;
+    select.innerHTML = '<option value="">Select staff...</option>';
+    data.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.full_name || p.email;
+      opt.textContent = p.full_name || p.email;
+      select.appendChild(opt);
+    });
+    if (current) select.value = current;
+    if (staffGroup) staffGroup.style.display = '';
+  }
 }
 
 // ============================================
@@ -2755,6 +2769,7 @@ function renderLog() {
     row.innerHTML = `
       <td>${entry.entryId}</td>
       <td>${entry.vessel}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${entry.staffMember || '—'}</td>
       <td>${entry.category}${entry.serviceType ? ' — ' + entry.serviceType : ''}</td>
       <td>${formatDate(entry.serviceDate)}</td>
       <td><span class="status-badge status-${displayStatus}">${displayStatus}</span></td>
@@ -2775,7 +2790,7 @@ function renderLog() {
         });
         const detail = document.createElement('tr');
         detail.className = 'log-detail-row';
-        detail.innerHTML = '<td colspan="7" style="padding:12px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><div style="max-width:400px;font-size:13px;">' +
+        detail.innerHTML = '<td colspan="8" style="padding:12px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><div style="max-width:400px;font-size:13px;">' +
           chargesHtml +
           '<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--gray-300);padding-top:6px;margin-top:6px;"><span>Total</span><span>' + symbol + total.toFixed(2) + '</span></div>' +
           (currency === 'USD' ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in XCD</span><span>EC$' + (total * XCD_RATE).toFixed(2) + '</span></div>' : '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in USD</span><span>$' + (total / XCD_RATE).toFixed(2) + '</span></div>') +
@@ -2831,6 +2846,15 @@ function openSettingsModal() {
     const el = document.getElementById(id);
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
+  // Name: read-only for non-admins
+  const nameInput = document.getElementById('settingsName');
+  const nameSaveBtn = nameInput ? nameInput.parentElement.querySelector('.add-btn') : null;
+  if (nameInput) {
+    nameInput.readOnly = !isAdmin;
+    nameInput.style.background = isAdmin ? '' : 'var(--gray-50)';
+    nameInput.style.color = isAdmin ? '' : 'var(--gray-500)';
+  }
+  if (nameSaveBtn) nameSaveBtn.style.display = isAdmin ? '' : 'none';
   if (isAdmin) {
     renderDriverList();
     loadInviteCode();
@@ -3575,7 +3599,17 @@ function openEditEntry(entryId) {
 
   // Populate main form fields with entry data
   document.getElementById('vesselSelect').value = entry.vessel || '';
-  document.getElementById('staffSelect').value = entry.staffMember || '';
+  // Staff: admins can change, non-admins keep original
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const staffSel = document.getElementById('staffSelect');
+  if (isAdmin) {
+    staffSel.value = entry.staffMember || '';
+  } else {
+    // Keep original staff member for display but don't allow change
+    const origStaff = entry.staffMember || currentUser.full_name || currentUser.email;
+    staffSel.innerHTML = `<option value="${origStaff}">${origStaff}</option>`;
+    staffSel.value = origStaff;
+  }
   document.getElementById('serviceDate').value = entry.serviceDate || '';
   document.getElementById('serviceTime').value = entry.serviceTime || '';
 
