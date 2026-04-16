@@ -551,7 +551,7 @@
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
       <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
       <button onclick="loadEntries().then(()=>showToast('Data refreshed.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
-      <button onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
+      <button id="settingsBtn" onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
       <button onclick="handleLogout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Sign out">Sign Out</button>
     </div>
   </div>
@@ -1422,7 +1422,7 @@
         </div>
       </div>
 
-      <div style="border-top:1px solid var(--gray-200);padding-top:20px;">
+      <div id="vesselManagementSection" style="border-top:1px solid var(--gray-200);padding-top:20px;">
         <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Vessel Management</h3>
         <div class="form-row single">
           <div class="form-group">
@@ -1438,7 +1438,7 @@
         </div>
       </div>
 
-      <div style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:20px;">
+      <div id="driverManagementSection" style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:20px;">
         <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Driver Management</h3>
         <div class="form-row">
           <div class="form-group">
@@ -1649,6 +1649,7 @@ async function loadUserProfile() {
     currentUser.avatar_url = data.avatar_url;
     currentUser.phone = data.phone || '';
     updateHeaderWithUser();
+    applyRoleUI();
     document.getElementById('settingsEmail').value = currentUser.email || '';
     document.getElementById('settingsName').value = currentUser.full_name || '';
     document.getElementById('settingsRole').value = currentUser.role || 'staff';
@@ -2824,14 +2825,21 @@ function populateVesselSelect() {
 
 function openSettingsModal() {
   document.getElementById('settingsModal').classList.remove('hidden');
-  renderDriverList();
-  const section = document.getElementById('inviteCodeSection');
-  if (currentUser && currentUser.role === 'admin') {
-    section.classList.remove('hidden');
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  // Admin-only sections
+  ['vesselManagementSection', 'driverManagementSection', 'inviteCodeSection'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+  if (isAdmin) {
+    renderDriverList();
     loadInviteCode();
-  } else {
-    section.classList.add('hidden');
   }
+}
+
+function applyRoleUI() {
+  // Settings button visible to all (profile editing)
+  // Admin-only sections are toggled in openSettingsModal()
 }
 
 async function loadInviteCode() {
