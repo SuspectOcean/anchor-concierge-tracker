@@ -301,7 +301,8 @@
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
-  .cal-presence-bar { font-size: 9px; padding: 0 4px; border-radius: 3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; line-height: 15px; height: 15px; font-weight: 600; }
+  .cal-presence-bar { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 1px 1px 0; }
+  .cal-presence-row { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2px; align-items: center; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -3062,16 +3063,14 @@ function renderCalendar() {
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
 
-    // Presence bars — thin colored lines per vessel
+    // Presence dots — small colored circles per vessel
     if (presentVessels.length > 0) {
-      const maxBars = 3;
-      presentVessels.slice(0, maxBars).forEach(v => {
+      html += '<div class="cal-presence-row">';
+      presentVessels.forEach(v => {
         const color = getVesselColor(v);
-        html += `<div class="cal-presence-bar" style="background:${color};">${v}</div>`;
+        html += `<div class="cal-presence-bar" style="background:${color};" title="${v}"></div>`;
       });
-      if (presentVessels.length > maxBars) {
-        html += `<div class="cal-presence-bar" style="background:var(--gray-500);">+${presentVessels.length - maxBars} more</div>`;
-      }
+      html += '</div>';
     }
 
     if (dayEntries.length > 0) {
@@ -3151,7 +3150,18 @@ function showDayDetail(dateStr) {
       <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">⚓ Vessels in Port</div>
       ${presentVessels.map(v => {
         const color = getVesselColor(v);
-        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${v}</span></div>`;
+        // Find movements for this vessel on this date
+        const vesselMovements = allEntries.filter(e => e.category === 'Vessel Movement' && e.vessel === v && e.serviceDate === dateStr);
+        let movementInfo = '';
+        if (vesselMovements.length > 0) {
+          movementInfo = vesselMovements.map(m => {
+            const icon = m.serviceType === 'Arrival' ? '⚓' : m.serviceType === 'Departure' ? '🚢' : '↔️';
+            const time = m.specialNotes ? m.specialNotes + ' — ' : '';
+            const loc = m.clearedOut && m.clearedIn ? m.clearedOut + ' → ' + m.clearedIn : m.clearedIn || m.clearedOut || '';
+            return `<div style="font-size:11px;color:var(--gray-600);margin-left:16px;padding:1px 0;">${icon} ${time}${m.serviceType}${loc ? ' · ' + loc : ''}</div>`;
+          }).join('');
+        }
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${v}</span></div>${movementInfo}`;
       }).join('')}
     </div>`;
   }
