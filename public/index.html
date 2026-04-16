@@ -954,68 +954,29 @@
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
-        <div class="form-row single">
-          <div class="form-group">
-            <label>Billing Type</label>
-            <div class="billing-type-selector">
-              <button type="button" class="billing-type-btn active" data-type="charged" onclick="selectBillingType('charged')">
-                <div class="icon">💰</div>
-                <div class="label">Charged</div>
-              </button>
-              <button type="button" class="billing-type-btn" data-type="complimentary" onclick="selectBillingType('complimentary')">
-                <div class="icon">🎁</div>
-                <div class="label">Complimentary</div>
-              </button>
-              <button type="button" class="billing-type-btn" data-type="deferred" onclick="selectBillingType('deferred')">
-                <div class="icon">📋</div>
-                <div class="label">Deferred</div>
-              </button>
-            </div>
-            <input type="hidden" id="billingTypeInput" value="charged">
-          </div>
-        </div>
+        <input type="hidden" id="billingTypeInput" value="charged">
+        <input type="hidden" id="billable" value="Yes">
+        <input type="hidden" id="additionalCrewCharge" value="0">
+        <input type="hidden" id="disbursementFee" value="0">
+        <input type="hidden" id="otherCharges" value="0">
         <div id="chargesSection">
           <div class="form-row">
             <div class="form-group">
-              <label>Billable</label>
-              <select id="billable">
-                <option value="">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-            <div class="form-group">
               <label>Currency</label>
-              <select id="currency">
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
+              <select id="currency" onchange="calculateTotal()">
+                <option value="USD">USD ($)</option>
+                <option value="XCD">XCD (EC$)</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label>Base Charge</label>
               <input type="number" id="baseCharge" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
-            <div class="form-group">
-              <label>Additional Crew Charge</label>
-              <input type="number" id="additionalCrewCharge" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Agency Fee</label>
-              <input type="number" id="agencyFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
-            </div>
-            <div class="form-group">
-              <label>Disbursement Fee</label>
-              <input type="number" id="disbursementFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
-            </div>
           </div>
           <div class="form-row single">
             <div class="form-group">
-              <label>Other Charges</label>
-              <input type="number" id="otherCharges" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
+              <label>Agency Fee</label>
+              <input type="number" id="agencyFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
             </div>
           </div>
           <div class="calc-summary">
@@ -1024,24 +985,16 @@
               <span class="calc-value" id="calcBase">0.00</span>
             </div>
             <div class="calc-row">
-              <span class="calc-label">Additional Crew</span>
-              <span class="calc-value" id="calcCrew">0.00</span>
-            </div>
-            <div class="calc-row">
               <span class="calc-label">Agency Fee</span>
               <span class="calc-value" id="calcAgency">0.00</span>
-            </div>
-            <div class="calc-row">
-              <span class="calc-label">Disbursement</span>
-              <span class="calc-value" id="calcDisburse">0.00</span>
-            </div>
-            <div class="calc-row">
-              <span class="calc-label">Other</span>
-              <span class="calc-value" id="calcOther">0.00</span>
             </div>
             <div class="calc-row total">
               <span class="calc-label">Total</span>
               <span class="calc-value" id="calcTotal">0.00</span>
+            </div>
+            <div class="calc-row" style="border-top:1px dashed var(--gray-300);padding-top:8px;margin-top:4px;">
+              <span class="calc-label" style="font-style:italic;" id="calcConvertLabel">Equivalent in XCD</span>
+              <span class="calc-value" style="color:var(--teal);" id="calcConvert">EC$ 0.00</span>
             </div>
           </div>
         </div>
@@ -1260,26 +1213,25 @@
       <!-- Billing -->
       <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
         <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Billing & Charges</h3>
+        <input type="hidden" id="editBillingType" value="charged">
+        <input type="hidden" id="editAdditionalCrewCharge" value="0">
+        <input type="hidden" id="editDisbursementFee" value="0">
+        <input type="hidden" id="editOtherCharges" value="0">
         <div class="form-row">
-          <div class="form-group">
-            <label>Billing Type</label>
-            <select id="editBillingType"><option value="charged">Charged</option><option value="complimentary">Complimentary</option><option value="deferred">Deferred</option></select>
-          </div>
           <div class="form-group">
             <label>Currency</label>
-            <select id="editCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select>
+            <select id="editCurrency" onchange="calculateEditTotal()"><option value="USD">USD ($)</option><option value="XCD">XCD (EC$)</option></select>
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Base Charge</label><input type="number" id="editBaseCharge" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Addl Crew Charge</label><input type="number" id="editAdditionalCrewCharge" min="0" step="0.01" placeholder="0.00"></div>
+          <div class="form-group"><label>Base Charge</label><input type="number" id="editBaseCharge" min="0" step="0.01" placeholder="0.00" oninput="calculateEditTotal()"></div>
+          <div class="form-group"><label>Agency Fee</label><input type="number" id="editAgencyFee" min="0" step="0.01" placeholder="0.00" oninput="calculateEditTotal()"></div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label>Agency Fee</label><input type="number" id="editAgencyFee" min="0" step="0.01" placeholder="0.00"></div>
-          <div class="form-group"><label>Disbursement Fee</label><input type="number" id="editDisbursementFee" min="0" step="0.01" placeholder="0.00"></div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group"><label>Other Charges</label><input type="number" id="editOtherCharges" min="0" step="0.01" placeholder="0.00"></div>
+        <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span>Base Charge</span><span id="editCalcBase">0.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span>Agency Fee</span><span id="editCalcAgency">0.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--navy);border-top:1px solid var(--gray-200);padding-top:8px;margin-top:4px;"><span>Total</span><span id="editCalcTotal">$ 0.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:4px;"><span id="editCalcConvertLabel">Equivalent in XCD</span><span id="editCalcConvert">EC$ 0.00</span></div>
         </div>
       </div>
 
@@ -2253,22 +2205,54 @@ function updateServiceTypes() {
   });
 }
 
+const XCD_RATE = 2.70;
+
 function calculateTotal() {
   const base = parseFloat(document.getElementById('baseCharge').value) || 0;
-  const crew = parseFloat(document.getElementById('additionalCrewCharge').value) || 0;
   const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
-  const disburse = parseFloat(document.getElementById('disbursementFee').value) || 0;
-  const other = parseFloat(document.getElementById('otherCharges').value) || 0;
+  const currency = document.getElementById('currency').value;
 
   document.getElementById('calcBase').textContent = base.toFixed(2);
-  document.getElementById('calcCrew').textContent = crew.toFixed(2);
   document.getElementById('calcAgency').textContent = agency.toFixed(2);
-  document.getElementById('calcDisburse').textContent = disburse.toFixed(2);
-  document.getElementById('calcOther').textContent = other.toFixed(2);
 
-  const total = base + crew + agency + disburse + other;
-  document.getElementById('calcTotal').textContent = total.toFixed(2);
-  document.getElementById('displayTotal').textContent = '$' + total.toFixed(2);
+  const total = base + agency;
+  const symbol = currency === 'XCD' ? 'EC$' : '$';
+  document.getElementById('calcTotal').textContent = symbol + ' ' + total.toFixed(2);
+  document.getElementById('displayTotal').textContent = symbol + ' ' + total.toFixed(2);
+
+  // Show conversion
+  if (currency === 'USD') {
+    const xcd = total * XCD_RATE;
+    document.getElementById('calcConvertLabel').textContent = 'Equivalent in XCD';
+    document.getElementById('calcConvert').textContent = 'EC$ ' + xcd.toFixed(2);
+  } else {
+    const usd = total / XCD_RATE;
+    document.getElementById('calcConvertLabel').textContent = 'Equivalent in USD';
+    document.getElementById('calcConvert').textContent = '$ ' + usd.toFixed(2);
+  }
+}
+
+function calculateEditTotal() {
+  const base = parseFloat(document.getElementById('editBaseCharge').value) || 0;
+  const agency = parseFloat(document.getElementById('editAgencyFee').value) || 0;
+  const currency = document.getElementById('editCurrency').value;
+
+  document.getElementById('editCalcBase').textContent = base.toFixed(2);
+  document.getElementById('editCalcAgency').textContent = agency.toFixed(2);
+
+  const total = base + agency;
+  const symbol = currency === 'XCD' ? 'EC$' : '$';
+  document.getElementById('editCalcTotal').textContent = symbol + ' ' + total.toFixed(2);
+
+  if (currency === 'USD') {
+    const xcd = total * XCD_RATE;
+    document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in XCD';
+    document.getElementById('editCalcConvert').textContent = 'EC$ ' + xcd.toFixed(2);
+  } else {
+    const usd = total / XCD_RATE;
+    document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in USD';
+    document.getElementById('editCalcConvert').textContent = '$ ' + usd.toFixed(2);
+  }
 }
 
 function toggleCustomsDropdown(e) {
@@ -2800,13 +2784,14 @@ function openEditEntry(entryId) {
   document.getElementById('editStatus').value = entry.status || 'upcoming';
   document.getElementById('editWorkCompleted').value = entry.workCompleted || '';
   document.getElementById('editFutureTask').value = entry.futureTask || '';
-  document.getElementById('editBillingType').value = entry.billingType || 'charged';
+  document.getElementById('editBillingType').value = 'charged';
   document.getElementById('editCurrency').value = entry.currency || 'USD';
   document.getElementById('editBaseCharge').value = entry.baseCharge || '';
-  document.getElementById('editAdditionalCrewCharge').value = entry.additionalCrewCharge || '';
+  document.getElementById('editAdditionalCrewCharge').value = 0;
   document.getElementById('editAgencyFee').value = entry.agencyFee || '';
-  document.getElementById('editDisbursementFee').value = entry.disbursementFee || '';
-  document.getElementById('editOtherCharges').value = entry.otherCharges || '';
+  document.getElementById('editDisbursementFee').value = 0;
+  document.getElementById('editOtherCharges').value = 0;
+  calculateEditTotal();
   document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
   document.getElementById('editInternalNotes').value = entry.internalNotes || '';
   document.getElementById('editClientNotes').value = entry.clientNotes || '';
