@@ -300,6 +300,7 @@
   .cal-entry-pip.completed { background: var(--green-light); color: var(--green); }
   .cal-entry-pip.overdue { background: #ffeaea; color: #d32f2f; }
   .cal-entry-pip.accountants { background: #f3e5f5; color: #7b1fa2; }
+  .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -529,7 +530,7 @@
           <div class="form-group">
             <label>Service Type <span class="required">*</span></label>
             <div class="inline-add">
-              <select id="serviceType">
+              <select id="serviceType" onchange="onServiceTypeChange()">
                 <option value="">Select type...</option>
               </select>
               <button class="add-btn" onclick="showAddModal('serviceType')">+</button>
@@ -669,6 +670,68 @@
           <!-- Auto price breakdown -->
           <div id="customsPriceBreakdown" class="customs-auto-price hidden">
             <div id="customsPriceRows"></div>
+          </div>
+        </div>
+
+        <!-- Transfer Details Panel -->
+        <div id="transferPanel" class="hidden" style="margin-top:8px;">
+          <div style="background:var(--gray-50);border-radius:10px;padding:14px;border:1px solid #ffd54f;">
+            <h4 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px;">🚐 Transfer Details</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Driver <span class="required">*</span></label>
+                <select id="transferDriver" class="form-control">
+                  <option value="">Select driver...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Passengers</label>
+                <input type="number" id="transferPaxCount" min="1" value="1" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>From <span class="required">*</span></label>
+                <input type="text" id="transferFrom" placeholder="e.g. V.C. Bird Airport" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>To <span class="required">*</span></label>
+                <input type="text" id="transferTo" placeholder="e.g. Jolly Harbour Marina" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pickup Time <span class="required">*</span></label>
+                <input type="time" id="transferPickupTime" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Vehicle Type</label>
+                <select id="transferVehicleType" class="form-control">
+                  <option value="">Select...</option>
+                  <option>Sedan</option>
+                  <option>SUV</option>
+                  <option>Van</option>
+                  <option>Minibus</option>
+                  <option>Bus</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;flex-direction:row;padding-top:8px;">
+                <input type="checkbox" id="transferIsReturn" style="width:18px;height:18px;accent-color:var(--teal);" onchange="document.getElementById('transferReturnTimeRow').classList.toggle('hidden', !this.checked)">
+                <label for="transferIsReturn" style="margin:0;font-weight:500;color:var(--navy);">Return trip</label>
+              </div>
+              <div class="form-group hidden" id="transferReturnTimeRow">
+                <label>Return Time</label>
+                <input type="time" id="transferReturnTime" class="form-control">
+              </div>
+            </div>
+            <div class="form-row single" style="margin-top:4px;">
+              <div class="form-group">
+                <label>Transfer Notes</label>
+                <textarea id="transferNotes" placeholder="Flight number, special requests..." style="min-height:48px;"></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1196,6 +1259,26 @@
         </div>
       </div>
 
+      <div style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Driver Management</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Driver Name</label>
+            <input type="text" id="newDriverName" placeholder="Driver name">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <div class="inline-add">
+              <input type="tel" id="newDriverPhone" placeholder="Phone number">
+              <button class="add-btn" onclick="addDriver()">+ Add</button>
+            </div>
+          </div>
+        </div>
+        <div id="driverList" style="margin-top:16px;">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+
       <div id="inviteCodeSection" class="hidden" style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:20px;">
         <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Invite Code (Admin)</h3>
         <div class="form-row single">
@@ -1260,6 +1343,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let allEntries = [];
 let allVessels = [];
+let allDrivers = [];
 let isOnline = true;
 
 // ============================================
@@ -1286,6 +1370,7 @@ async function handleLogin() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadDrivers();
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
@@ -1334,6 +1419,7 @@ async function handleSignup() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadDrivers();
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
@@ -1450,6 +1536,84 @@ async function loadVessels() {
   }
 }
 
+async function loadDrivers() {
+  try {
+    const { data, error } = await sb.from('drivers').select('*').eq('is_active', true).order('name');
+    if (error) throw error;
+    allDrivers = data || [];
+    populateDriverSelect();
+    renderDriverList();
+  } catch (err) {
+    console.error('Load drivers error:', err);
+  }
+}
+
+function populateDriverSelect() {
+  const select = document.getElementById('transferDriver');
+  if (!select) return;
+  select.innerHTML = '<option value="">Select driver...</option>';
+  allDrivers.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name + (d.phone ? ' (' + d.phone + ')' : '');
+    select.appendChild(opt);
+  });
+}
+
+function renderDriverList() {
+  const el = document.getElementById('driverList');
+  if (!el) return;
+  if (allDrivers.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--gray-400);">No drivers yet.</p>';
+    return;
+  }
+  el.innerHTML = allDrivers.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;">
+      <div>
+        <span style="font-size:13px;font-weight:500;color:var(--navy);">${d.name}</span>
+        ${d.phone ? `<span style="font-size:11px;color:var(--gray-500);margin-left:8px;">${d.phone}</span>` : ''}
+        ${d.vehicle_type ? `<span style="font-size:11px;color:var(--gray-400);margin-left:8px;">${d.vehicle_type}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="editDriver('${d.id}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button>
+        <button onclick="removeDriver('${d.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addDriver() {
+  const name = document.getElementById('newDriverName').value.trim();
+  const phone = document.getElementById('newDriverPhone').value.trim();
+  if (!name) return showToast('Enter driver name');
+  const { error } = await sb.from('drivers').insert({ name, phone, is_active: true, created_by: currentUser.id });
+  if (error) return showToast('Failed: ' + error.message);
+  document.getElementById('newDriverName').value = '';
+  document.getElementById('newDriverPhone').value = '';
+  await loadDrivers();
+  showToast('Driver added');
+}
+
+async function removeDriver(id) {
+  if (!confirm('Remove this driver?')) return;
+  const { error } = await sb.from('drivers').update({ is_active: false }).eq('id', id);
+  if (error) return showToast('Failed: ' + error.message);
+  await loadDrivers();
+  showToast('Driver removed');
+}
+
+async function editDriver(id) {
+  const driver = allDrivers.find(d => d.id === id);
+  if (!driver) return;
+  const newName = prompt('Driver name:', driver.name);
+  if (!newName || !newName.trim()) return;
+  const newPhone = prompt('Phone number:', driver.phone || '');
+  const { error } = await sb.from('drivers').update({ name: newName.trim(), phone: (newPhone || '').trim() }).eq('id', id);
+  if (error) return showToast('Failed: ' + error.message);
+  await loadDrivers();
+  showToast('Driver updated');
+}
+
 function renderVesselList() {
   const el = document.getElementById('vesselList');
   if (!el) return;
@@ -1521,7 +1685,16 @@ function entryFromDb(row) {
     clientNotes: row.client_notes,
     overrideNote: row.override_note,
     syncedAt: row.updated_at,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    transferDriverId: row.transfer_driver_id,
+    transferFrom: row.transfer_from,
+    transferTo: row.transfer_to,
+    transferPickupTime: row.transfer_pickup_time,
+    transferReturnTime: row.transfer_return_time,
+    transferIsReturn: row.transfer_is_return,
+    transferPaxCount: row.transfer_pax_count,
+    transferVehicleType: row.transfer_vehicle_type,
+    transferNotes: row.transfer_notes
   };
 }
 
@@ -1559,7 +1732,16 @@ function entryToDb(entry) {
     special_notes: entry.specialNotes,
     internal_notes: entry.internalNotes,
     client_notes: entry.clientNotes,
-    override_note: entry.overrideNote
+    override_note: entry.overrideNote,
+    transfer_driver_id: entry.transferDriverId || null,
+    transfer_from: entry.transferFrom || '',
+    transfer_to: entry.transferTo || '',
+    transfer_pickup_time: entry.transferPickupTime || '',
+    transfer_return_time: entry.transferReturnTime || '',
+    transfer_is_return: entry.transferIsReturn || false,
+    transfer_pax_count: parseInt(entry.transferPaxCount) || 0,
+    transfer_vehicle_type: entry.transferVehicleType || '',
+    transfer_notes: entry.transferNotes || ''
   };
 }
 
@@ -1735,7 +1917,16 @@ function gatherFormData() {
     specialNotes: document.getElementById('specialNotes').value,
     internalNotes: document.getElementById('internalNotes').value,
     clientNotes: document.getElementById('clientNotes').value,
-    overrideNote: document.getElementById('overrideNote').value
+    overrideNote: document.getElementById('overrideNote').value,
+    transferDriverId: document.getElementById('transferDriver')?.value || '',
+    transferFrom: document.getElementById('transferFrom')?.value || '',
+    transferTo: document.getElementById('transferTo')?.value || '',
+    transferPickupTime: document.getElementById('transferPickupTime')?.value || '',
+    transferReturnTime: document.getElementById('transferReturnTime')?.value || '',
+    transferIsReturn: document.getElementById('transferIsReturn')?.checked || false,
+    transferPaxCount: document.getElementById('transferPaxCount')?.value || 0,
+    transferVehicleType: document.getElementById('transferVehicleType')?.value || '',
+    transferNotes: document.getElementById('transferNotes')?.value || ''
   };
 }
 
@@ -1768,6 +1959,14 @@ function validateEntry(entry) {
       if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Outbound requires a "Cleared in at" location' };
       if (!document.getElementById('clearedOut').value) return { valid: false, message: 'Outbound requires a "Cleared out at" location' };
     }
+  }
+
+  // Transfer validation
+  if (entry.serviceType === 'Crew Transfer' || entry.serviceType === 'Guest Transfer') {
+    if (!entry.transferDriverId) return { valid: false, message: 'Please select a driver' };
+    if (!entry.transferFrom) return { valid: false, message: 'Please enter pickup location' };
+    if (!entry.transferTo) return { valid: false, message: 'Please enter destination' };
+    if (!entry.transferPickupTime) return { valid: false, message: 'Please enter pickup time' };
   }
 
   return { valid: true };
@@ -1805,6 +2004,18 @@ function resetForm() {
   document.getElementById('internalNotes').value = '';
   document.getElementById('clientNotes').value = '';
   document.getElementById('overrideNote').value = '';
+  // Reset transfer fields
+  if (document.getElementById('transferDriver')) document.getElementById('transferDriver').value = '';
+  if (document.getElementById('transferFrom')) document.getElementById('transferFrom').value = '';
+  if (document.getElementById('transferTo')) document.getElementById('transferTo').value = '';
+  if (document.getElementById('transferPickupTime')) document.getElementById('transferPickupTime').value = '';
+  if (document.getElementById('transferReturnTime')) document.getElementById('transferReturnTime').value = '';
+  if (document.getElementById('transferIsReturn')) document.getElementById('transferIsReturn').checked = false;
+  if (document.getElementById('transferPaxCount')) document.getElementById('transferPaxCount').value = '1';
+  if (document.getElementById('transferVehicleType')) document.getElementById('transferVehicleType').value = '';
+  if (document.getElementById('transferNotes')) document.getElementById('transferNotes').value = '';
+  document.getElementById('transferPanel').classList.add('hidden');
+  if (document.getElementById('transferReturnTimeRow')) document.getElementById('transferReturnTimeRow').classList.add('hidden');
   calculateTotal();
 }
 
@@ -1858,15 +2069,23 @@ function updateBillingTypeBtns() {
   });
 }
 
+function onServiceTypeChange() {
+  const type = document.getElementById('serviceType').value;
+  const isTransfer = (type === 'Crew Transfer' || type === 'Guest Transfer');
+  document.getElementById('transferPanel').classList.toggle('hidden', !isTransfer);
+}
+
 function updateServiceTypes() {
   const category = document.getElementById('serviceCategory').value;
   const typeSelect = document.getElementById('serviceType');
   const customsPanel = document.getElementById('customsServicesPanel');
+  const transferPanel = document.getElementById('transferPanel');
   const typeGroup = typeSelect.closest('.form-group');
   const isCustoms = category === 'Customs & Immigration';
 
   // Toggle customs panel vs regular dropdown
   customsPanel.classList.toggle('hidden', !isCustoms);
+  transferPanel.classList.add('hidden');
   typeGroup.style.display = isCustoms ? 'none' : '';
   window.isCustomsCategory = isCustoms;
 
@@ -1880,7 +2099,7 @@ function updateServiceTypes() {
     'Provisioning & Sourcing': ['Food', 'Beverages', 'Supplies', 'Equipment'],
     'Crew Services': ['Crew Change', 'Training', 'Recruitment', 'Medical'],
     'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance'],
-    'Airport & Transport': ['Airport Transfer', 'Car Rental', 'Taxi', 'Courier'],
+    'Airport & Transport': ['Crew Transfer', 'Guest Transfer', 'Airport Transfer', 'Car Rental', 'Taxi', 'Courier'],
     'Brokerage': ['Charter', 'Sale', 'Purchase', 'Valuation'],
     'General Support': ['Concierge', 'Admin', 'Other']
   };
@@ -2159,6 +2378,7 @@ function populateVesselSelect() {
 
 function openSettingsModal() {
   document.getElementById('settingsModal').classList.remove('hidden');
+  renderDriverList();
   const section = document.getElementById('inviteCodeSection');
   if (currentUser && currentUser.role === 'admin') {
     section.classList.remove('hidden');
@@ -2312,8 +2532,10 @@ function renderCalendar() {
       html += '<div class="cal-dots">';
       const maxShow = 3;
       dayEntries.slice(0, maxShow).forEach(e => {
-        const statusClass = e.status === 'in-progress' ? 'progress' : e.status === 'overdue' ? 'overdue' : e.status === 'completed' ? 'completed' : 'upcoming';
-        html += `<div class="cal-entry-pip ${statusClass}">${e.vessel || e.entryId}</div>`;
+        const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
+        const statusClass = isTransfer ? 'transfer' : (e.status === 'in-progress' ? 'progress' : e.status === 'overdue' ? 'overdue' : e.status === 'completed' ? 'completed' : 'upcoming');
+        const label = isTransfer ? `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim() : (e.vessel || e.entryId);
+        html += `<div class="cal-entry-pip ${statusClass}">${label}</div>`;
       });
       if (dayEntries.length > maxShow) {
         html += `<div class="cal-more">+${dayEntries.length - maxShow} more</div>`;
@@ -2365,12 +2587,26 @@ function showDayDetail(dateStr) {
       const statusClass = e.status === 'in-progress' ? 'progress' : e.status;
       const statusColors = { upcoming: 'var(--blue)', 'in-progress': 'var(--orange)', completed: 'var(--green)', overdue: '#d32f2f' };
       const bgColors = { upcoming: '#e8f0ff', 'in-progress': 'var(--orange-light)', completed: 'var(--green-light)', overdue: '#ffeaea' };
-      return `<div class="day-job" onclick="openEditEntry('${e.entryId}')" style="cursor:pointer;" title="Click to edit">
+      const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
+      const driver = isTransfer && e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
+      const transferInfo = isTransfer ? `
+        <div style="background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12px;">
+          <div style="font-weight:600;color:#f9a825;">🚐 ${e.serviceType}</div>
+          ${e.transferPickupTime ? `<div>Pickup: ${e.transferPickupTime}</div>` : ''}
+          ${e.transferFrom || e.transferTo ? `<div>${e.transferFrom || '?'} → ${e.transferTo || '?'}</div>` : ''}
+          ${driver ? `<div>Driver: ${driver.name}${driver.phone ? ' (' + driver.phone + ')' : ''}</div>` : ''}
+          ${e.transferPaxCount ? `<div>Passengers: ${e.transferPaxCount}</div>` : ''}
+          ${e.transferIsReturn && e.transferReturnTime ? `<div>Return: ${e.transferReturnTime}</div>` : ''}
+          ${e.transferNotes ? `<div style="margin-top:4px;color:var(--gray-600);">${e.transferNotes}</div>` : ''}
+        </div>
+      ` : '';
+      return `<div class="day-job" onclick="openEditEntry('${e.entryId}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to edit">
         <div class="day-job-header">
           <span class="day-job-title">${e.entryId} — ${e.vessel || 'Unknown Vessel'}</span>
-          <span class="day-job-status" style="background:${bgColors[e.status] || '#e8f0ff'};color:${statusColors[e.status] || 'var(--blue)'}">${e.status}</span>
+          <span class="day-job-status" style="background:${isTransfer ? '#fff8e1' : (bgColors[e.status] || '#e8f0ff')};color:${isTransfer ? '#f9a825' : (statusColors[e.status] || 'var(--blue)')}">${isTransfer ? e.serviceType : e.status}</span>
         </div>
         <div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>
+        ${transferInfo}
         ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
         ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
         <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>
@@ -2578,6 +2814,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('authGate').classList.add('hidden');
     await loadEntries();
     await loadVessels();
+    await loadDrivers();
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
