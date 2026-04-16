@@ -301,6 +301,9 @@
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
+  .cal-cell.vessel-present { background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); }
+  .cal-cell.vessel-present.today { background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); }
+  .cal-presence-bar { font-size: 9px; padding: 1px 4px; border-radius: 2px; background: #00695c; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; opacity: 0.85; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -2923,6 +2926,76 @@ function exportXLSX() {
 let calendarMonth = new Date().getMonth();
 let calendarYear = new Date().getFullYear();
 
+// ========== VESSEL PRESENCE ==========
+
+function getVesselPresenceRanges(vesselName) {
+  // Get all movements for this vessel, sorted by date+time
+  const movements = allEntries
+    .filter(e => e.category === 'Vessel Movement' && e.vessel === vesselName && (e.serviceType === 'Arrival' || e.serviceType === 'Departure'))
+    .sort((a, b) => {
+      if (a.serviceDate !== b.serviceDate) return a.serviceDate < b.serviceDate ? -1 : 1;
+      const tA = a.specialNotes || '00:00';
+      const tB = b.specialNotes || '00:00';
+      return tA < tB ? -1 : 1;
+    });
+
+  const ranges = [];
+  let currentStart = null;
+
+  for (const mv of movements) {
+    if (mv.serviceType === 'Arrival') {
+      if (!currentStart) currentStart = mv.serviceDate;
+      // Multiple arrivals in a row = continuous presence, keep earliest start
+    } else if (mv.serviceType === 'Departure') {
+      if (currentStart) {
+        ranges.push({ start: currentStart, end: mv.serviceDate, vessel: vesselName });
+        currentStart = null;
+      }
+      // Departure without prior arrival = ignore
+    }
+  }
+
+  // Open-ended: arrival with no departure
+  if (currentStart) {
+    ranges.push({ start: currentStart, end: null, vessel: vesselName });
+  }
+
+  return ranges;
+}
+
+function getAllPresenceForMonth(year, month) {
+  // Get unique vessels with movements
+  const movementVessels = [...new Set(allEntries
+    .filter(e => e.category === 'Vessel Movement')
+    .map(e => e.vessel)
+  )];
+
+  // Precompute all ranges
+  const allRanges = [];
+  movementVessels.forEach(v => {
+    getVesselPresenceRanges(v).forEach(r => allRanges.push(r));
+  });
+
+  // Build a map of dateStr → [vessel names present]
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const presenceMap = {};
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const vessels = [];
+    for (const r of allRanges) {
+      if (dateStr >= r.start && (r.end === null || dateStr <= r.end)) {
+        vessels.push(r.vessel);
+      }
+    }
+    if (vessels.length > 0) {
+      presenceMap[dateStr] = vessels;
+    }
+  }
+
+  return presenceMap;
+}
+
 function previousMonth() {
   calendarMonth--;
   if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
@@ -2949,6 +3022,9 @@ function renderCalendar() {
   const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
   const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
 
+  // Precompute presence for this month
+  const presenceMap = getAllPresenceForMonth(calendarYear, calendarMonth);
+
   let html = '';
   // Day-of-week headers
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
@@ -2966,11 +3042,24 @@ function renderCalendar() {
     const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
     const isToday = dateStr === todayStr;
+    const presentVessels = presenceMap[dateStr] || [];
     const classes = ['cal-cell'];
     if (isToday) classes.push('today');
+    if (presentVessels.length > 0) classes.push('vessel-present');
 
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
+
+    // Presence bars (show which vessels are in port)
+    if (presentVessels.length > 0) {
+      const maxBars = 2;
+      presentVessels.slice(0, maxBars).forEach(v => {
+        html += `<div class="cal-presence-bar">⚓ ${v}</div>`;
+      });
+      if (presentVessels.length > maxBars) {
+        html += `<div class="cal-presence-bar" style="opacity:0.6;">+${presentVessels.length - maxBars} more</div>`;
+      }
+    }
 
     if (dayEntries.length > 0) {
       html += '<div class="cal-dots">';
@@ -3017,6 +3106,10 @@ function showDayDetail(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const formatted = d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+  // Check vessel presence for this date
+  const presenceMap = getAllPresenceForMonth(d.getFullYear(), d.getMonth());
+  const presentVessels = presenceMap[dateStr] || [];
+
   // Update header
   document.getElementById('dayDetailDate').textContent = formatted;
 
@@ -3033,14 +3126,26 @@ function showDayDetail(dateStr) {
     ${completed ? `<div class="day-stat"><div class="num" style="color:var(--green)">${completed}</div><div class="label">Completed</div></div>` : ''}
     ${overdue ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${overdue}</div><div class="label">Overdue</div></div>` : ''}
     ${cancelled ? `<div class="day-stat"><div class="num" style="color:var(--gray-600)">${cancelled}</div><div class="label">Cancelled</div></div>` : ''}
+    ${presentVessels.length > 0 ? `<div class="day-stat"><div class="num" style="color:#00695c">⚓ ${presentVessels.length}</div><div class="label">In Port</div></div>` : ''}
   `;
 
   // Update list
   const listEl = document.getElementById('dayDetailList');
-  if (dayEntries.length === 0) {
-    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services scheduled for this day.</div>';
+  // Vessel presence banner
+  let presenceHtml = '';
+  if (presentVessels.length > 0) {
+    presenceHtml = `<div style="background:#e0f2f1;border:1px solid #80cbc4;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:600;color:#00695c;margin-bottom:4px;">⚓ Vessels in Port</div>
+      ${presentVessels.map(v => `<div style="font-size:13px;color:#004d40;padding:2px 0;">${v}</div>`).join('')}
+    </div>`;
+  }
+
+  if (dayEntries.length === 0 && presentVessels.length === 0) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services or vessels for this day.</div>';
+  } else if (dayEntries.length === 0) {
+    listEl.innerHTML = presenceHtml;
   } else {
-    listEl.innerHTML = dayEntries.map(e => {
+    listEl.innerHTML = presenceHtml + dayEntries.map(e => {
       const cs = computeStatus(e);
       const statusClass = cs;
       const statusColors = { upcoming: 'var(--blue)', completed: 'var(--green)', overdue: '#d32f2f', cancelled: 'var(--gray-600)' };
