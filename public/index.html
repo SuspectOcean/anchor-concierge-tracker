@@ -391,7 +391,10 @@
       </div>
       <div class="auth-group">
         <label>Password</label>
-        <input type="password" id="authPassword" placeholder="••••••••">
+        <div style="position:relative;">
+          <input type="password" id="authPassword" placeholder="••••••••" style="padding-right:70px;">
+          <button type="button" onclick="toggleShowPassword('authPassword',this)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--gray-100);border:1px solid var(--gray-300);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--gray-700);">Show</button>
+        </div>
       </div>
       <div class="auth-buttons">
         <button class="btn-auth btn-auth-primary" onclick="handleLogin()">Sign In</button>
@@ -417,7 +420,10 @@
       </div>
       <div class="auth-group">
         <label>Password</label>
-        <input type="password" id="signupPassword" placeholder="••••••••">
+        <div style="position:relative;">
+          <input type="password" id="signupPassword" placeholder="••••••••" style="padding-right:70px;">
+          <button type="button" onclick="toggleShowPassword('signupPassword',this)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--gray-100);border:1px solid var(--gray-300);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--gray-700);">Show</button>
+        </div>
       </div>
       <div class="auth-buttons">
         <button class="btn-auth btn-auth-primary" onclick="handleSignup()">Create Account</button>
@@ -1352,6 +1358,18 @@
 const SUPABASE_URL = 'https://ahgrdvxrxaghnjqudwib.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoZ3JkdnhyeGFnaG5qcXVkd2liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTc1NzMsImV4cCI6MjA5MTYzMzU3M30.0S-gf62DmqYkR-jGYnDezUBuedITuoHrEk97nkw-HYw';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function toggleShowPassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+    setTimeout(() => { input.type = 'password'; btn.textContent = 'Show'; }, 30000);
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
 
 let currentUser = null;
 let allEntries = [];
