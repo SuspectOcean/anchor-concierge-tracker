@@ -958,7 +958,6 @@
         <input type="hidden" id="billable" value="Yes">
         <input type="hidden" id="additionalCrewCharge" value="0">
         <input type="hidden" id="disbursementFee" value="0">
-        <input type="hidden" id="otherCharges" value="0">
         <div id="chargesSection">
           <div class="form-row">
             <div class="form-group">
@@ -968,26 +967,38 @@
                 <option value="XCD">XCD (EC$)</option>
               </select>
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
-              <label>Base Charge</label>
-              <input type="number" id="baseCharge" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
+              <label>Rate per Hour</label>
+              <input type="number" id="hourlyRate" min="0" step="0.01" value="80" placeholder="80.00" oninput="calculateTotal()">
+            </div>
+            <div class="form-group">
+              <label>Hours</label>
+              <input type="number" id="serviceHours" min="0" step="0.5" placeholder="0" oninput="calculateTotal()">
             </div>
           </div>
           <div class="form-row single">
             <div class="form-group">
               <label>Agency Fee</label>
-              <input type="number" id="agencyFee" min="0" step="0.01" placeholder="0.00" onchange="calculateTotal()" oninput="calculateTotal()">
+              <input type="number" id="agencyFee" min="0" step="0.01" placeholder="0.00" oninput="calculateTotal()">
             </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--gray-600);letter-spacing:0.5px;">Additional Costs</label>
+            <div id="additionalCostsContainer"></div>
+            <button type="button" onclick="addAdditionalCost()" style="margin-top:6px;background:none;border:1px dashed var(--gray-300);color:var(--teal);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;">+ Add Cost</button>
           </div>
           <div class="calc-summary">
             <div class="calc-row">
-              <span class="calc-label">Base Charge</span>
+              <span class="calc-label" id="calcBaseLabel">Base (0 hrs × $80.00)</span>
               <span class="calc-value" id="calcBase">0.00</span>
             </div>
             <div class="calc-row">
               <span class="calc-label">Agency Fee</span>
               <span class="calc-value" id="calcAgency">0.00</span>
             </div>
+            <div id="calcAdditionalRows"></div>
             <div class="calc-row total">
               <span class="calc-label">Total</span>
               <span class="calc-value" id="calcTotal">0.00</span>
@@ -1224,12 +1235,21 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Base Charge</label><input type="number" id="editBaseCharge" min="0" step="0.01" placeholder="0.00" oninput="calculateEditTotal()"></div>
+          <div class="form-group"><label>Rate per Hour</label><input type="number" id="editHourlyRate" min="0" step="0.01" value="80" placeholder="80.00" oninput="calculateEditTotal()"></div>
+          <div class="form-group"><label>Hours</label><input type="number" id="editServiceHours" min="0" step="0.5" placeholder="0" oninput="calculateEditTotal()"></div>
+        </div>
+        <div class="form-row single">
           <div class="form-group"><label>Agency Fee</label><input type="number" id="editAgencyFee" min="0" step="0.01" placeholder="0.00" oninput="calculateEditTotal()"></div>
         </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--gray-600);letter-spacing:0.5px;">Additional Costs</label>
+          <div id="editAdditionalCostsContainer"></div>
+          <button type="button" onclick="addAdditionalCost('','',document.getElementById('editAdditionalCostsContainer'),'edit-')" style="margin-top:6px;background:none;border:1px dashed var(--gray-300);color:var(--teal);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;">+ Add Cost</button>
+        </div>
         <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-top:8px;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span>Base Charge</span><span id="editCalcBase">0.00</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span id="editCalcBaseLabel">Base (0 hrs × $80.00)</span><span id="editCalcBase">0.00</span></div>
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span>Agency Fee</span><span id="editCalcAgency">0.00</span></div>
+          <div id="editCalcAdditionalRows"></div>
           <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--navy);border-top:1px solid var(--gray-200);padding-top:8px;margin-top:4px;"><span>Total</span><span id="editCalcTotal">$ 0.00</span></div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:4px;"><span id="editCalcConvertLabel">Equivalent in XCD</span><span id="editCalcConvert">EC$ 0.00</span></div>
         </div>
@@ -1993,16 +2013,16 @@ function gatherFormData() {
     billingType: document.getElementById('billingTypeInput').value,
     billable: document.getElementById('billable').value,
     currency: document.getElementById('currency').value,
-    baseCharge: document.getElementById('baseCharge').value,
-    additionalCrewCharge: document.getElementById('additionalCrewCharge').value,
+    baseCharge: ((parseFloat(document.getElementById('hourlyRate').value) || 0) * (parseFloat(document.getElementById('serviceHours').value) || 0)).toFixed(2),
+    additionalCrewCharge: 0,
     agencyFee: document.getElementById('agencyFee').value,
-    disbursementFee: document.getElementById('disbursementFee').value,
-    otherCharges: document.getElementById('otherCharges').value,
-    totalCharge: document.getElementById('calcTotal').textContent.replace('$', ''),
+    disbursementFee: 0,
     specialNotes: document.getElementById('specialNotes').value,
     internalNotes: document.getElementById('internalNotes').value,
     clientNotes: document.getElementById('clientNotes').value,
-    overrideNote: document.getElementById('overrideNote').value,
+    otherCharges: 0,
+    overrideNote: '',
+    totalCharge: 0,
     transferDriverId: document.getElementById('transferDriver')?.value || '',
     transferFrom: document.getElementById('transferFrom')?.value || '',
     transferTo: document.getElementById('transferTo')?.value || '',
@@ -2017,6 +2037,14 @@ function gatherFormData() {
     transferFlightNumber: document.getElementById('transferFlightNumber')?.value || '',
     transferFlightArrival: document.getElementById('transferFlightArrival')?.value || ''
   };
+
+  // Additional costs → sum in otherCharges, JSON in overrideNote
+  const costs = getAdditionalCosts();
+  entry.otherCharges = costs.reduce((s, c) => s + c.amount, 0).toFixed(2);
+  entry.overrideNote = costs.length > 0 ? JSON.stringify(costs) : '';
+  entry.totalCharge = ((parseFloat(entry.baseCharge) || 0) + (parseFloat(entry.agencyFee) || 0) + (parseFloat(entry.otherCharges) || 0)).toFixed(2);
+
+  return entry;
 }
 
 function validateEntry(entry) {
@@ -2079,11 +2107,11 @@ function resetForm() {
   updateBillingTypeBtns();
   document.getElementById('billable').value = '';
   document.getElementById('currency').value = 'USD';
-  document.getElementById('baseCharge').value = '';
-  document.getElementById('additionalCrewCharge').value = '';
+  document.getElementById('hourlyRate').value = '80';
+  document.getElementById('serviceHours').value = '';
   document.getElementById('agencyFee').value = '';
-  document.getElementById('disbursementFee').value = '';
-  document.getElementById('otherCharges').value = '';
+  document.getElementById('additionalCostsContainer').innerHTML = '';
+  calculateTotal();
   document.getElementById('specialNotes').value = '';
   document.getElementById('internalNotes').value = '';
   document.getElementById('clientNotes').value = '';
@@ -2207,51 +2235,106 @@ function updateServiceTypes() {
 
 const XCD_RATE = 2.70;
 
+let additionalCostCounter = 0;
+
+function addAdditionalCost(label, amount, container, prefix) {
+  const ctr = container || document.getElementById('additionalCostsContainer');
+  const pfx = prefix || '';
+  const idx = additionalCostCounter++;
+  const row = document.createElement('div');
+  row.className = 'form-row';
+  row.style.marginBottom = '6px';
+  row.style.alignItems = 'end';
+  row.innerHTML = `
+    <div class="form-group" style="flex:2;margin-bottom:0;">
+      <input type="text" class="${pfx}addcost-label" placeholder="Description" value="${label || ''}" style="font-size:14px;">
+    </div>
+    <div class="form-group" style="flex:1;margin-bottom:0;">
+      <input type="number" class="${pfx}addcost-amount" min="0" step="0.01" placeholder="0.00" value="${amount || ''}" oninput="${pfx ? 'calculateEditTotal()' : 'calculateTotal()'}">
+    </div>
+    <button type="button" onclick="this.parentElement.remove();${pfx ? 'calculateEditTotal()' : 'calculateTotal()'}" style="background:none;border:none;color:#d32f2f;cursor:pointer;font-size:18px;padding:4px 8px;margin-bottom:2px;">&times;</button>
+  `;
+  ctr.appendChild(row);
+  return row;
+}
+
+function getAdditionalCosts(prefix) {
+  const pfx = prefix || '';
+  const labels = document.querySelectorAll('.' + pfx + 'addcost-label');
+  const amounts = document.querySelectorAll('.' + pfx + 'addcost-amount');
+  const costs = [];
+  labels.forEach((el, i) => {
+    const label = el.value.trim();
+    const amount = parseFloat(amounts[i].value) || 0;
+    if (label || amount > 0) costs.push({ label, amount });
+  });
+  return costs;
+}
+
 function calculateTotal() {
-  const base = parseFloat(document.getElementById('baseCharge').value) || 0;
+  const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+  const hours = parseFloat(document.getElementById('serviceHours').value) || 0;
+  const base = rate * hours;
   const agency = parseFloat(document.getElementById('agencyFee').value) || 0;
   const currency = document.getElementById('currency').value;
+  const symbol = currency === 'XCD' ? 'EC$' : '$';
 
+  document.getElementById('calcBaseLabel').textContent = 'Base (' + hours + ' hrs × ' + symbol + rate.toFixed(2) + ')';
   document.getElementById('calcBase').textContent = base.toFixed(2);
   document.getElementById('calcAgency').textContent = agency.toFixed(2);
 
-  const total = base + agency;
-  const symbol = currency === 'XCD' ? 'EC$' : '$';
+  const costs = getAdditionalCosts();
+  let addTotal = 0;
+  const addRowsEl = document.getElementById('calcAdditionalRows');
+  addRowsEl.innerHTML = '';
+  costs.forEach(c => {
+    addTotal += c.amount;
+    addRowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + (c.label || 'Additional') + '</span><span class="calc-value">' + c.amount.toFixed(2) + '</span></div>';
+  });
+
+  const total = base + agency + addTotal;
   document.getElementById('calcTotal').textContent = symbol + ' ' + total.toFixed(2);
   document.getElementById('displayTotal').textContent = symbol + ' ' + total.toFixed(2);
 
-  // Show conversion
   if (currency === 'USD') {
-    const xcd = total * XCD_RATE;
     document.getElementById('calcConvertLabel').textContent = 'Equivalent in XCD';
-    document.getElementById('calcConvert').textContent = 'EC$ ' + xcd.toFixed(2);
+    document.getElementById('calcConvert').textContent = 'EC$ ' + (total * XCD_RATE).toFixed(2);
   } else {
-    const usd = total / XCD_RATE;
     document.getElementById('calcConvertLabel').textContent = 'Equivalent in USD';
-    document.getElementById('calcConvert').textContent = '$ ' + usd.toFixed(2);
+    document.getElementById('calcConvert').textContent = '$ ' + (total / XCD_RATE).toFixed(2);
   }
 }
 
 function calculateEditTotal() {
-  const base = parseFloat(document.getElementById('editBaseCharge').value) || 0;
+  const rate = parseFloat(document.getElementById('editHourlyRate').value) || 0;
+  const hours = parseFloat(document.getElementById('editServiceHours').value) || 0;
+  const base = rate * hours;
   const agency = parseFloat(document.getElementById('editAgencyFee').value) || 0;
   const currency = document.getElementById('editCurrency').value;
+  const symbol = currency === 'XCD' ? 'EC$' : '$';
 
+  document.getElementById('editCalcBaseLabel').textContent = 'Base (' + hours + ' hrs × ' + symbol + rate.toFixed(2) + ')';
   document.getElementById('editCalcBase').textContent = base.toFixed(2);
   document.getElementById('editCalcAgency').textContent = agency.toFixed(2);
 
-  const total = base + agency;
-  const symbol = currency === 'XCD' ? 'EC$' : '$';
+  const costs = getAdditionalCosts('edit-');
+  let addTotal = 0;
+  const addRowsEl = document.getElementById('editCalcAdditionalRows');
+  addRowsEl.innerHTML = '';
+  costs.forEach(c => {
+    addTotal += c.amount;
+    addRowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + (c.label || 'Additional') + '</span><span class="calc-value">' + c.amount.toFixed(2) + '</span></div>';
+  });
+
+  const total = base + agency + addTotal;
   document.getElementById('editCalcTotal').textContent = symbol + ' ' + total.toFixed(2);
 
   if (currency === 'USD') {
-    const xcd = total * XCD_RATE;
     document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in XCD';
-    document.getElementById('editCalcConvert').textContent = 'EC$ ' + xcd.toFixed(2);
+    document.getElementById('editCalcConvert').textContent = 'EC$ ' + (total * XCD_RATE).toFixed(2);
   } else {
-    const usd = total / XCD_RATE;
     document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in USD';
-    document.getElementById('editCalcConvert').textContent = '$ ' + usd.toFixed(2);
+    document.getElementById('editCalcConvert').textContent = '$ ' + (total / XCD_RATE).toFixed(2);
   }
 }
 
@@ -2411,8 +2494,9 @@ function recalcCustoms() {
     breakdownEl.classList.add('hidden');
   }
 
-  // Push total to billing fields
-  document.getElementById('baseCharge').value = total.toFixed(2);
+  // Push total to billing fields as hours
+  const rate = parseFloat(document.getElementById('hourlyRate').value) || 80;
+  document.getElementById('serviceHours').value = (total / rate).toFixed(2);
   calculateTotal();
 }
 
@@ -2786,11 +2870,24 @@ function openEditEntry(entryId) {
   document.getElementById('editFutureTask').value = entry.futureTask || '';
   document.getElementById('editBillingType').value = 'charged';
   document.getElementById('editCurrency').value = entry.currency || 'USD';
-  document.getElementById('editBaseCharge').value = entry.baseCharge || '';
+  // Restore rate + hours from baseCharge
+  const storedBase = parseFloat(entry.baseCharge) || 0;
+  const defaultRate = 80;
+  const derivedHours = storedBase > 0 ? (storedBase / defaultRate) : 0;
+  document.getElementById('editHourlyRate').value = defaultRate;
+  document.getElementById('editServiceHours').value = derivedHours > 0 ? derivedHours : '';
   document.getElementById('editAdditionalCrewCharge').value = 0;
   document.getElementById('editAgencyFee').value = entry.agencyFee || '';
   document.getElementById('editDisbursementFee').value = 0;
   document.getElementById('editOtherCharges').value = 0;
+  // Restore additional costs from overrideNote JSON
+  document.getElementById('editAdditionalCostsContainer').innerHTML = '';
+  try {
+    const costsData = JSON.parse(entry.overrideNote || '[]');
+    if (Array.isArray(costsData)) {
+      costsData.forEach(c => addAdditionalCost(c.label, c.amount, document.getElementById('editAdditionalCostsContainer'), 'edit-'));
+    }
+  } catch(e) { /* not JSON, ignore */ }
   calculateEditTotal();
   document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
   document.getElementById('editInternalNotes').value = entry.internalNotes || '';
@@ -2821,22 +2918,22 @@ async function saveEditedEntry() {
     futureTask: document.getElementById('editFutureTask').value,
     billingType: document.getElementById('editBillingType').value,
     currency: document.getElementById('editCurrency').value,
-    baseCharge: document.getElementById('editBaseCharge').value,
-    additionalCrewCharge: document.getElementById('editAdditionalCrewCharge').value,
+    baseCharge: ((parseFloat(document.getElementById('editHourlyRate').value) || 0) * (parseFloat(document.getElementById('editServiceHours').value) || 0)).toFixed(2),
+    additionalCrewCharge: 0,
     agencyFee: document.getElementById('editAgencyFee').value,
-    disbursementFee: document.getElementById('editDisbursementFee').value,
-    otherCharges: document.getElementById('editOtherCharges').value,
+    disbursementFee: 0,
     specialNotes: document.getElementById('editSpecialNotes').value,
     internalNotes: document.getElementById('editInternalNotes').value,
     clientNotes: document.getElementById('editClientNotes').value,
-    overrideNote: document.getElementById('editOverrideNote').value
   };
+  // Additional costs → sum in otherCharges, JSON detail in overrideNote
+  const editCosts = getAdditionalCosts('edit-');
+  updated.otherCharges = editCosts.reduce((s, c) => s + c.amount, 0).toFixed(2);
+  updated.overrideNote = editCosts.length > 0 ? JSON.stringify(editCosts) : '';
 
   // Calc total
   updated.totalCharge = (parseFloat(updated.baseCharge) || 0) +
-    (parseFloat(updated.additionalCrewCharge) || 0) +
     (parseFloat(updated.agencyFee) || 0) +
-    (parseFloat(updated.disbursementFee) || 0) +
     (parseFloat(updated.otherCharges) || 0);
 
   try {
