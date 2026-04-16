@@ -680,9 +680,12 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Driver <span class="required">*</span></label>
-                <select id="transferDriver" class="form-control">
-                  <option value="">Select driver...</option>
-                </select>
+                <div class="inline-add">
+                  <select id="transferDriver" class="form-control">
+                    <option value="">Select driver...</option>
+                  </select>
+                  <button type="button" class="add-btn" onclick="quickAddDriver()" style="padding:10px 12px;">+ Add</button>
+                </div>
               </div>
               <div class="form-group">
                 <label>Passengers</label>
@@ -724,6 +727,16 @@
               <div class="form-group hidden" id="transferReturnTimeRow">
                 <label>Return Time</label>
                 <input type="time" id="transferReturnTime" class="form-control">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="display:flex;align-items:center;gap:10px;flex-direction:row;padding-top:8px;">
+                <input type="checkbox" id="transferExtraVehicle" style="width:18px;height:18px;accent-color:var(--teal);" onchange="document.getElementById('transferExtraVehicleCountRow').classList.toggle('hidden', !this.checked)">
+                <label for="transferExtraVehicle" style="margin:0;font-weight:500;color:var(--navy);">Extra vehicle for luggage</label>
+              </div>
+              <div class="form-group hidden" id="transferExtraVehicleCountRow">
+                <label>Extra Vehicles</label>
+                <input type="number" id="transferExtraVehicleCount" min="1" value="1" class="form-control">
               </div>
             </div>
             <div class="form-row single" style="margin-top:4px;">
@@ -1081,7 +1094,7 @@
               <option>Crew Services</option>
               <option>Berth & Marina</option>
               <option>Consulting & Admin</option>
-              <option>Airport & Transport</option>
+              <option>Transfer</option>
               <option>Brokerage</option>
               <option>General Support</option>
             </select>
@@ -1614,6 +1627,19 @@ async function editDriver(id) {
   showToast('Driver updated');
 }
 
+async function quickAddDriver() {
+  const name = prompt('Driver name:');
+  if (!name || !name.trim()) return;
+  const phone = prompt('Phone number (optional):');
+  const { data, error } = await sb.from('drivers').insert({ name: name.trim(), phone: (phone || '').trim(), is_active: true, created_by: currentUser.id }).select().single();
+  if (error) return showToast('Failed: ' + error.message);
+  await loadDrivers();
+  // Auto-select the new driver
+  const select = document.getElementById('transferDriver');
+  if (select && data) select.value = data.id;
+  showToast('Driver added');
+}
+
 function renderVesselList() {
   const el = document.getElementById('vesselList');
   if (!el) return;
@@ -1694,6 +1720,8 @@ function entryFromDb(row) {
     transferIsReturn: row.transfer_is_return,
     transferPaxCount: row.transfer_pax_count,
     transferVehicleType: row.transfer_vehicle_type,
+    transferExtraVehicle: row.transfer_extra_vehicle,
+    transferExtraVehicleCount: row.transfer_extra_vehicle_count,
     transferNotes: row.transfer_notes
   };
 }
@@ -1741,6 +1769,8 @@ function entryToDb(entry) {
     transfer_is_return: entry.transferIsReturn || false,
     transfer_pax_count: parseInt(entry.transferPaxCount) || 0,
     transfer_vehicle_type: entry.transferVehicleType || '',
+    transfer_extra_vehicle: entry.transferExtraVehicle || false,
+    transfer_extra_vehicle_count: parseInt(entry.transferExtraVehicleCount) || 0,
     transfer_notes: entry.transferNotes || ''
   };
 }
@@ -1926,6 +1956,8 @@ function gatherFormData() {
     transferIsReturn: document.getElementById('transferIsReturn')?.checked || false,
     transferPaxCount: document.getElementById('transferPaxCount')?.value || 0,
     transferVehicleType: document.getElementById('transferVehicleType')?.value || '',
+    transferExtraVehicle: document.getElementById('transferExtraVehicle')?.checked || false,
+    transferExtraVehicleCount: document.getElementById('transferExtraVehicleCount')?.value || 0,
     transferNotes: document.getElementById('transferNotes')?.value || ''
   };
 }
@@ -2014,6 +2046,9 @@ function resetForm() {
   if (document.getElementById('transferPaxCount')) document.getElementById('transferPaxCount').value = '1';
   if (document.getElementById('transferVehicleType')) document.getElementById('transferVehicleType').value = '';
   if (document.getElementById('transferNotes')) document.getElementById('transferNotes').value = '';
+  if (document.getElementById('transferExtraVehicle')) document.getElementById('transferExtraVehicle').checked = false;
+  if (document.getElementById('transferExtraVehicleCount')) document.getElementById('transferExtraVehicleCount').value = '1';
+  if (document.getElementById('transferExtraVehicleCountRow')) document.getElementById('transferExtraVehicleCountRow').classList.add('hidden');
   document.getElementById('transferPanel').classList.add('hidden');
   if (document.getElementById('transferReturnTimeRow')) document.getElementById('transferReturnTimeRow').classList.add('hidden');
   calculateTotal();
@@ -2099,7 +2134,7 @@ function updateServiceTypes() {
     'Provisioning & Sourcing': ['Food', 'Beverages', 'Supplies', 'Equipment'],
     'Crew Services': ['Crew Change', 'Training', 'Recruitment', 'Medical'],
     'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance'],
-    'Airport & Transport': ['Crew Transfer', 'Guest Transfer', 'Airport Transfer', 'Car Rental', 'Taxi', 'Courier'],
+    'Transfer': ['Crew Transfer', 'Guest Transfer'],
     'Brokerage': ['Charter', 'Sale', 'Purchase', 'Valuation'],
     'General Support': ['Concierge', 'Admin', 'Other']
   };
@@ -2597,6 +2632,7 @@ function showDayDetail(dateStr) {
           ${driver ? `<div>Driver: ${driver.name}${driver.phone ? ' (' + driver.phone + ')' : ''}</div>` : ''}
           ${e.transferPaxCount ? `<div>Passengers: ${e.transferPaxCount}</div>` : ''}
           ${e.transferIsReturn && e.transferReturnTime ? `<div>Return: ${e.transferReturnTime}</div>` : ''}
+          ${e.transferExtraVehicle ? `<div>Extra vehicles for luggage: ${e.transferExtraVehicleCount || 1}</div>` : ''}
           ${e.transferNotes ? `<div style="margin-top:4px;color:var(--gray-600);">${e.transferNotes}</div>` : ''}
         </div>
       ` : '';
