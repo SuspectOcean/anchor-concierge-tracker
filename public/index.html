@@ -1151,7 +1151,8 @@
             <textarea id="mvNotes" rows="2" placeholder="Additional details..."></textarea>
           </div>
         </div>
-        <button class="btn-submit" onclick="submitMovement()" style="width:100%;margin-top:8px;">Add Movement</button>
+        <button class="btn-submit" id="mvSubmitBtn" onclick="submitMovement()" style="width:100%;margin-top:8px;">Add Movement</button>
+        <button class="btn-secondary" id="mvCancelEditBtn" onclick="cancelMovementEdit()" style="width:100%;margin-top:6px;display:none;">Cancel Edit</button>
       </div>
     </div>
 
@@ -3230,6 +3231,38 @@ function populateMovementVesselSelects() {
   });
 }
 
+let editingMovementId = null;
+
+function editMovement(entryId) {
+  const entry = allEntries.find(e => e.entryId === entryId);
+  if (!entry) return showToast('Movement not found');
+  editingMovementId = entryId;
+  document.getElementById('mvVessel').value = entry.vessel || '';
+  document.getElementById('mvType').value = entry.serviceType || '';
+  document.getElementById('mvDate').value = entry.serviceDate || '';
+  document.getElementById('mvTime').value = entry.specialNotes || '';
+  document.getElementById('mvFrom').value = entry.clearedOut || '';
+  document.getElementById('mvTo').value = entry.clearedIn || '';
+  document.getElementById('mvNotes').value = entry.description || '';
+  document.getElementById('mvSubmitBtn').textContent = 'Save Changes';
+  document.getElementById('mvCancelEditBtn').style.display = '';
+  // Scroll to form
+  document.getElementById('mvVessel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelMovementEdit() {
+  editingMovementId = null;
+  document.getElementById('mvVessel').value = '';
+  document.getElementById('mvType').value = '';
+  document.getElementById('mvDate').value = '';
+  document.getElementById('mvTime').value = '';
+  document.getElementById('mvFrom').value = '';
+  document.getElementById('mvTo').value = '';
+  document.getElementById('mvNotes').value = '';
+  document.getElementById('mvSubmitBtn').textContent = 'Add Movement';
+  document.getElementById('mvCancelEditBtn').style.display = 'none';
+}
+
 async function submitMovement() {
   const vessel = document.getElementById('mvVessel').value;
   const type = document.getElementById('mvType').value;
@@ -3243,15 +3276,52 @@ async function submitMovement() {
   if (!type) return showToast('Select movement type');
   if (!date) return showToast('Enter a date');
 
-  await saveMovement({ vessel, type, date, time, from, to, notes });
-  // Reset form
-  document.getElementById('mvType').value = '';
-  document.getElementById('mvDate').value = '';
-  document.getElementById('mvTime').value = '';
-  document.getElementById('mvFrom').value = '';
-  document.getElementById('mvTo').value = '';
-  document.getElementById('mvNotes').value = '';
-  showToast('Movement added');
+  if (editingMovementId) {
+    // Update existing movement
+    try {
+      updateSyncBadge(true, 'Syncing');
+      const dbUpdate = {
+        vessel: vessel,
+        service_type: type,
+        service_date: date,
+        special_notes: time,
+        cleared_out: from,
+        cleared_in: to,
+        description: notes
+      };
+      const { error } = await sb.from('entries').update(dbUpdate).eq('entry_id', editingMovementId);
+      if (error) throw error;
+      // Update in-memory
+      const idx = allEntries.findIndex(e => e.entryId === editingMovementId);
+      if (idx !== -1) {
+        allEntries[idx].vessel = vessel;
+        allEntries[idx].serviceType = type;
+        allEntries[idx].serviceDate = date;
+        allEntries[idx].specialNotes = time;
+        allEntries[idx].clearedOut = from;
+        allEntries[idx].clearedIn = to;
+        allEntries[idx].description = notes;
+      }
+      renderMovementsList();
+      updateSyncBadge(true);
+      showToast('Movement updated');
+    } catch (err) {
+      console.error('Update movement error:', err);
+      showToast('Failed to update: ' + err.message);
+      updateSyncBadge(false);
+    }
+    cancelMovementEdit();
+  } else {
+    await saveMovement({ vessel, type, date, time, from, to, notes });
+    // Reset form
+    document.getElementById('mvType').value = '';
+    document.getElementById('mvDate').value = '';
+    document.getElementById('mvTime').value = '';
+    document.getElementById('mvFrom').value = '';
+    document.getElementById('mvTo').value = '';
+    document.getElementById('mvNotes').value = '';
+    showToast('Movement added');
+  }
 }
 
 async function saveMovement(mv) {
@@ -3468,7 +3538,10 @@ function renderMovementsList() {
       <td><span style="background:${typeBg[type] || '#e8f0ff'};color:${typeColors[type] || 'var(--blue)'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">${type}</span></td>
       <td>${from || to ? (from ? from : '') + (from && to ? ' → ' : '') + (to ? to : '') : '—'}</td>
       <td style="font-size:12px;color:var(--gray-600);">${notes}</td>
-      <td><button onclick="deleteEntry('${e.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+      <td style="white-space:nowrap;">
+        <button onclick="editMovement('${e.entryId}')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;font-weight:600;margin-right:8px;">Edit</button>
+        <button onclick="deleteEntry('${e.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>
+      </td>
     </tr>`;
   }).join('');
 }
