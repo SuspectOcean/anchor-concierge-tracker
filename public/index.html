@@ -2031,12 +2031,14 @@ function gatherFormData() {
     transferFlightArrival: document.getElementById('transferFlightArrival')?.value || ''
   };
 
-  // Charge blocks → store in override_note as JSON, compute totals
-  const blocks = getChargeBlocks();
-  const totalAmount = blocks.reduce((s, b) => s + b.amount, 0);
-  entry.baseCharge = (blocks.length > 0 ? blocks[0].amount : 0).toFixed(2);
-  entry.otherCharges = (blocks.length > 1 ? blocks.slice(1).reduce((s, b) => s + b.amount, 0) : 0).toFixed(2);
-  entry.overrideNote = blocks.length > 0 ? JSON.stringify(blocks) : '';
+  // Combine customs charges + manual charge blocks → store as JSON
+  const customsCharges = (window._customsCharges || []).map(c => ({ rate: c.amount, hours: 1, notes: c.label, amount: c.amount }));
+  const manualBlocks = getChargeBlocks();
+  const allBlocks = [...customsCharges, ...manualBlocks];
+  const totalAmount = allBlocks.reduce((s, b) => s + b.amount, 0);
+  entry.baseCharge = (allBlocks.length > 0 ? allBlocks[0].amount : 0).toFixed(2);
+  entry.otherCharges = (allBlocks.length > 1 ? allBlocks.slice(1).reduce((s, b) => s + b.amount, 0) : 0).toFixed(2);
+  entry.overrideNote = allBlocks.length > 0 ? JSON.stringify(allBlocks) : '';
   entry.totalCharge = totalAmount.toFixed(2);
 
   return entry;
@@ -2145,7 +2147,7 @@ function updateAutoStatus() {
 
 function computeStatus(entry) {
   if (entry.status === 'cancelled') return 'cancelled';
-  if (entry.status === 'completed') return 'completed';
+  if (entry.status === 'completed' || entry.workCompleted === 'Yes') return 'completed';
   const today = new Date();
   today.setHours(0,0,0,0);
   const serviceDate = new Date(entry.serviceDate);
@@ -2295,11 +2297,21 @@ function calculateTotal() {
   let total = 0;
   const rowsEl = document.getElementById('calcChargeRows');
   rowsEl.innerHTML = '';
+
+  // Customs charges (auto-calculated, not in additional charges)
+  const customsCharges = window._customsCharges || [];
+  customsCharges.forEach(c => {
+    total += c.amount;
+    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + c.label + '</span><span class="calc-value">' + c.amount.toFixed(2) + '</span></div>';
+  });
+
+  // Manual charge blocks
   blocks.forEach((b, i) => {
     total += b.amount;
     const label = b.notes || ('Charge ' + (i + 1));
-    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + label + ' (' + b.hours + ' hrs × ' + symbol + b.rate.toFixed(2) + ')</span><span class="calc-value">' + b.amount.toFixed(2) + '</span></div>';
+    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + label + (b.hours > 0 ? ' (' + b.hours + ' hrs × ' + symbol + b.rate.toFixed(2) + ')' : '') + '</span><span class="calc-value">' + b.amount.toFixed(2) + '</span></div>';
   });
+
   document.getElementById('calcTotal').textContent = symbol + ' ' + total.toFixed(2);
   document.getElementById('displayTotal').textContent = symbol + ' ' + total.toFixed(2);
   if (currency === 'USD') {
@@ -2489,13 +2501,8 @@ function recalcCustoms() {
     breakdownEl.classList.add('hidden');
   }
 
-  // Push customs charges as charge blocks
-  document.querySelectorAll('.customs-generated').forEach(el => el.remove());
-  const container = document.getElementById('additionalChargesContainer');
-  rows.forEach(r => {
-    const block = addChargeBlock(r.amount, 1, r.label);
-    block.classList.add('customs-generated');
-  });
+  // Store customs total for inclusion in calculateTotal
+  window._customsCharges = rows;
   calculateTotal();
 }
 
