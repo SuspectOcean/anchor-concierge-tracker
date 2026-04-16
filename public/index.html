@@ -1989,7 +1989,7 @@ function updateSyncBadge(online, status) {
 // ============================================
 
 function gatherFormData() {
-  return {
+  const entry = {
     entryId: '',
     submissionDate: new Date().toISOString().split('T')[0],
     serviceDate: document.getElementById('serviceDate').value,
