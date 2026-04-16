@@ -300,6 +300,7 @@
   .cal-entry-pip.cancelled { background: var(--gray-100); color: var(--gray-600); }
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
+  .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
   .cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-600); }
@@ -560,6 +561,7 @@
   <div class="tab-bar" id="mobileTabBar">
     <button class="tab-btn active" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
+    <button class="tab-btn" data-view="movements" onclick="showView('movements')">Movements</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
   </div>
 
@@ -1090,6 +1092,115 @@
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
           <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
           <div class="cal-legend-item"><div class="cal-legend-dot cancelled"></div> Cancelled</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#00695c;"></div> Movement</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VESSEL MOVEMENTS VIEW -->
+  <div id="view-movements" style="display:none;">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F6A2; Add Movement</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <!-- Single movement form -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vessel <span class="required">*</span></label>
+            <select id="mvVessel">
+              <option value="">Select vessel...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Movement Type <span class="required">*</span></label>
+            <select id="mvType">
+              <option value="">Select...</option>
+              <option value="Arrival">Arrival</option>
+              <option value="Departure">Departure</option>
+              <option value="Relocation">Relocation</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date <span class="required">*</span></label>
+            <input type="date" id="mvDate">
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <input type="time" id="mvTime">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>From</label>
+            <input type="text" id="mvFrom" placeholder="e.g. Five Islands">
+          </div>
+          <div class="form-group">
+            <label>To</label>
+            <input type="text" id="mvTo" placeholder="e.g. Falmouth Hbr Marina">
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="mvNotes" rows="2" placeholder="Additional details..."></textarea>
+          </div>
+        </div>
+        <button class="btn-submit" onclick="submitMovement()" style="width:100%;margin-top:8px;">Add Movement</button>
+      </div>
+    </div>
+
+    <!-- Paste & Parse -->
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <h2>&#x1F4CB; Import from Text</h2>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body">
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Vessel <span class="required">*</span></label>
+            <select id="mvImportVessel">
+              <option value="">Select vessel...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Paste movement schedule</label>
+            <textarea id="mvImportText" rows="8" placeholder="Paste text like:&#10;17th April 08:00 - Arrive Falmouth Hbr Marina&#10;28th April - Owner arrives by private jet&#10;29th April 08:00 - Depart Falmouth Hbr - move to Five Islands"></textarea>
+          </div>
+        </div>
+        <button class="btn-submit" onclick="parseAndPreviewMovements()" style="width:100%;margin-top:8px;">Parse Movements</button>
+        <div id="mvImportPreview" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- Movements List -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>&#x1F4C5; Upcoming Movements</h2>
+      </div>
+      <div class="section-body">
+        <div class="log-table-wrap">
+          <table class="log-table" id="movementsTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Vessel</th>
+                <th>Type</th>
+                <th>From / To</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="movementsTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -2592,6 +2703,7 @@ function showView(view) {
   if (submitBar) submitBar.style.display = view === 'form' ? '' : 'none';
 
   if (view === 'form') updateSubmissionDateTime();
+  if (view === 'movements') { populateMovementVesselSelects(); renderMovementsList(); }
   if (view === 'timeline') renderTimeline();
 }
 
@@ -2865,9 +2977,21 @@ function renderCalendar() {
       const maxShow = 3;
       dayEntries.slice(0, maxShow).forEach(e => {
         const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
+        const isMovement = (e.category === 'Vessel Movement');
         const cs = computeStatus(e);
-        const statusClass = isTransfer ? 'transfer' : cs;
-        const label = isTransfer ? `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim() : (e.vessel || e.entryId);
+        let statusClass, label;
+        if (isMovement) {
+          const mvIcon = e.serviceType === 'Arrival' ? '⚓' : e.serviceType === 'Departure' ? '🚢' : '↔️';
+          statusClass = 'movement';
+          const mvTime = e.specialNotes || '';
+          label = `${mvIcon} ${mvTime ? mvTime + ' ' : ''}${e.vessel} — ${e.serviceType}`;
+        } else if (isTransfer) {
+          statusClass = 'transfer';
+          label = `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim();
+        } else {
+          statusClass = cs;
+          label = e.vessel || e.entryId;
+        }
         html += `<div class="cal-entry-pip ${statusClass}">${label}</div>`;
       });
       if (dayEntries.length > maxShow) {
@@ -2922,6 +3046,7 @@ function showDayDetail(dateStr) {
       const statusColors = { upcoming: 'var(--blue)', completed: 'var(--green)', overdue: '#d32f2f', cancelled: 'var(--gray-600)' };
       const bgColors = { upcoming: '#e8f0ff', completed: 'var(--green-light)', overdue: '#ffeaea', cancelled: 'var(--gray-100)' };
       const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
+      const isMovement = (e.category === 'Vessel Movement');
       const driver = isTransfer && e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
       const transferInfo = isTransfer ? `
         <div style="background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12px;">
@@ -2935,16 +3060,30 @@ function showDayDetail(dateStr) {
           ${e.transferNotes ? `<div style="margin-top:4px;color:var(--gray-600);">${e.transferNotes}</div>` : ''}
         </div>
       ` : '';
-      return `<div class="day-job" onclick="openEditEntry('${e.entryId}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to edit">
-        <div class="day-job-header">
-          <span class="day-job-title">${e.entryId} — ${e.vessel || 'Unknown Vessel'}</span>
-          <span class="day-job-status" style="background:${isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff')};color:${isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)')}">${isTransfer ? e.serviceType : cs}</span>
+      const mvIcon = e.serviceType === 'Arrival' ? '⚓' : e.serviceType === 'Departure' ? '🚢' : '↔️';
+      const movementInfo = isMovement ? `
+        <div style="background:#e0f2f1;border:1px solid #80cbc4;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12px;">
+          <div style="font-weight:600;color:#00695c;">${mvIcon} ${e.serviceType}</div>
+          ${e.specialNotes ? `<div>Time: ${e.specialNotes}</div>` : ''}
+          ${e.clearedOut ? `<div>From: ${e.clearedOut}</div>` : ''}
+          ${e.clearedIn ? `<div>To: ${e.clearedIn}</div>` : ''}
+          ${e.description ? `<div style="margin-top:4px;color:var(--gray-600);">${e.description}</div>` : ''}
         </div>
-        <div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>
+      ` : '';
+      const borderColor = isMovement ? '#80cbc4' : (isTransfer ? '#ffd54f' : '');
+      const badgeBg = isMovement ? '#e0f2f1' : (isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff'));
+      const badgeColor = isMovement ? '#00695c' : (isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)'));
+      const badgeText = isMovement ? e.serviceType : (isTransfer ? e.serviceType : cs);
+      return `<div class="day-job" onclick="${isMovement ? '' : "openEditEntry('" + e.entryId + "')"}" style="cursor:${isMovement ? 'default' : 'pointer'};${borderColor ? 'border-left:3px solid ' + borderColor + ';' : ''}" ${isMovement ? '' : 'title="Click to edit"'}>
+        <div class="day-job-header">
+          <span class="day-job-title">${isMovement ? (mvIcon + ' ' + e.vessel) : (e.entryId + ' — ' + (e.vessel || 'Unknown Vessel'))}</span>
+          <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${badgeText}</span>
+        </div>
+        ${isMovement ? movementInfo : `<div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>`}
         ${transferInfo}
-        ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
-        ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
-        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>
+        ${!isMovement && e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
+        ${!isMovement && e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
+        ${!isMovement ? '<div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>' : ''}
       </div>`;
     }).join('');
   }
@@ -2954,6 +3093,264 @@ function showDayDetail(dateStr) {
 
 function closeDayDetail() {
   document.getElementById('dayDetailOverlay').classList.add('hidden');
+}
+
+// ========== VESSEL MOVEMENTS ==========
+
+function populateMovementVesselSelects() {
+  ['mvVessel', 'mvImportVessel'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Select vessel...</option>';
+    allVessels.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name; opt.textContent = v.name;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+async function submitMovement() {
+  const vessel = document.getElementById('mvVessel').value;
+  const type = document.getElementById('mvType').value;
+  const date = document.getElementById('mvDate').value;
+  const time = document.getElementById('mvTime').value;
+  const from = document.getElementById('mvFrom').value.trim();
+  const to = document.getElementById('mvTo').value.trim();
+  const notes = document.getElementById('mvNotes').value.trim();
+
+  if (!vessel) return showToast('Select a vessel');
+  if (!type) return showToast('Select movement type');
+  if (!date) return showToast('Enter a date');
+
+  await saveMovement({ vessel, type, date, time, from, to, notes });
+  // Reset form
+  document.getElementById('mvType').value = '';
+  document.getElementById('mvDate').value = '';
+  document.getElementById('mvTime').value = '';
+  document.getElementById('mvFrom').value = '';
+  document.getElementById('mvTo').value = '';
+  document.getElementById('mvNotes').value = '';
+  showToast('Movement added');
+}
+
+async function saveMovement(mv) {
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const { data: idData, error: idError } = await sb.rpc('next_entry_id');
+    if (idError) throw idError;
+
+    const entry = {
+      entryId: idData,
+      submissionDate: new Date().toISOString().split('T')[0],
+      serviceDate: mv.date,
+      vessel: mv.vessel,
+      staffMember: '',
+      category: 'Vessel Movement',
+      serviceType: mv.type,
+      description: mv.notes || '',
+      status: 'upcoming',
+      workCompleted: '',
+      clearedIn: mv.to || '',
+      clearedOut: mv.from || '',
+      marina: '',
+      country: '',
+      jurisdiction: '',
+      futureTask: '',
+      eta: null,
+      etd: null,
+      crewArrival: null,
+      crewDeparture: null,
+      billingType: 'no_charge',
+      billable: 'No',
+      currency: 'USD',
+      baseCharge: 0,
+      additionalCrewCharge: 0,
+      agencyFee: 0,
+      disbursementFee: 0,
+      otherCharges: 0,
+      totalCharge: 0,
+      specialNotes: mv.time || '',
+      internalNotes: '',
+      clientNotes: '',
+      overrideNote: '',
+      createdBy: currentUser.id,
+      transferDriverId: '',
+      transferFrom: '',
+      transferTo: '',
+      transferPickupTime: '',
+      transferReturnTime: '',
+      transferIsReturn: false,
+      transferPaxCount: 0,
+      transferVehicleType: '',
+      transferExtraVehicle: false,
+      transferExtraVehicleCount: 0,
+      transferNotes: '',
+      transferFlightNumber: '',
+      transferFlightArrival: ''
+    };
+
+    const { error } = await sb.from('entries').insert([entryToDb(entry)]);
+    if (error) throw error;
+
+    allEntries.unshift(entry);
+    renderMovementsList();
+    updateSyncBadge(true);
+    return entry;
+  } catch (err) {
+    console.error('Save movement error:', err);
+    showToast('Failed to save: ' + err.message);
+    updateSyncBadge(false);
+    return null;
+  }
+}
+
+function parseMovementText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const movements = [];
+  const currentYear = new Date().getFullYear();
+  const monthMap = { jan:0, feb:1, mar:2, apr:3, april:3, may:4, jun:5, june:5, jul:6, july:6, aug:7, sep:8, sept:8, oct:9, nov:10, dec:11 };
+
+  for (const line of lines) {
+    // Match patterns like "17th April 08:00 - Arrive Falmouth Hbr"
+    const dateMatch = line.match(/(\d{1,2})(?:st|nd|rd|th)?\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s*(\d{2}:\d{2})?\s*[-–—]?\s*(.*)/i);
+    if (!dateMatch) continue;
+
+    const day = parseInt(dateMatch[1]);
+    const monthStr = dateMatch[2].toLowerCase().substring(0, 3);
+    const month = monthMap[monthStr];
+    if (month === undefined) continue;
+    const time = dateMatch[3] || '';
+    let rest = dateMatch[4].trim().replace(/^[-–—]\s*/, '');
+
+    // Determine type from keywords
+    let type = 'Relocation';
+    const lowerRest = rest.toLowerCase();
+    if (lowerRest.includes('arrive') || lowerRest.includes('arrival')) type = 'Arrival';
+    else if (lowerRest.includes('depart') || lowerRest.includes('departure')) type = 'Departure';
+
+    // Parse location — everything after the action keyword
+    let location = rest.replace(/^(arrive|arrival|depart|departure|move to|relocate to)\s*/i, '').trim();
+    // Clean up dashes
+    location = location.replace(/^[-–—]\s*/, '').replace(/\s*[-–—]\s*move to\s*/i, ' → ');
+
+    const dateObj = new Date(currentYear, month, day);
+    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+
+    let from = '', to = '';
+    if (type === 'Arrival') { to = location; }
+    else if (type === 'Departure') {
+      // Check for "Depart X - move to Y" pattern
+      const moveTo = rest.match(/[-–—]\s*move to\s+(.+)/i);
+      if (moveTo) {
+        from = rest.replace(/\s*[-–—]\s*move to\s+.*/i, '').replace(/^(depart|departure)\s*/i, '').trim();
+        to = moveTo[1].trim();
+        type = 'Relocation';
+      } else {
+        from = location;
+      }
+    }
+
+    movements.push({ date: dateStr, time, type, from, to, notes: rest, location });
+  }
+  return movements;
+}
+
+function parseAndPreviewMovements() {
+  const vessel = document.getElementById('mvImportVessel').value;
+  const text = document.getElementById('mvImportText').value;
+  if (!vessel) return showToast('Select a vessel first');
+  if (!text.trim()) return showToast('Paste some text to parse');
+
+  const movements = parseMovementText(text);
+  if (movements.length === 0) return showToast('No movements found in text');
+
+  const previewEl = document.getElementById('mvImportPreview');
+  previewEl.innerHTML = `
+    <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">${movements.length} movement${movements.length > 1 ? 's' : ''} found for ${vessel}</div>
+      ${movements.map((m, i) => `
+        <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--gray-200);font-size:13px;" id="mvPreview${i}">
+          <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--teal);" data-mv-idx="${i}">
+          <span style="min-width:80px;font-weight:600;">${m.date}</span>
+          <span style="min-width:40px;color:var(--gray-500);">${m.time || '—'}</span>
+          <span class="status-badge status-${m.type === 'Arrival' ? 'completed' : m.type === 'Departure' ? 'overdue' : 'upcoming'}" style="font-size:11px;">${m.type}</span>
+          <span style="flex:1;">${m.from ? m.from + ' → ' : ''}${m.to || m.notes || ''}</span>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-submit" onclick="importSelectedMovements()" style="width:100%;">Import Selected</button>
+  `;
+  // Store parsed data for import
+  window._parsedMovements = movements;
+  window._parsedMovementsVessel = vessel;
+}
+
+async function importSelectedMovements() {
+  const movements = window._parsedMovements || [];
+  const vessel = window._parsedMovementsVessel || '';
+  if (!movements.length) return;
+
+  const checkboxes = document.querySelectorAll('#mvImportPreview input[type="checkbox"]');
+  let count = 0;
+  for (let i = 0; i < checkboxes.length; i++) {
+    if (!checkboxes[i].checked) continue;
+    const m = movements[i];
+    await saveMovement({
+      vessel,
+      type: m.type,
+      date: m.date,
+      time: m.time,
+      from: m.from,
+      to: m.to,
+      notes: m.notes
+    });
+    count++;
+  }
+  document.getElementById('mvImportPreview').innerHTML = '';
+  document.getElementById('mvImportText').value = '';
+  showToast(`${count} movement${count > 1 ? 's' : ''} imported`);
+  renderMovementsList();
+}
+
+function getMovements() {
+  return allEntries.filter(e => e.category === 'Vessel Movement').sort((a, b) => {
+    if (a.serviceDate !== b.serviceDate) return a.serviceDate > b.serviceDate ? 1 : -1;
+    const tA = a.specialNotes || '';
+    const tB = b.specialNotes || '';
+    return tA.localeCompare(tB);
+  });
+}
+
+function renderMovementsList() {
+  const tbody = document.getElementById('movementsTableBody');
+  if (!tbody) return;
+  const movements = getMovements();
+  const typeColors = { Arrival: 'var(--green)', Departure: '#d32f2f', Relocation: 'var(--blue)' };
+  const typeBg = { Arrival: 'var(--green-light)', Departure: '#ffeaea', Relocation: '#e8f0ff' };
+
+  if (movements.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500);">No vessel movements recorded yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = movements.map(e => {
+    const time = e.specialNotes || '';
+    const type = e.serviceType || '';
+    const from = e.clearedOut || '';
+    const to = e.clearedIn || '';
+    const notes = e.description || '';
+    const isPast = e.serviceDate < new Date().toISOString().split('T')[0];
+    return `<tr style="${isPast ? 'opacity:0.5;' : ''}">
+      <td>${formatDate(e.serviceDate)}</td>
+      <td>${time}</td>
+      <td style="font-weight:600;">${e.vessel}</td>
+      <td><span style="background:${typeBg[type] || '#e8f0ff'};color:${typeColors[type] || 'var(--blue)'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">${type}</span></td>
+      <td>${from || to ? (from ? from : '') + (from && to ? ' → ' : '') + (to ? to : '') : '—'}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${notes}</td>
+      <td><button onclick="deleteEntry('${e.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function openEditEntry(entryId) {
