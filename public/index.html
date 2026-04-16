@@ -558,7 +558,7 @@
 <div class="app-main">
   <!-- TAB BAR -->
   <div class="tab-bar" id="mobileTabBar">
-    <button class="tab-btn active" data-view="form" onclick="showView('form')">+ New Entry</button>
+    <button class="tab-btn active" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
   </div>
@@ -925,10 +925,15 @@
         <div class="form-row single">
           <div class="form-group">
             <label>Status</label>
-            <div style="font-size:13px;color:var(--gray-600);padding:8px 0;">
-              Status is set automatically based on service date. Mark entries as Completed or Cancelled from the Service Log.
+            <div id="statusAutoMsg" style="font-size:13px;color:var(--gray-600);padding:8px 0;">
+              Status is set automatically based on service date.
             </div>
-            <input type="hidden" id="statusInput" value="upcoming">
+            <select id="statusInput" class="hidden" onchange="">
+              <option value="upcoming">Upcoming</option>
+              <option value="completed">Completed</option>
+              <option value="overdue">Overdue</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
         <div class="form-row">
@@ -1385,8 +1390,8 @@
       <div class="amount" id="displayTotal">$0.00</div>
       <div class="label">Total Charge</div>
     </div>
-    <button class="btn-secondary" onclick="resetForm()">Reset</button>
-    <button class="btn-submit" onclick="submitEntry()">Submit Entry</button>
+    <button class="btn-secondary" id="formResetBtn" onclick="cancelEdit()">Reset</button>
+    <button class="btn-submit" id="formSubmitBtn" onclick="submitEntry()">Submit Entry</button>
   </div>
 </div>
 
@@ -1416,6 +1421,7 @@ function toggleShowPassword(inputId, btn) {
 let currentUser = null;
 let allEntries = [];
 let allVessels = [];
+let editingEntryId = null; // Set when editing an existing entry via main form
 let allDrivers = [];
 let isOnline = true;
 
@@ -1854,37 +1860,86 @@ async function submitEntry() {
   try {
     updateSyncBadge(true, 'Syncing');
 
-    // Get next entry ID
-    const { data: idData, error: idError } = await sb.rpc('next_entry_id');
-    if (idError) throw idError;
-    entry.entryId = idData;
-    entry.submissionDate = new Date().toISOString().split('T')[0];
-    entry.createdBy = currentUser.id;
+    if (editingEntryId) {
+      // UPDATE existing entry
+      entry.entryId = editingEntryId;
+      entry.status = document.getElementById('statusInput').value;
+      const existing = allEntries.find(e => e.entryId === editingEntryId);
+      const updated = { ...existing, ...entry };
+      const dbData = entryToDb(updated);
+      delete dbData.entry_id;
 
-    // Insert entry
-    const { error: insertError } = await sb.from('entries').insert([entryToDb(entry)]);
-    if (insertError) throw insertError;
+      const { error } = await sb.from('entries').update(dbData).eq('entry_id', editingEntryId);
+      if (error) throw error;
 
-    // Log audit
-    await sb.from('audit_log').insert({
-      entry_id: entry.entryId,
-      action: 'create',
-      changed_fields: Object.keys(entry),
-      new_values: entry,
-      performed_by: currentUser.id,
-      performed_by_name: currentUser.full_name || currentUser.email
-    });
+      await sb.from('audit_log').insert({
+        entry_id: editingEntryId,
+        action: 'update',
+        changed_fields: Object.keys(entry),
+        new_values: entry,
+        performed_by: currentUser.id,
+        performed_by_name: currentUser.full_name || currentUser.email
+      });
 
-    allEntries.unshift(entry);
-    resetForm();
-    showView('log');
-    showToast('Entry created successfully');
+      // Update in-memory
+      const idx = allEntries.findIndex(e => e.entryId === editingEntryId);
+      if (idx !== -1) allEntries[idx] = updated;
+
+      exitEditMode();
+      showView('log');
+      showToast('Entry updated successfully');
+    } else {
+      // CREATE new entry
+      const { data: idData, error: idError } = await sb.rpc('next_entry_id');
+      if (idError) throw idError;
+      entry.entryId = idData;
+      entry.submissionDate = new Date().toISOString().split('T')[0];
+      entry.createdBy = currentUser.id;
+
+      const { error: insertError } = await sb.from('entries').insert([entryToDb(entry)]);
+      if (insertError) throw insertError;
+
+      await sb.from('audit_log').insert({
+        entry_id: entry.entryId,
+        action: 'create',
+        changed_fields: Object.keys(entry),
+        new_values: entry,
+        performed_by: currentUser.id,
+        performed_by_name: currentUser.full_name || currentUser.email
+      });
+
+      allEntries.unshift(entry);
+      resetForm();
+      showView('log');
+      showToast('Entry created successfully');
+    }
     updateSyncBadge(true);
   } catch (err) {
     console.error('Submit error:', err);
     showToast('Failed to save entry: ' + err.message);
     updateSyncBadge(false);
   }
+}
+
+function cancelEdit() {
+  if (editingEntryId) {
+    exitEditMode();
+    showView('log');
+  } else {
+    resetForm();
+  }
+}
+
+function exitEditMode() {
+  editingEntryId = null;
+  resetForm();
+  // Restore submit bar to create mode
+  document.getElementById('formSubmitBtn').textContent = 'Submit Entry';
+  document.getElementById('formResetBtn').textContent = 'Reset';
+  // Hide status dropdown, show auto message
+  document.getElementById('statusAutoMsg').classList.remove('hidden');
+  document.getElementById('statusInput').classList.add('hidden');
+  document.getElementById('statusInput').value = 'upcoming';
 }
 
 async function deleteEntry(entryId) {
@@ -2532,11 +2587,11 @@ function showView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
 
-  // Show submit bar only on new entry form
+  // Show submit bar only on entry form (new or edit)
   const submitBar = document.getElementById('submitBar');
-  if (submitBar) submitBar.style.display = view === 'new' ? '' : 'none';
+  if (submitBar) submitBar.style.display = view === 'form' ? '' : 'none';
 
-  if (view === 'new') updateSubmissionDateTime();
+  if (view === 'form') updateSubmissionDateTime();
   if (view === 'timeline') renderTimeline();
 }
 
@@ -2905,77 +2960,101 @@ function openEditEntry(entryId) {
   const entry = allEntries.find(e => e.entryId === entryId);
   if (!entry) return showToast('Entry not found');
 
-  document.getElementById('editEntryId').value = entryId;
-  document.getElementById('editEntryTitle').textContent = `Edit ${entryId}`;
+  // Set edit mode
+  editingEntryId = entryId;
 
-  // Populate vessel dropdown
-  const vesselSel = document.getElementById('editVessel');
-  vesselSel.innerHTML = '<option value="">Select vessel...</option>';
-  allVessels.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v.name; opt.textContent = v.name;
-    if (v.name === entry.vessel) opt.selected = true;
-    vesselSel.appendChild(opt);
-  });
+  // Reset form first
+  resetForm();
 
-  // Populate staff dropdown
-  const staffSel = document.getElementById('editStaff');
-  const mainStaff = document.getElementById('staffSelect');
-  staffSel.innerHTML = mainStaff.innerHTML;
-  staffSel.value = entry.staffMember || '';
+  // Populate main form fields with entry data
+  document.getElementById('vesselSelect').value = entry.vessel || '';
+  document.getElementById('staffSelect').value = entry.staffMember || '';
+  document.getElementById('serviceDate').value = entry.serviceDate || '';
+  document.getElementById('serviceTime').value = entry.serviceTime || '';
 
-  // Basic fields
-  document.getElementById('editServiceDate').value = entry.serviceDate || '';
-  document.getElementById('editServiceTime').value = entry.serviceTime || '';
-  document.getElementById('editCategory').value = entry.category || '';
-  document.getElementById('editServiceType').value = entry.serviceType || '';
-  document.getElementById('editDescription').value = entry.description || '';
-  document.getElementById('editClearedIn').value = entry.clearedIn || '';
-  document.getElementById('editClearedOut').value = entry.clearedOut || '';
-  document.getElementById('editMarina').value = entry.marina || '';
-  document.getElementById('editStatus').value = entry.status || 'upcoming';
-  document.getElementById('editWorkCompleted').value = entry.workCompleted || '';
-  document.getElementById('editFutureTask').value = entry.futureTask || '';
-  document.getElementById('editBillingType').value = 'charged';
-  document.getElementById('editCurrency').value = entry.currency || 'USD';
+  // Category & service type
+  document.getElementById('serviceCategory').value = entry.category || '';
+  updateServiceTypes(); // populate service type dropdown for this category
+  setTimeout(() => {
+    document.getElementById('serviceType').value = entry.serviceType || '';
+    onServiceTypeChange(); // show customs/transfer panels if needed
+  }, 50);
+
+  document.getElementById('serviceDescription').value = entry.description || '';
+
+  // Location
+  document.getElementById('clearedIn').value = entry.clearedIn || '';
+  document.getElementById('clearedOut').value = entry.clearedOut || '';
+  document.getElementById('marina').value = entry.marina || '';
+
+  // Status — show dropdown in edit mode
+  document.getElementById('statusAutoMsg').classList.add('hidden');
+  document.getElementById('statusInput').classList.remove('hidden');
+  document.getElementById('statusInput').value = entry.status || 'upcoming';
+  document.getElementById('workCompleted').value = entry.workCompleted || '';
+  document.getElementById('futureTask').value = entry.futureTask || '';
+
+  // Charges
+  document.getElementById('currency').value = entry.currency || 'USD';
+  window._customsCharges = []; // clear customs charges for edit
+  document.getElementById('additionalChargesContainer').innerHTML = '';
+
   // Restore charge blocks from overrideNote JSON
-  document.getElementById('editHourlyRate').value = 80;
-  document.getElementById('editServiceHours').value = '';
-  document.getElementById('editChargeNotes').value = '';
-  document.getElementById('editAdditionalChargesContainer').innerHTML = '';
   try {
     const blocksData = JSON.parse(entry.overrideNote || '[]');
-    if (Array.isArray(blocksData) && blocksData.length > 0) {
-      // First block → primary fields
+    if (Array.isArray(blocksData) && blocksData.length > 0 && blocksData[0].rate !== undefined) {
+      // New format: charge blocks
       const first = blocksData[0];
-      document.getElementById('editHourlyRate').value = first.rate || 80;
-      document.getElementById('editServiceHours').value = first.hours || '';
-      document.getElementById('editChargeNotes').value = first.notes || '';
-      // Remaining blocks → additional charge blocks
+      document.getElementById('hourlyRate').value = first.rate || 80;
+      document.getElementById('serviceHours').value = first.hours || '';
+      document.getElementById('chargeNotes').value = first.notes || '';
       for (let i = 1; i < blocksData.length; i++) {
         const b = blocksData[i];
-        addChargeBlock(b.rate, b.hours, b.notes, document.getElementById('editAdditionalChargesContainer'), 'edit-');
+        addChargeBlock(b.rate, b.hours, b.notes);
       }
     } else {
       // Legacy entry — derive from baseCharge
       const storedBase = parseFloat(entry.baseCharge) || 0;
       const derivedHours = storedBase > 0 ? (storedBase / 80) : 0;
-      document.getElementById('editHourlyRate').value = 80;
-      document.getElementById('editServiceHours').value = derivedHours > 0 ? derivedHours : '';
+      document.getElementById('hourlyRate').value = 80;
+      document.getElementById('serviceHours').value = derivedHours > 0 ? derivedHours : '';
     }
   } catch(e) {
-    // Legacy entry — derive from baseCharge
     const storedBase = parseFloat(entry.baseCharge) || 0;
     const derivedHours = storedBase > 0 ? (storedBase / 80) : 0;
-    document.getElementById('editHourlyRate').value = 80;
-    document.getElementById('editServiceHours').value = derivedHours > 0 ? derivedHours : '';
+    document.getElementById('hourlyRate').value = 80;
+    document.getElementById('serviceHours').value = derivedHours > 0 ? derivedHours : '';
   }
-  calculateEditTotal();
-  document.getElementById('editSpecialNotes').value = entry.specialNotes || '';
-  document.getElementById('editInternalNotes').value = entry.internalNotes || '';
-  document.getElementById('editClientNotes').value = entry.clientNotes || '';
 
-  document.getElementById('editEntryModal').classList.remove('hidden');
+  // Transfer fields
+  if (entry.transferDriverId) {
+    const td = document.getElementById('transferDriver');
+    if (td) td.value = entry.transferDriverId;
+  }
+  if (document.getElementById('transferFrom')) document.getElementById('transferFrom').value = entry.transferFrom || '';
+  if (document.getElementById('transferTo')) document.getElementById('transferTo').value = entry.transferTo || '';
+  if (document.getElementById('transferPickupTime')) document.getElementById('transferPickupTime').value = entry.transferPickupTime || '';
+  if (document.getElementById('transferReturnTime')) document.getElementById('transferReturnTime').value = entry.transferReturnTime || '';
+  if (document.getElementById('transferIsReturn')) document.getElementById('transferIsReturn').checked = entry.transferIsReturn || false;
+  if (document.getElementById('transferPaxCount')) document.getElementById('transferPaxCount').value = entry.transferPaxCount || 1;
+  if (document.getElementById('transferVehicleType')) document.getElementById('transferVehicleType').value = entry.transferVehicleType || '';
+  if (document.getElementById('transferNotes')) document.getElementById('transferNotes').value = entry.transferNotes || '';
+  if (document.getElementById('transferFlightNumber')) document.getElementById('transferFlightNumber').value = entry.transferFlightNumber || '';
+  if (document.getElementById('transferFlightArrival')) document.getElementById('transferFlightArrival').value = entry.transferFlightArrival || '';
+
+  // Notes
+  document.getElementById('specialNotes').value = entry.specialNotes || '';
+  document.getElementById('internalNotes').value = entry.internalNotes || '';
+  document.getElementById('clientNotes').value = entry.clientNotes || '';
+
+  calculateTotal();
+
+  // Update submit bar for edit mode
+  document.getElementById('formSubmitBtn').textContent = 'Save Changes';
+  document.getElementById('formResetBtn').textContent = 'Cancel';
+
+  // Switch to form view
+  showView('form');
 }
 
 async function saveEditedEntry() {
