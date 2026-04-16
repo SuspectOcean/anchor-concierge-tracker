@@ -3077,20 +3077,15 @@ function renderCalendar() {
       }
     }
 
-    if (dayEntries.length > 0) {
+    const nonMovementEntries = dayEntries.filter(e => e.category !== 'Vessel Movement');
+    if (nonMovementEntries.length > 0) {
       html += '<div class="cal-dots">';
       const maxShow = 3;
-      dayEntries.slice(0, maxShow).forEach(e => {
+      nonMovementEntries.slice(0, maxShow).forEach(e => {
         const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
-        const isMovement = (e.category === 'Vessel Movement');
         const cs = computeStatus(e);
         let statusClass, label;
-        if (isMovement) {
-          const mvIcon = e.serviceType === 'Arrival' ? '⚓' : e.serviceType === 'Departure' ? '🚢' : '↔️';
-          statusClass = 'movement';
-          const mvTime = e.specialNotes || '';
-          label = `${mvIcon} ${mvTime ? mvTime + ' ' : ''}${e.vessel} — ${e.serviceType}`;
-        } else if (isTransfer) {
+        if (isTransfer) {
           statusClass = 'transfer';
           label = `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim();
         } else {
@@ -3099,8 +3094,8 @@ function renderCalendar() {
         }
         html += `<div class="cal-entry-pip ${statusClass}">${label}</div>`;
       });
-      if (dayEntries.length > maxShow) {
-        html += `<div class="cal-more">+${dayEntries.length - maxShow} more</div>`;
+      if (nonMovementEntries.length > maxShow) {
+        html += `<div class="cal-more">+${nonMovementEntries.length - maxShow} more</div>`;
       }
       html += '</div>';
     }
