@@ -4301,76 +4301,48 @@ function dbRenderInAntigua() {
   const countEl = document.getElementById('db-antigua-count');
   if (!el) return;
 
-  const antiguaTerms = [
-    'antigua', 'falmouth', 'english harbour', 'jolly harbour',
-    'nonsuch', 'five islands', 'crabbs', "crabb's", 'dickenson',
-    'cedar valley', 'deep bay', "st. john's", 'st john', 'nelson',
-    'antigua & barbuda', 'antigua and barbuda'
-  ];
+  // Mirror the timeline's presence logic:
+  // A vessel is "in port" when its most recent Vessel Movement is an Arrival or Relocation
+  // with no subsequent Departure dated after it.
+  const vesselNames = [...new Set(
+    allEntries.filter(e => e.category === 'Vessel Movement').map(e => e.vessel)
+  )].filter(Boolean);
 
-  function isAntigua(str) {
-    if (!str) return false;
-    const lower = str.toLowerCase();
-    return antiguaTerms.some(k => lower.includes(k));
-  }
-
-  function entryAntigua(e) {
-    // Check every location-bearing field on any entry type
-    return isAntigua(e.country) ||
-           isAntigua(e.marina) ||
-           isAntigua(e.jurisdiction) ||
-           isAntigua(e.transferTo) ||
-           isAntigua(e.description) ||
-           isAntigua(e.specialNotes) ||
-           isAntigua(e.internalNotes);
-  }
-
-  // All unique vessels across entire dataset
-  const vesselNames = [...new Set(allEntries.map(e => e.vessel))].filter(Boolean);
-
-  const inAntigua = [];
+  const inPort = [];
 
   vesselNames.forEach(v => {
-    const vesselEntries = allEntries
-      .filter(e => e.vessel === v && e.serviceDate)
-      .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate)); // newest first
+    const mvs = allEntries
+      .filter(e => e.category === 'Vessel Movement' && e.vessel === v && e.serviceDate)
+      .sort((a, b) => {
+        // Sort by date then time
+        const da = a.serviceDate + ' ' + (a.eta || a.etd || '00:00');
+        const db = b.serviceDate + ' ' + (b.eta || b.etd || '00:00');
+        return db.localeCompare(da); // newest first
+      });
 
-    if (!vesselEntries.length) return;
+    if (!mvs.length) return;
+    const latest = mvs[0];
 
-    // Latest departure movement
-    const latestDeparture = vesselEntries.find(e =>
-      e.category === 'Vessel Movement' && e.serviceType === 'Departure'
-    );
-
-    // Latest entry with any Antigua evidence
-    const latestAntiguaEntry = vesselEntries.find(e => entryAntigua(e));
-
-    if (!latestAntiguaEntry) return;
-
-    // If vessel departed after its latest Antigua evidence, it has left
-    if (latestDeparture && latestDeparture.serviceDate > latestAntiguaEntry.serviceDate) return;
-
-    const location =
-      latestAntiguaEntry.marina ||
-      latestAntiguaEntry.transferTo ||
-      latestAntiguaEntry.country ||
-      'Antigua';
-
-    inAntigua.push({
-      vessel: v,
-      location,
-      since: latestAntiguaEntry.serviceDate
-    });
+    // Vessel is in port if the latest movement is not a Departure
+    if (latest.serviceType === 'Arrival' || latest.serviceType === 'Relocation') {
+      const location = latest.transferTo || latest.marina || latest.transferFrom || 'Antigua';
+      inPort.push({
+        vessel: v,
+        location,
+        since: latest.serviceDate,
+        type: latest.serviceType
+      });
+    }
   });
 
-  if (countEl) countEl.textContent = inAntigua.length;
+  if (countEl) countEl.textContent = inPort.length;
 
-  if (!inAntigua.length) {
-    el.innerHTML = '<div class="db-empty">No vessels recorded in Antigua</div>';
+  if (!inPort.length) {
+    el.innerHTML = '<div class="db-empty">No vessels currently in port</div>';
     return;
   }
 
-  el.innerHTML = inAntigua.map(v => {
+  el.innerHTML = inPort.map(v => {
     const sinceDate = v.since
       ? new Date(v.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       : '—';
