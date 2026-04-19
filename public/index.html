@@ -476,6 +476,140 @@
     .header-brand h1 { font-size: 14px; }
     .tab-btn { font-size: 12px; padding: 10px 6px; }
   }
+
+  /* ============================================
+     DAILY DASHBOARD VIEW
+  ============================================ */
+  .db-date-nav {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    padding: 12px 16px; background: var(--white); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .db-date-btn {
+    padding: 7px 16px; border: 1px solid var(--gray-300); border-radius: 6px;
+    background: var(--white); cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--gray-700); transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .db-date-btn.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .db-date-display { font-size: 14px; font-weight: 600; color: var(--navy); }
+  .db-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+  @media (max-width: 960px) { .db-layout { grid-template-columns: 1fr; } }
+  .db-panel {
+    background: var(--white); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+  }
+  .db-panel-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
+  }
+  .db-panel-title { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; }
+  .db-panel-sub { font-size: 11px; color: var(--gray-500); font-weight: 400; margin-top: 1px; }
+  .db-panel-link { font-size: 12px; color: var(--teal); text-decoration: none; white-space: nowrap; font-weight: 500; margin-left: auto; }
+  .db-panel-link:hover { text-decoration: underline; }
+  /* Urgent */
+  .db-urgent-panel .db-panel-header { background: #fff5f5; border-color: #fca5a5; }
+  .db-urgent-panel { border: 1px solid #fca5a5; }
+  .db-urgent-title { font-size: 12px; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.6px; }
+  .db-urgent-count { background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .db-urgent-items { display: flex; gap: 12px; padding: 12px 16px; overflow-x: auto; flex-wrap: wrap; }
+  .db-urgent-item {
+    flex: 1; min-width: 170px; max-width: 260px; background: var(--white); border-radius: 8px;
+    padding: 12px 14px; border: 1px solid var(--gray-200); display: flex; gap: 10px; align-items: flex-start;
+  }
+  .db-urgent-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .db-urgent-vessel { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .db-urgent-desc { font-size: 12px; color: var(--gray-700); margin: 2px 0; }
+  .db-urgent-deadline { font-size: 11px; color: #dc2626; font-weight: 600; }
+  /* Movements */
+  .db-movement-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
+  .db-movement-item:last-child { border-bottom: none; }
+  .db-movement-time { font-size: 15px; font-weight: 700; color: var(--navy); min-width: 48px; }
+  .db-movement-time-sub { font-size: 10px; color: var(--gray-500); }
+  .db-movement-icon { font-size: 20px; }
+  .db-movement-vessel { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .db-movement-detail { font-size: 12px; color: var(--gray-600); }
+  .db-movement-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  .badge-arriving { background: #dcfce7; color: #15803d; }
+  .badge-departing { background: #fee2e2; color: #dc2626; }
+  .badge-relocation { background: #fef9c3; color: #a16207; }
+  .badge-inport { background: #dbeafe; color: #1d4ed8; }
+  /* Transfers */
+  .db-transfer-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
+  .db-transfer-item:last-child { border-bottom: none; }
+  .db-transfer-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
+  .db-transfer-time { font-size: 14px; font-weight: 700; color: var(--navy); min-width: 48px; }
+  .db-transfer-type { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .db-transfer-vessel { font-size: 12px; color: var(--gray-600); }
+  .db-transfer-meta { font-size: 11px; color: var(--gray-500); }
+  .db-transfer-status { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .db-status-confirmed { background: #dcfce7; color: #15803d; }
+  .db-status-pending { background: #fef9c3; color: #a16207; }
+  .db-status-overdue { background: #fee2e2; color: #dc2626; }
+  /* Services table */
+  .db-services-table { width: 100%; border-collapse: collapse; }
+  .db-services-table th { padding: 8px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); text-align: left; background: var(--gray-50); }
+  .db-services-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); vertical-align: middle; }
+  .db-services-table tr:last-child td { border-bottom: none; }
+  .db-svc-badge { padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--teal-light); color: var(--teal); white-space: nowrap; }
+  .db-svc-badge.cat-customs { background: #ede9fe; color: #7c3aed; }
+  .db-svc-badge.cat-provisions { background: #dcfce7; color: #15803d; }
+  .db-svc-badge.cat-logistics { background: #fef9c3; color: #a16207; }
+  .db-dot-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+  .db-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .db-dot-inprogress { background: #15803d; }
+  .db-dot-scheduled { background: var(--gray-400); }
+  .db-dot-overdue { background: #dc2626; }
+  .db-dot-completed { background: var(--teal); }
+  /* Sidebar vessel cards */
+  .db-vessel-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-vessel-card:last-child { border-bottom: none; }
+  .db-vessel-thumb { width: 56px; height: 40px; border-radius: 6px; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; overflow: hidden; }
+  .db-vessel-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .db-vessel-location { font-size: 11px; color: var(--gray-600); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+  .db-vessel-jobs { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+  .db-vessel-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .db-vessel-etime { font-size: 14px; font-weight: 700; color: var(--navy); text-align: right; }
+  .db-vessel-etime-label { font-size: 9px; color: var(--gray-500); text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
+  /* Team */
+  .db-team-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-team-row:last-child { border-bottom: none; }
+  .db-team-name { font-size: 12px; font-weight: 600; color: var(--navy); min-width: 100px; }
+  .db-team-count { font-size: 11px; color: var(--gray-600); min-width: 55px; }
+  .db-team-bar-track { flex: 1; background: var(--gray-100); border-radius: 4px; height: 6px; }
+  .db-team-bar-fill { height: 6px; border-radius: 4px; }
+  /* Charges */
+  .db-charge-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-charge-row:last-child { border-bottom: none; }
+  .db-charge-vessel { font-size: 12px; color: var(--gray-700); }
+  .db-charge-amt { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .db-charge-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 2px solid var(--gray-200); background: var(--gray-50); font-weight: 700; font-size: 13px; color: var(--navy); }
+  /* What's Next */
+  .db-next-row { display: flex; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); font-size: 12px; }
+  .db-next-row:last-child { border-bottom: none; }
+  .db-next-time { font-weight: 700; color: var(--navy); min-width: 42px; }
+  .db-next-desc { color: var(--gray-700); }
+  /* Quick Actions */
+  .db-quick-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+  .db-quick-btn {
+    flex: 1; padding: 13px 8px; border: none; border-radius: var(--radius); cursor: pointer;
+    font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+    gap: 6px; transition: opacity 0.2s; color: #fff;
+  }
+  .db-quick-btn:hover { opacity: 0.88; }
+  .db-quick-btn.qb-green { background: #22c55e; }
+  .db-quick-btn.qb-blue { background: #3b82f6; }
+  .db-quick-btn.qb-purple { background: #8b5cf6; }
+  /* Week view */
+  .db-week-row { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-week-row:last-child { border-bottom: none; }
+  .db-week-date { min-width: 80px; font-size: 12px; font-weight: 600; color: var(--navy); }
+  .db-week-detail { font-size: 12px; color: var(--gray-600); flex: 1; }
+  .db-empty { padding: 20px; text-align: center; color: var(--gray-500); font-size: 13px; }
+  /* Responsive quick actions */
+  @media (max-width: 600px) {
+    .db-quick-actions { flex-direction: column; }
+    .db-quick-btn { padding: 12px; }
+  }
 </style>
 </head>
 
@@ -560,6 +694,7 @@
 <div class="app-main">
   <!-- TAB BAR -->
   <div class="tab-bar" id="mobileTabBar">
+    <button class="tab-btn" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
     <button class="tab-btn active" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="movements" onclick="showView('movements')">Movements</button>
@@ -1208,6 +1343,145 @@
       </div>
     </div>
   </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="view-dashboard" style="display:none;">
+
+    <!-- Date Navigation -->
+    <div class="db-date-nav">
+      <button class="db-date-btn active" onclick="setDashboardDay(0)">TODAY</button>
+      <button class="db-date-btn" onclick="setDashboardDay(1)">TOMORROW</button>
+      <span style="width:1px;height:20px;background:var(--gray-200);"></span>
+      <span style="font-size:16px;">📅</span>
+      <span class="db-date-display" id="db-today-date"></span>
+      <div style="flex:1;"></div>
+      <button onclick="renderDashboard()" style="background:none;border:1px solid var(--gray-300);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--gray-700);">&#8635; Refresh</button>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="db-layout">
+
+      <!-- LEFT: Main Column -->
+      <div>
+
+        <!-- Urgent Actions -->
+        <div id="db-urgent-panel" class="db-panel db-urgent-panel" style="display:none;">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">⚠️</span>
+            <span class="db-urgent-title">URGENT ACTIONS</span>
+            <span class="db-urgent-count" id="db-urgent-count">0</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Alerts →</a>
+          </div>
+          <div class="db-urgent-items" id="db-urgent-items"></div>
+        </div>
+
+        <!-- Movements -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">🚢</span>
+            <div>
+              <div class="db-panel-title">MOVEMENTS</div>
+              <div class="db-panel-sub">Today's Arrivals, Departures &amp; Relocations</div>
+            </div>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('movements')">View All Movements →</a>
+          </div>
+          <div id="db-movements"></div>
+        </div>
+
+        <!-- Today's Transfers -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">🚐</span>
+            <div>
+              <div class="db-panel-title">TODAY'S TRANSFERS</div>
+              <div class="db-panel-sub">Airport, Guest &amp; Crew Transfers</div>
+            </div>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Transfers →</a>
+          </div>
+          <div id="db-transfers"></div>
+        </div>
+
+        <!-- Scheduled Services -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">🔧</span>
+            <div>
+              <div class="db-panel-title">SCHEDULED SERVICES</div>
+              <div class="db-panel-sub">Services &amp; Jobs Planned for Today</div>
+            </div>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Services →</a>
+          </div>
+          <div id="db-services"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="db-quick-actions">
+          <button class="db-quick-btn qb-green" onclick="showView('movements')">🚢 + Add Movement</button>
+          <button class="db-quick-btn qb-blue" onclick="showView('form')">🚐 + Add Transfer</button>
+          <button class="db-quick-btn qb-purple" onclick="showView('form')">🔧 + Add Service</button>
+        </div>
+
+        <!-- This Week's Movements -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">📅</span>
+            <div>
+              <div class="db-panel-title">THIS WEEK</div>
+              <div class="db-panel-sub">Vessel Movements — Next 7 Days</div>
+            </div>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Full Schedule →</a>
+          </div>
+          <div id="db-week"></div>
+        </div>
+
+      </div><!-- /main col -->
+
+      <!-- RIGHT: Sidebar -->
+      <div>
+
+        <!-- Active Vessels Today -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">⚓</span>
+            <span class="db-panel-title">ACTIVE VESSELS TODAY</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Fleet →</a>
+          </div>
+          <div id="db-vessels"></div>
+        </div>
+
+        <!-- Team Workload -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">👥</span>
+            <span class="db-panel-title">TEAM WORKLOAD</span>
+          </div>
+          <div id="db-team"></div>
+        </div>
+
+        <!-- Today's Charges -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">💰</span>
+            <span class="db-panel-title">TODAY'S CHARGES</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View Charges →</a>
+          </div>
+          <div id="db-charges"></div>
+        </div>
+
+        <!-- What's Next -->
+        <div class="db-panel">
+          <div class="db-panel-header">
+            <span style="font-size:16px;">⚡</span>
+            <span class="db-panel-title">WHAT'S NEXT</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Full Schedule →</a>
+          </div>
+          <div id="db-whats-next"></div>
+        </div>
+
+      </div><!-- /sidebar -->
+
+    </div><!-- /db-layout -->
+  </div><!-- /view-dashboard -->
 
   <!-- DAY DETAIL MODAL -->
   <div class="day-detail-overlay hidden" id="dayDetailOverlay" onclick="if(event.target === this) closeDayDetail()">
@@ -2730,6 +3004,7 @@ function showView(view) {
   if (view === 'form') updateSubmissionDateTime();
   if (view === 'movements') { populateMovementVesselSelects(); renderMovementsList(); }
   if (view === 'timeline') renderTimeline();
+  if (view === 'dashboard') renderDashboard();
 }
 
 function renderLog() {
@@ -3835,6 +4110,299 @@ async function executeDeleteEntry(entryId) {
     showToast('Failed to delete: ' + err.message);
     updateSyncBadge(false);
   }
+}
+
+// ============================================
+// DAILY DASHBOARD
+// ============================================
+let dashboardDayOffset = 0;
+
+function setDashboardDay(offset) {
+  dashboardDayOffset = offset;
+  document.querySelectorAll('.db-date-btn').forEach((b, i) => b.classList.toggle('active', i === offset));
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const base = new Date();
+  base.setDate(base.getDate() + (dashboardDayOffset || 0));
+  const todayStr = base.toISOString().split('T')[0];
+
+  // Date display
+  const dateEl = document.getElementById('db-today-date');
+  if (dateEl) dateEl.textContent = base.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+  const dayEntries = allEntries.filter(e => e.serviceDate === todayStr);
+  const dayMovements = dayEntries.filter(e => e.category === 'Vessel Movement')
+    .sort((a, b) => (a.eta || a.etd || '99:99').localeCompare(b.eta || b.etd || '99:99'));
+  const dayTransfers = dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer')
+    .sort((a, b) => (a.transferPickupTime || '99:99').localeCompare(b.transferPickupTime || '99:99'));
+  const dayServices = dayEntries.filter(e =>
+    e.category !== 'Vessel Movement' && e.serviceType !== 'Crew Transfer' && e.serviceType !== 'Guest Transfer'
+  ).sort((a, b) => (a.eta || a.transferPickupTime || '99:99').localeCompare(b.eta || b.transferPickupTime || '99:99'));
+
+  dbRenderUrgent(dayTransfers, dayEntries);
+  dbRenderMovements(dayMovements);
+  dbRenderTransfers(dayTransfers);
+  dbRenderServices(dayServices);
+  dbRenderVessels(todayStr);
+  dbRenderTeam(dayEntries);
+  dbRenderCharges(dayEntries);
+  dbRenderWhatsNext(dayEntries, base);
+  dbRenderWeek(todayStr);
+}
+
+function dbRenderUrgent(transfers, dayEntries) {
+  const urgents = [];
+  transfers.forEach(e => {
+    if (!e.transferDriverId) {
+      const time = (e.transferPickupTime || '').substring(0, 5) || 'Today';
+      urgents.push({ vessel: e.vessel, desc: 'Driver not assigned for ' + (e.serviceType || 'transfer'), deadline: time, icon: '🚗' });
+    }
+  });
+  dayEntries.forEach(e => {
+    if (computeStatus(e) === 'overdue') {
+      urgents.push({ vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline: 'Overdue', icon: '⏰' });
+    }
+  });
+  dayEntries.forEach(e => {
+    if (e.specialNotes && e.specialNotes.toLowerCase().includes('urgent')) {
+      urgents.push({ vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: '⚠️' });
+    }
+  });
+  const panel = document.getElementById('db-urgent-panel');
+  const countEl = document.getElementById('db-urgent-count');
+  const itemsEl = document.getElementById('db-urgent-items');
+  if (!panel || !countEl || !itemsEl) return;
+  if (!urgents.length) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  countEl.textContent = urgents.length;
+  itemsEl.innerHTML = urgents.map(u => `
+    <div class="db-urgent-item">
+      <div class="db-urgent-icon">${u.icon}</div>
+      <div>
+        <div class="db-urgent-vessel">${u.vessel}</div>
+        <div class="db-urgent-desc">${u.desc}</div>
+        <div class="db-urgent-deadline">${u.deadline}</div>
+      </div>
+    </div>`).join('');
+}
+
+function dbRenderMovements(movements) {
+  const el = document.getElementById('db-movements');
+  if (!el) return;
+  if (!movements.length) { el.innerHTML = '<div class="db-empty">No movements scheduled for this day</div>'; return; }
+  el.innerHTML = movements.map(m => {
+    const type = m.serviceType || '';
+    const rawTime = m.eta || m.etd || '';
+    const time = rawTime.substring(0, 5) || '—';
+    const timeLabel = type === 'Arrival' ? 'ETA' : (type === 'Departure' ? 'ETD' : '');
+    let badge = '', icon = '⚓';
+    if (type === 'Arrival') { badge = '<span class="db-movement-badge badge-arriving">ARRIVING</span>'; icon = '🚢'; }
+    else if (type === 'Departure') { badge = '<span class="db-movement-badge badge-departing">DEPARTING</span>'; icon = '⛵'; }
+    else if (type === 'Relocation') { badge = '<span class="db-movement-badge badge-relocation">RELOCATION</span>'; icon = '⚓'; }
+    const fromTo = [m.transferFrom, m.transferTo].filter(Boolean).join(' → ') || m.description || '';
+    return `
+      <div class="db-movement-item">
+        <div style="min-width:50px;">
+          <div class="db-movement-time">${time}</div>
+          ${timeLabel ? `<div class="db-movement-time-sub">${timeLabel} ${time}</div>` : ''}
+        </div>
+        <div class="db-movement-icon">${icon}</div>
+        <div style="flex:1;">
+          <div class="db-movement-vessel">${m.vessel}</div>
+          <div class="db-movement-detail">${type}${fromTo ? ' · ' + fromTo : ''}</div>
+        </div>
+        ${badge}
+      </div>`;
+  }).join('');
+}
+
+function dbRenderTransfers(transfers) {
+  const el = document.getElementById('db-transfers');
+  if (!el) return;
+  if (!transfers.length) { el.innerHTML = '<div class="db-empty">No transfers scheduled for this day</div>'; return; }
+  el.innerHTML = transfers.map(t => {
+    const driver = allDrivers.find(d => d.id === t.transferDriverId);
+    const driverName = driver ? driver.name : '⚠️ Unassigned';
+    const time = (t.transferPickupTime || '—').substring(0, 5);
+    const st = computeStatus(t);
+    let stCls = 'db-status-confirmed', stLabel = 'CONFIRMED';
+    if (st === 'overdue') { stCls = 'db-status-overdue'; stLabel = 'OVERDUE'; }
+    else if (st === 'upcoming') { stCls = 'db-status-pending'; stLabel = 'PENDING'; }
+    const meta = [
+      driverName ? 'Driver: ' + driverName : null,
+      t.transferPaxCount ? 'Pax: ' + t.transferPaxCount : null,
+      t.transferFrom ? t.transferFrom : null
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="db-transfer-item">
+        <div class="db-transfer-dot"></div>
+        <div class="db-transfer-time">${time}</div>
+        <div style="flex:1;">
+          <div class="db-transfer-type">${t.serviceType}</div>
+          <div class="db-transfer-vessel">${t.vessel}</div>
+          <div class="db-transfer-meta">${meta}</div>
+        </div>
+        <span class="db-transfer-status ${stCls}">${stLabel}</span>
+      </div>`;
+  }).join('');
+}
+
+function dbRenderServices(services) {
+  const el = document.getElementById('db-services');
+  if (!el) return;
+  if (!services.length) { el.innerHTML = '<div class="db-empty">No other services scheduled for this day</div>'; return; }
+  const catMap = {
+    'Customs & Immigration': 'cat-customs',
+    'Provisioning & Sourcing': 'cat-provisions',
+    'Logistics & Shipping': 'cat-logistics'
+  };
+  const rows = services.map(s => {
+    const time = (s.eta || s.transferPickupTime || '').substring(0, 5) || '—';
+    const st = computeStatus(s);
+    let dotCls = 'db-dot-scheduled', stLabel = 'Scheduled';
+    if (st === 'completed') { dotCls = 'db-dot-completed'; stLabel = 'Completed'; }
+    else if (st === 'overdue') { dotCls = 'db-dot-overdue'; stLabel = 'Overdue'; }
+    else if (s.workCompleted === 'Yes') { dotCls = 'db-dot-inprogress'; stLabel = 'In Progress'; }
+    const catCls = catMap[s.category] || '';
+    return `
+      <tr>
+        <td>${time}</td>
+        <td><span class="db-svc-badge ${catCls}">${s.category || 'General'}</span></td>
+        <td>${s.vessel}</td>
+        <td>${s.staffMember || '—'}</td>
+        <td><span class="db-dot-status"><span class="db-dot ${dotCls}"></span>${stLabel}</span></td>
+      </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <table class="db-services-table">
+      <thead><tr><th>Time</th><th>Service</th><th>Vessel</th><th>Assigned</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function dbRenderVessels(todayStr) {
+  const el = document.getElementById('db-vessels');
+  if (!el) return;
+  const names = [...new Set(allEntries.filter(e => e.serviceDate === todayStr).map(e => e.vessel))].filter(Boolean);
+  if (!names.length) { el.innerHTML = '<div class="db-empty">No active vessels today</div>'; return; }
+  el.innerHTML = names.map(v => {
+    const mvs = allEntries.filter(e => e.vessel === v && e.category === 'Vessel Movement' && e.serviceDate === todayStr)
+      .sort((a, b) => (a.eta || a.etd || '').localeCompare(b.eta || b.etd || ''));
+    const mv = mvs[0];
+    const type = mv ? mv.serviceType : 'In Port';
+    let dotColor = '#6b7280', statusLabel = 'In Port';
+    if (type === 'Arrival') { dotColor = '#15803d'; statusLabel = 'Arriving'; }
+    else if (type === 'Departure') { dotColor = '#dc2626'; statusLabel = 'Departing'; }
+    const location = mv ? (mv.transferTo || mv.transferFrom || mv.marina || '') : '';
+    const etime = mv ? (mv.eta || mv.etd || '') : '';
+    const etimeLabel = type === 'Arrival' ? 'ETA' : (type === 'Departure' ? 'ETD' : '');
+    const jobCount = allEntries.filter(e => e.vessel === v && e.serviceDate === todayStr && e.category !== 'Vessel Movement').length;
+    return `
+      <div class="db-vessel-card">
+        <div class="db-vessel-thumb">🚢</div>
+        <div style="flex:1;min-width:0;">
+          <div class="db-vessel-name">${v}</div>
+          <div class="db-vessel-location"><span class="db-vessel-status-dot" style="background:${dotColor};"></span>${location || statusLabel}</div>
+          ${jobCount > 0 ? `<div class="db-vessel-jobs">${jobCount} open job${jobCount !== 1 ? 's' : ''}</div>` : ''}
+        </div>
+        ${etime ? `<div><div class="db-vessel-etime">${etime.substring(0,5)}</div><div class="db-vessel-etime-label">${etimeLabel}</div></div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function dbRenderTeam(dayEntries) {
+  const el = document.getElementById('db-team');
+  if (!el) return;
+  const counts = {};
+  dayEntries.forEach(e => { if (e.staffMember) counts[e.staffMember] = (counts[e.staffMember] || 0) + 1; });
+  if (!Object.keys(counts).length) { el.innerHTML = '<div class="db-empty">No staff assignments today</div>'; return; }
+  const max = Math.max(...Object.values(counts));
+  const colors = ['#14b8a6', '#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e', '#ef4444'];
+  el.innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, count], i) => {
+    const pct = Math.round((count / max) * 100);
+    const col = colors[i % colors.length];
+    const label = count === 1 ? '1 job' : count + ' jobs';
+    return `
+      <div class="db-team-row">
+        <div class="db-team-name">${name}</div>
+        <div class="db-team-count">${label}</div>
+        <div class="db-team-bar-track"><div class="db-team-bar-fill" style="width:${pct}%;background:${col};"></div></div>
+      </div>`;
+  }).join('');
+}
+
+function dbRenderCharges(dayEntries) {
+  const el = document.getElementById('db-charges');
+  if (!el) return;
+  const vCharges = {};
+  dayEntries.forEach(e => {
+    if (e.vessel && parseFloat(e.totalCharge) > 0) {
+      vCharges[e.vessel] = (vCharges[e.vessel] || 0) + parseFloat(e.totalCharge);
+    }
+  });
+  if (!Object.keys(vCharges).length) { el.innerHTML = '<div class="db-charge-row"><span class="db-charge-vessel" style="color:var(--gray-500);">No charges logged today</span></div>'; return; }
+  const total = Object.values(vCharges).reduce((a, b) => a + b, 0);
+  const fmt = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  el.innerHTML = Object.entries(vCharges).map(([v, amt]) => `
+    <div class="db-charge-row">
+      <span class="db-charge-vessel">${v}</span>
+      <span class="db-charge-amt">${fmt(amt)}</span>
+    </div>`).join('') + `
+    <div class="db-charge-total-row"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
+}
+
+function dbRenderWhatsNext(dayEntries, baseDate) {
+  const el = document.getElementById('db-whats-next');
+  if (!el) return;
+  const now = new Date();
+  const isToday = baseDate.toDateString() === now.toDateString();
+  const nowTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+  const upcoming = dayEntries
+    .map(e => ({ e, t: e.transferPickupTime || e.eta || e.etd || '' }))
+    .filter(({ t }) => t && (!isToday || t > nowTime))
+    .sort((a, b) => a.t.localeCompare(b.t))
+    .slice(0, 5);
+  if (!upcoming.length) { el.innerHTML = '<div class="db-empty">Nothing more scheduled</div>'; return; }
+  el.innerHTML = upcoming.map(({ e, t }) => {
+    const time = t.substring(0, 5);
+    const desc = e.category === 'Vessel Movement'
+      ? `${e.serviceType} — ${e.vessel}`
+      : `${e.category || e.serviceType || 'Service'} — ${e.vessel}${e.staffMember ? ' (' + e.staffMember + ')' : ''}`;
+    return `<div class="db-next-row"><span class="db-next-time">${time}</span><span class="db-next-desc">${desc}</span></div>`;
+  }).join('');
+}
+
+function dbRenderWeek(todayStr) {
+  const el = document.getElementById('db-week');
+  if (!el) return;
+  const base = new Date(todayStr);
+  const weekMvs = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    const dStr = d.toISOString().split('T')[0];
+    allEntries.filter(e => e.serviceDate === dStr && e.category === 'Vessel Movement')
+      .forEach(m => weekMvs.push({ m, d, dStr }));
+  }
+  if (!weekMvs.length) { el.innerHTML = '<div class="db-empty">No movements in the next 7 days</div>'; return; }
+  weekMvs.sort((a, b) => a.dStr.localeCompare(b.dStr));
+  el.innerHTML = weekMvs.map(({ m, d, dStr }) => {
+    const dateLabel = dStr === todayStr ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const fromTo = [m.transferFrom, m.transferTo].filter(Boolean).join(' → ') || m.description || '';
+    let badgeCls = 'badge-inport';
+    if (m.serviceType === 'Arrival') badgeCls = 'badge-arriving';
+    else if (m.serviceType === 'Departure') badgeCls = 'badge-departing';
+    else if (m.serviceType === 'Relocation') badgeCls = 'badge-relocation';
+    const time = (m.eta || m.etd || '').substring(0, 5);
+    return `
+      <div class="db-week-row">
+        <div class="db-week-date">${dateLabel}</div>
+        <div style="min-width:80px;"><span class="db-movement-badge ${badgeCls}" style="font-size:10px;padding:2px 8px;">${m.serviceType}</span></div>
+        <div class="db-week-detail">${m.vessel}${fromTo ? ' · ' + fromTo : ''}${time ? ' · ' + time : ''}</div>
+      </div>`;
+  }).join('');
 }
 
 // Initialize on page load
