@@ -4301,43 +4301,66 @@ function dbRenderInAntigua() {
   const countEl = document.getElementById('db-antigua-count');
   if (!el) return;
 
-  const antiguaKeywords = ['antigua', 'falmouth', 'english harbour', 'jolly harbour', 'nonsuch', 'five islands', "crabbs", "crabb's", 'dickenson', 'cedar valley', 'deep bay', 'st. john', "st john", 'nelson', 'guadeloupe channel'];
+  const antiguaTerms = [
+    'antigua', 'falmouth', 'english harbour', 'jolly harbour',
+    'nonsuch', 'five islands', 'crabbs', "crabb's", 'dickenson',
+    'cedar valley', 'deep bay', "st. john's", 'st john', 'nelson',
+    'antigua & barbuda', 'antigua and barbuda'
+  ];
 
   function isAntigua(str) {
     if (!str) return false;
     const lower = str.toLowerCase();
-    return antiguaKeywords.some(k => lower.includes(k));
+    return antiguaTerms.some(k => lower.includes(k));
   }
 
-  // For each vessel, find its most recent movement and determine if it's in Antigua
-  const vesselNames = [...new Set(allEntries.filter(e => e.category === 'Vessel Movement').map(e => e.vessel))].filter(Boolean);
+  function entryAntigua(e) {
+    // Check every location-bearing field on any entry type
+    return isAntigua(e.country) ||
+           isAntigua(e.marina) ||
+           isAntigua(e.jurisdiction) ||
+           isAntigua(e.transferTo) ||
+           isAntigua(e.description) ||
+           isAntigua(e.specialNotes) ||
+           isAntigua(e.internalNotes);
+  }
+
+  // All unique vessels across entire dataset
+  const vesselNames = [...new Set(allEntries.map(e => e.vessel))].filter(Boolean);
 
   const inAntigua = [];
 
   vesselNames.forEach(v => {
-    const mvs = allEntries
-      .filter(e => e.category === 'Vessel Movement' && e.vessel === v)
-      .sort((a, b) => {
-        const dateA = (a.serviceDate || '') + ' ' + (a.eta || a.etd || '');
-        const dateB = (b.serviceDate || '') + ' ' + (b.eta || b.etd || '');
-        return dateB.localeCompare(dateA);
-      });
+    const vesselEntries = allEntries
+      .filter(e => e.vessel === v && e.serviceDate)
+      .sort((a, b) => b.serviceDate.localeCompare(a.serviceDate)); // newest first
 
-    if (!mvs.length) return;
-    const last = mvs[0];
+    if (!vesselEntries.length) return;
 
-    // Vessel is "in Antigua" if last movement is an Arrival or Relocation to an Antigua location
-    if (last.serviceType === 'Arrival' || last.serviceType === 'Relocation') {
-      const loc = last.transferTo || last.marina || last.description || last.transferFrom || '';
-      if (isAntigua(loc) || isAntigua(last.country) || isAntigua(last.jurisdiction)) {
-        inAntigua.push({
-          vessel: v,
-          location: last.transferTo || last.marina || 'Antigua',
-          since: last.serviceDate,
-          type: last.serviceType
-        });
-      }
-    }
+    // Latest departure movement
+    const latestDeparture = vesselEntries.find(e =>
+      e.category === 'Vessel Movement' && e.serviceType === 'Departure'
+    );
+
+    // Latest entry with any Antigua evidence
+    const latestAntiguaEntry = vesselEntries.find(e => entryAntigua(e));
+
+    if (!latestAntiguaEntry) return;
+
+    // If vessel departed after its latest Antigua evidence, it has left
+    if (latestDeparture && latestDeparture.serviceDate > latestAntiguaEntry.serviceDate) return;
+
+    const location =
+      latestAntiguaEntry.marina ||
+      latestAntiguaEntry.transferTo ||
+      latestAntiguaEntry.country ||
+      'Antigua';
+
+    inAntigua.push({
+      vessel: v,
+      location,
+      since: latestAntiguaEntry.serviceDate
+    });
   });
 
   if (countEl) countEl.textContent = inAntigua.length;
@@ -4348,13 +4371,17 @@ function dbRenderInAntigua() {
   }
 
   el.innerHTML = inAntigua.map(v => {
-    const sinceDate = v.since ? new Date(v.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+    const sinceDate = v.since
+      ? new Date(v.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      : '—';
     return `
       <div class="db-vessel-card">
         <div class="db-vessel-thumb">🚢</div>
         <div style="flex:1;min-width:0;">
           <div class="db-vessel-name">${v.vessel}</div>
-          <div class="db-vessel-location"><span class="db-vessel-status-dot" style="background:#15803d;"></span>${v.location}</div>
+          <div class="db-vessel-location">
+            <span class="db-vessel-status-dot" style="background:#15803d;"></span>${v.location}
+          </div>
           <div class="db-vessel-jobs" style="color:var(--gray-500);">Since ${sinceDate}</div>
         </div>
         <span class="db-movement-badge badge-arriving" style="align-self:center;">IN PORT</span>
