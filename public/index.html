@@ -650,6 +650,7 @@
   .db-dot-scheduled { background: var(--gray-400); }
   .db-dot-overdue { background: #dc2626; }
   .db-dot-completed { background: var(--teal); }
+  .db-dot-cancelled { background: var(--gray-400); }
 
   /* ═══════════════════════════════════════════
      DASHBOARD — Vessel Cards (sidebar)
@@ -1972,6 +1973,7 @@ let currentUser = null;
 let allEntries = [];
 let allVessels = [];
 let editingEntryId = null; // Set when editing an existing entry via main form
+let editReturnView = 'log'; // View to return to after save/cancel of an edit
 let allDrivers = [];
 let isOnline = true;
 
@@ -2460,7 +2462,7 @@ async function submitEntry() {
       }
 
       exitEditMode();
-      showView('log');
+      showView(editReturnView || 'log');
       showToast('Entry updated successfully');
     } else {
       // CREATE new entry
@@ -2498,7 +2500,7 @@ async function submitEntry() {
 function cancelEdit() {
   if (editingEntryId) {
     exitEditMode();
-    showView('log');
+    showView(editReturnView || 'log');
   } else {
     resetForm();
   }
@@ -2506,6 +2508,7 @@ function cancelEdit() {
 
 function exitEditMode() {
   editingEntryId = null;
+  editReturnView = 'log';
   resetForm();
   // Restore submit bar to create mode
   document.getElementById('formSubmitBtn').textContent = 'Submit Entry';
@@ -4064,6 +4067,9 @@ function openEditEntry(entryId) {
   const entry = allEntries.find(e => e.entryId === entryId);
   if (!entry) return showToast('Entry not found');
 
+  // Capture origin view so save/cancel can return here
+  editReturnView = document.querySelector('.tab-btn.active')?.dataset?.view || 'log';
+
   // Set edit mode
   editingEntryId = entryId;
 
@@ -4668,7 +4674,7 @@ function dbRenderServices(services) {
     else if (st === 'awaiting-confirm') { dotCls = 'db-dot-inprogress'; stLabel = 'Awaiting'; }
     else if (st === 'delayed') { dotCls = 'db-dot-overdue'; stLabel = 'Delayed'; }
     else if (st === 'pending') { dotCls = 'db-dot-scheduled'; stLabel = 'Pending'; }
-    else if (st === 'cancelled') { dotCls = 'db-dot-overdue'; stLabel = 'Cancelled'; }
+    else if (st === 'cancelled') { dotCls = 'db-dot-cancelled'; stLabel = 'Cancelled'; }
     const catCls = catMap[s.category] || '';
     return `
       <tr>
@@ -4771,7 +4777,7 @@ function dbRenderVessels(todayStr) {
     const etimeLabel = type === 'Arrival' ? 'ETA' : (type === 'Departure' ? 'ETD' : '');
     const jobCount = allEntries.filter(e => e.vessel === v && e.serviceDate === todayStr && e.category !== 'Vessel Movement').length;
     return `
-      <div class="db-vessel-card">
+      <div class="db-vessel-card" onclick="showView('timeline')">
         <div class="db-vessel-thumb">🚢</div>
         <div style="flex:1;min-width:0;">
           <div class="db-vessel-name">${v}</div>
