@@ -6,6 +6,8 @@
 <title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -480,75 +482,147 @@
   /* ============================================
      DAILY DASHBOARD VIEW
   ============================================ */
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Date Nav
+  ═══════════════════════════════════════════ */
   .db-date-nav {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-    padding: 12px 16px; background: var(--white); border-radius: var(--radius-lg);
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    padding: 11px 16px; background: var(--white); border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
   }
   .db-date-btn {
-    padding: 7px 16px; border: 1px solid var(--gray-300); border-radius: 6px;
-    background: var(--white); cursor: pointer; font-size: 13px; font-weight: 600;
-    color: var(--gray-700); transition: all 0.2s; letter-spacing: 0.3px;
+    padding: 6px 16px; border: 1px solid var(--gray-300); border-radius: 6px;
+    background: var(--white); cursor: pointer; font-size: 12px; font-weight: 700;
+    color: var(--gray-700); transition: all 0.2s; letter-spacing: 0.5px;
   }
   .db-date-btn.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
   .db-date-display { font-size: 14px; font-weight: 600; color: var(--navy); }
-  .db-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — KPI Strip
+  ═══════════════════════════════════════════ */
+  .db-kpi-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;
+  }
+  @media (max-width: 700px) { .db-kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+  .db-kpi-card {
+    background: var(--navy); border-radius: var(--radius-lg); padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 4px; box-shadow: var(--shadow-md);
+    position: relative; overflow: hidden;
+  }
+  .db-kpi-card::after {
+    content: ''; position: absolute; right: -10px; top: -10px;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .db-kpi-card.kpi-teal { background: var(--teal); }
+  .db-kpi-card.kpi-red { background: #dc2626; }
+  .db-kpi-card.kpi-gold { background: linear-gradient(135deg, #b45309, #c8a84e); }
+  .db-kpi-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
+  .db-kpi-value { font-size: 28px; font-weight: 800; color: #fff; line-height: 1; }
+  .db-kpi-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Vessel Map
+  ═══════════════════════════════════════════ */
+  .db-map-container {
+    border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 14px;
+    box-shadow: var(--shadow-md); height: 260px; position: relative;
+    border: 1px solid var(--gray-200);
+  }
+  #db-map { width: 100%; height: 100%; }
+  .db-map-label {
+    position: absolute; top: 10px; left: 10px; z-index: 1000;
+    background: var(--navy); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;
+    box-shadow: var(--shadow-sm);
+  }
+  @media (max-width: 600px) { .db-map-container { height: 200px; } }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Hero Row (3 col above fold)
+  ═══════════════════════════════════════════ */
+  .db-hero-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; align-items: start;
+  }
+  @media (max-width: 960px) { .db-hero-row { grid-template-columns: 1fr; } }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Main/Sidebar Layout (lower)
+  ═══════════════════════════════════════════ */
+  .db-layout { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
   @media (max-width: 960px) { .db-layout { grid-template-columns: 1fr; } }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Panel Base
+  ═══════════════════════════════════════════ */
   .db-panel {
     background: var(--white); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden;
+    box-shadow: var(--shadow-sm); margin-bottom: 12px; overflow: hidden;
   }
   .db-panel-header {
     display: flex; align-items: center; gap: 8px;
-    padding: 12px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
+    padding: 11px 16px; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
   }
-  .db-panel-title { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; }
+  .db-panel-title { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.8px; }
   .db-panel-sub { font-size: 11px; color: var(--gray-500); font-weight: 400; margin-top: 1px; }
-  .db-panel-link { font-size: 12px; color: var(--teal); text-decoration: none; white-space: nowrap; font-weight: 500; margin-left: auto; }
+  .db-panel-link { font-size: 11px; color: var(--teal); text-decoration: none; white-space: nowrap; font-weight: 600; margin-left: auto; }
   .db-panel-link:hover { text-decoration: underline; }
-  /* Urgent */
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Urgent / Overdue
+  ═══════════════════════════════════════════ */
+  .db-urgent-panel { border: 1.5px solid #fca5a5; }
   .db-urgent-panel .db-panel-header { background: #fff5f5; border-color: #fca5a5; }
-  .db-urgent-panel { border: 1px solid #fca5a5; }
-  .db-urgent-title { font-size: 12px; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.6px; }
+  .db-urgent-title { font-size: 11px; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.8px; }
   .db-urgent-count { background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-  .db-urgent-items { display: flex; gap: 12px; padding: 12px 16px; overflow-x: auto; flex-wrap: wrap; }
+  .db-urgent-items { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
   .db-urgent-item {
-    flex: 1; min-width: 170px; max-width: 260px; background: var(--white); border-radius: 8px;
-    padding: 12px 14px; border: 1px solid var(--gray-200); display: flex; gap: 10px; align-items: flex-start;
+    background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px;
+    padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start;
   }
-  .db-urgent-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-  .db-urgent-vessel { font-size: 13px; font-weight: 700; color: var(--navy); }
-  .db-urgent-desc { font-size: 12px; color: var(--gray-700); margin: 2px 0; }
-  .db-urgent-deadline { font-size: 11px; color: #dc2626; font-weight: 600; }
-  /* Movements */
-  .db-movement-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
+  .db-urgent-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .db-urgent-vessel { font-size: 12px; font-weight: 700; color: var(--navy); }
+  .db-urgent-desc { font-size: 11px; color: var(--gray-700); margin: 2px 0; }
+  .db-urgent-deadline { font-size: 11px; color: #dc2626; font-weight: 700; }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Movements
+  ═══════════════════════════════════════════ */
+  .db-movement-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); }
   .db-movement-item:last-child { border-bottom: none; }
-  .db-movement-time { font-size: 15px; font-weight: 700; color: var(--navy); min-width: 48px; }
+  .db-movement-time { font-size: 14px; font-weight: 700; color: var(--navy); min-width: 44px; }
   .db-movement-time-sub { font-size: 10px; color: var(--gray-500); }
-  .db-movement-icon { font-size: 20px; }
+  .db-movement-icon { font-size: 18px; }
   .db-movement-vessel { font-size: 13px; font-weight: 600; color: var(--navy); }
-  .db-movement-detail { font-size: 12px; color: var(--gray-600); }
-  .db-movement-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  .db-movement-detail { font-size: 11px; color: var(--gray-600); }
+  .db-movement-badge { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
   .badge-arriving { background: #dcfce7; color: #15803d; }
   .badge-departing { background: #fee2e2; color: #dc2626; }
   .badge-relocation { background: #fef9c3; color: #a16207; }
   .badge-inport { background: #dbeafe; color: #1d4ed8; }
-  /* Transfers */
-  .db-transfer-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--gray-100); }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Transfers
+  ═══════════════════════════════════════════ */
+  .db-transfer-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-transfer-item:last-child { border-bottom: none; }
-  .db-transfer-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
-  .db-transfer-time { font-size: 14px; font-weight: 700; color: var(--navy); min-width: 48px; }
-  .db-transfer-type { font-size: 13px; font-weight: 600; color: var(--navy); }
-  .db-transfer-vessel { font-size: 12px; color: var(--gray-600); }
+  .db-transfer-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
+  .db-transfer-time { font-size: 13px; font-weight: 700; color: var(--navy); min-width: 40px; }
+  .db-transfer-type { font-size: 12px; font-weight: 600; color: var(--navy); }
+  .db-transfer-vessel { font-size: 11px; color: var(--gray-600); }
   .db-transfer-meta { font-size: 11px; color: var(--gray-500); }
-  .db-transfer-status { padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .db-transfer-status { padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
   .db-status-confirmed { background: #dcfce7; color: #15803d; }
   .db-status-pending { background: #fef9c3; color: #a16207; }
   .db-status-overdue { background: #fee2e2; color: #dc2626; }
-  /* Services table */
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Services Table
+  ═══════════════════════════════════════════ */
   .db-services-table { width: 100%; border-collapse: collapse; }
   .db-services-table th { padding: 8px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); text-align: left; background: var(--gray-50); }
-  .db-services-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); vertical-align: middle; }
+  .db-services-table td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-800); vertical-align: middle; }
   .db-services-table tr:last-child td { border-bottom: none; }
   .db-svc-badge { padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--teal-light); color: var(--teal); white-space: nowrap; }
   .db-svc-badge.cat-customs { background: #ede9fe; color: #7c3aed; }
@@ -560,52 +634,65 @@
   .db-dot-scheduled { background: var(--gray-400); }
   .db-dot-overdue { background: #dc2626; }
   .db-dot-completed { background: var(--teal); }
-  /* Sidebar vessel cards */
-  .db-vessel-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--gray-100); }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Vessel Cards (sidebar)
+  ═══════════════════════════════════════════ */
+  .db-vessel-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-vessel-card:last-child { border-bottom: none; }
-  .db-vessel-thumb { width: 56px; height: 40px; border-radius: 6px; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; overflow: hidden; }
+  .db-vessel-thumb { width: 48px; height: 36px; border-radius: 6px; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
   .db-vessel-name { font-size: 13px; font-weight: 700; color: var(--navy); }
   .db-vessel-location { font-size: 11px; color: var(--gray-600); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
   .db-vessel-jobs { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
   .db-vessel-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-  .db-vessel-etime { font-size: 14px; font-weight: 700; color: var(--navy); text-align: right; }
+  .db-vessel-etime { font-size: 13px; font-weight: 700; color: var(--navy); text-align: right; }
   .db-vessel-etime-label { font-size: 9px; color: var(--gray-500); text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
-  /* Team */
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Team / Charges / What's Next
+  ═══════════════════════════════════════════ */
   .db-team-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-team-row:last-child { border-bottom: none; }
-  .db-team-name { font-size: 12px; font-weight: 600; color: var(--navy); min-width: 100px; }
-  .db-team-count { font-size: 11px; color: var(--gray-600); min-width: 55px; }
+  .db-team-name { font-size: 12px; font-weight: 600; color: var(--navy); min-width: 90px; }
+  .db-team-count { font-size: 11px; color: var(--gray-600); min-width: 50px; }
   .db-team-bar-track { flex: 1; background: var(--gray-100); border-radius: 4px; height: 6px; }
   .db-team-bar-fill { height: 6px; border-radius: 4px; }
-  /* Charges */
   .db-charge-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-charge-row:last-child { border-bottom: none; }
   .db-charge-vessel { font-size: 12px; color: var(--gray-700); }
   .db-charge-amt { font-size: 13px; font-weight: 600; color: var(--navy); }
   .db-charge-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 2px solid var(--gray-200); background: var(--gray-50); font-weight: 700; font-size: 13px; color: var(--navy); }
-  /* What's Next */
   .db-next-row { display: flex; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); font-size: 12px; }
   .db-next-row:last-child { border-bottom: none; }
-  .db-next-time { font-weight: 700; color: var(--navy); min-width: 42px; }
+  .db-next-time { font-weight: 700; color: var(--navy); min-width: 40px; }
   .db-next-desc { color: var(--gray-700); }
-  /* Quick Actions */
-  .db-quick-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Quick Actions
+  ═══════════════════════════════════════════ */
+  .db-quick-actions { display: flex; gap: 8px; margin-bottom: 12px; }
   .db-quick-btn {
-    flex: 1; padding: 13px 8px; border: none; border-radius: var(--radius); cursor: pointer;
-    font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+    flex: 1; padding: 12px 8px; border: none; border-radius: var(--radius); cursor: pointer;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
     gap: 6px; transition: opacity 0.2s; color: #fff;
   }
   .db-quick-btn:hover { opacity: 0.88; }
   .db-quick-btn.qb-green { background: #22c55e; }
   .db-quick-btn.qb-blue { background: #3b82f6; }
   .db-quick-btn.qb-purple { background: #8b5cf6; }
-  /* Week view */
-  .db-week-row { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Week View
+  ═══════════════════════════════════════════ */
+  .db-week-row { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-week-row:last-child { border-bottom: none; }
-  .db-week-date { min-width: 80px; font-size: 12px; font-weight: 600; color: var(--navy); }
+  .db-week-date { min-width: 76px; font-size: 12px; font-weight: 600; color: var(--navy); }
   .db-week-detail { font-size: 12px; color: var(--gray-600); flex: 1; }
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Misc
+  ═══════════════════════════════════════════ */
   .db-empty { padding: 20px; text-align: center; color: var(--gray-500); font-size: 13px; }
-  /* Responsive quick actions */
   @media (max-width: 600px) {
     .db-quick-actions { flex-direction: column; }
     .db-quick-btn { padding: 12px; }
@@ -1352,84 +1439,124 @@
       <button class="db-date-btn active" onclick="setDashboardDay(0)">TODAY</button>
       <button class="db-date-btn" onclick="setDashboardDay(1)">TOMORROW</button>
       <span style="width:1px;height:20px;background:var(--gray-200);"></span>
-      <span style="font-size:16px;">📅</span>
+      <span style="font-size:15px;">📅</span>
       <span class="db-date-display" id="db-today-date"></span>
       <div style="flex:1;"></div>
-      <button onclick="renderDashboard()" style="background:none;border:1px solid var(--gray-300);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--gray-700);">&#8635; Refresh</button>
+      <button onclick="renderDashboard()" style="background:none;border:1px solid var(--gray-300);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;color:var(--gray-700);">&#8635; Refresh</button>
     </div>
 
-    <!-- Two-column layout -->
+    <!-- KPI Strip -->
+    <div class="db-kpi-strip">
+      <div class="db-kpi-card">
+        <div class="db-kpi-label">Vessels in Port</div>
+        <div class="db-kpi-value" id="kpi-in-port">—</div>
+        <div class="db-kpi-sub" id="kpi-in-port-sub">loading…</div>
+      </div>
+      <div class="db-kpi-card kpi-teal">
+        <div class="db-kpi-label">Movements Today</div>
+        <div class="db-kpi-value" id="kpi-movements">—</div>
+        <div class="db-kpi-sub" id="kpi-movements-sub">arrivals &amp; departures</div>
+      </div>
+      <div class="db-kpi-card kpi-red" id="kpi-urgent-card">
+        <div class="db-kpi-label">Urgent / Overdue</div>
+        <div class="db-kpi-value" id="kpi-urgent">—</div>
+        <div class="db-kpi-sub" id="kpi-urgent-sub">action required</div>
+      </div>
+      <div class="db-kpi-card kpi-gold">
+        <div class="db-kpi-label">Today's Charges</div>
+        <div class="db-kpi-value" id="kpi-charges">—</div>
+        <div class="db-kpi-sub" id="kpi-charges-sub">EC$ logged today</div>
+      </div>
+    </div>
+
+    <!-- Vessel Map -->
+    <div class="db-map-container">
+      <div class="db-map-label">🗺 English &amp; Falmouth Harbour</div>
+      <div id="db-map"></div>
+    </div>
+
+    <!-- Hero Row: Movements | Urgent+Overdue | Transfers -->
+    <div class="db-hero-row">
+
+      <!-- Movements -->
+      <div class="db-panel" style="margin-bottom:0;">
+        <div class="db-panel-header">
+          <span style="font-size:15px;">🚢</span>
+          <div>
+            <div class="db-panel-title">Movements</div>
+            <div class="db-panel-sub">Arrivals, Departures &amp; Relocations</div>
+          </div>
+          <a href="javascript:void(0)" class="db-panel-link" onclick="showView('movements')">All →</a>
+        </div>
+        <div id="db-movements"></div>
+      </div>
+
+      <!-- Urgent Actions -->
+      <div class="db-panel db-urgent-panel" id="db-urgent-panel" style="margin-bottom:0;">
+        <div class="db-panel-header">
+          <span style="font-size:15px;">⚠️</span>
+          <span class="db-urgent-title">Urgent / Overdue</span>
+          <span class="db-urgent-count" id="db-urgent-count" style="margin-left:6px;">0</span>
+          <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">All →</a>
+        </div>
+        <div class="db-urgent-items" id="db-urgent-items">
+          <div class="db-empty">No urgent actions</div>
+        </div>
+      </div>
+
+      <!-- Transfers -->
+      <div class="db-panel" style="margin-bottom:0;">
+        <div class="db-panel-header">
+          <span style="font-size:15px;">🚖</span>
+          <div>
+            <div class="db-panel-title">Transfers</div>
+            <div class="db-panel-sub">Taxi, Crew &amp; Guest</div>
+          </div>
+          <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">All →</a>
+        </div>
+        <div id="db-transfers"></div>
+      </div>
+
+    </div><!-- /hero row -->
+
+    <!-- Spacer -->
+    <div style="height:12px;"></div>
+
+    <!-- Lower section: main + sidebar -->
     <div class="db-layout">
 
       <!-- LEFT: Main Column -->
       <div>
 
-        <!-- Urgent Actions -->
-        <div id="db-urgent-panel" class="db-panel db-urgent-panel" style="display:none;">
-          <div class="db-panel-header">
-            <span style="font-size:16px;">⚠️</span>
-            <span class="db-urgent-title">URGENT ACTIONS</span>
-            <span class="db-urgent-count" id="db-urgent-count">0</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Alerts →</a>
-          </div>
-          <div class="db-urgent-items" id="db-urgent-items"></div>
-        </div>
-
-        <!-- Movements -->
-        <div class="db-panel">
-          <div class="db-panel-header">
-            <span style="font-size:16px;">🚢</span>
-            <div>
-              <div class="db-panel-title">MOVEMENTS</div>
-              <div class="db-panel-sub">Today's Arrivals, Departures &amp; Relocations</div>
-            </div>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('movements')">View All Movements →</a>
-          </div>
-          <div id="db-movements"></div>
-        </div>
-
-        <!-- Today's Transfers -->
-        <div class="db-panel">
-          <div class="db-panel-header">
-            <span style="font-size:16px;">🚐</span>
-            <div>
-              <div class="db-panel-title">TODAY'S TRANSFERS</div>
-              <div class="db-panel-sub">Airport, Guest &amp; Crew Transfers</div>
-            </div>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Transfers →</a>
-          </div>
-          <div id="db-transfers"></div>
-        </div>
-
         <!-- Scheduled Services -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">🔧</span>
+            <span style="font-size:15px;">🔧</span>
             <div>
-              <div class="db-panel-title">SCHEDULED SERVICES</div>
-              <div class="db-panel-sub">Services &amp; Jobs Planned for Today</div>
+              <div class="db-panel-title">Scheduled Services</div>
+              <div class="db-panel-sub">Jobs &amp; Services for Today</div>
             </div>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View All Services →</a>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">All →</a>
           </div>
           <div id="db-services"></div>
         </div>
 
         <!-- Quick Actions -->
         <div class="db-quick-actions">
-          <button class="db-quick-btn qb-green" onclick="showView('movements')">🚢 + Add Movement</button>
-          <button class="db-quick-btn qb-blue" onclick="showView('form')">🚐 + Add Transfer</button>
-          <button class="db-quick-btn qb-purple" onclick="showView('form')">🔧 + Add Service</button>
+          <button class="db-quick-btn qb-green" onclick="showView('movements')">🚢 + Movement</button>
+          <button class="db-quick-btn qb-blue" onclick="showView('form')">🚖 + Transfer</button>
+          <button class="db-quick-btn qb-purple" onclick="showView('form')">🔧 + Service</button>
         </div>
 
-        <!-- This Week's Movements -->
+        <!-- This Week -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">📅</span>
+            <span style="font-size:15px;">📅</span>
             <div>
-              <div class="db-panel-title">THIS WEEK</div>
+              <div class="db-panel-title">This Week</div>
               <div class="db-panel-sub">Vessel Movements — Next 7 Days</div>
             </div>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Full Schedule →</a>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">Full Schedule →</a>
           </div>
           <div id="db-week"></div>
         </div>
@@ -1442,12 +1569,12 @@
         <!-- Vessels in Antigua -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">🇦🇬</span>
+            <span style="font-size:15px;">🇦🇬</span>
             <div>
-              <div class="db-panel-title">VESSELS IN ANTIGUA</div>
+              <div class="db-panel-title">Vessels in Antigua</div>
               <div class="db-panel-sub">Currently in port</div>
             </div>
-            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);">0</span>
+            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
           </div>
           <div id="db-in-antigua"></div>
         </div>
@@ -1455,9 +1582,9 @@
         <!-- Active Vessels Today -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">⚓</span>
-            <span class="db-panel-title">ACTIVE VESSELS TODAY</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Fleet →</a>
+            <span style="font-size:15px;">⚓</span>
+            <span class="db-panel-title">Active Vessels Today</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">Fleet →</a>
           </div>
           <div id="db-vessels"></div>
         </div>
@@ -1465,8 +1592,8 @@
         <!-- Team Workload -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">👥</span>
-            <span class="db-panel-title">TEAM WORKLOAD</span>
+            <span style="font-size:15px;">👥</span>
+            <span class="db-panel-title">Team Workload</span>
           </div>
           <div id="db-team"></div>
         </div>
@@ -1474,9 +1601,9 @@
         <!-- Today's Charges -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">💰</span>
-            <span class="db-panel-title">TODAY'S CHARGES</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View Charges →</a>
+            <span style="font-size:15px;">💰</span>
+            <span class="db-panel-title">Today's Charges</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View →</a>
           </div>
           <div id="db-charges"></div>
         </div>
@@ -1484,9 +1611,9 @@
         <!-- What's Next -->
         <div class="db-panel">
           <div class="db-panel-header">
-            <span style="font-size:16px;">⚡</span>
-            <span class="db-panel-title">WHAT'S NEXT</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">View Full Schedule →</a>
+            <span style="font-size:15px;">⚡</span>
+            <span class="db-panel-title">What's Next</span>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('timeline')">Schedule →</a>
           </div>
           <div id="db-whats-next"></div>
         </div>
@@ -3017,7 +3144,11 @@ function showView(view) {
   if (view === 'form') updateSubmissionDateTime();
   if (view === 'movements') { populateMovementVesselSelects(); renderMovementsList(); }
   if (view === 'timeline') renderTimeline();
-  if (view === 'dashboard') renderDashboard();
+  if (view === 'dashboard') {
+    renderDashboard();
+    // Leaflet needs to know its container size after display:block
+    setTimeout(() => { if (dbMap) dbMap.invalidateSize(); }, 100);
+  }
 }
 
 function renderLog() {
@@ -4136,6 +4267,118 @@ function setDashboardDay(offset) {
   renderDashboard();
 }
 
+// ─── Map state ───────────────────────────────────────────────
+let dbMap = null;
+let dbMapMarkers = [];
+
+// Anchor-area marina coordinates (English/Falmouth Harbour, Antigua)
+const DB_MARINAS = {
+  'Falmouth Harbour Marina': { lat: 17.0016, lng: -61.7757, abbr: 'FHM' },
+  'FHM':                     { lat: 17.0016, lng: -61.7757, abbr: 'FHM' },
+  'Antigua Superyacht Marina': { lat: 17.0019, lng: -61.7745, abbr: 'ASM' },
+  'ASM':                     { lat: 17.0019, lng: -61.7745, abbr: 'ASM' },
+  "Nelson's Dockyard":       { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
+  'Nelsons Dockyard':        { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
+  'ND':                      { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
+  'English Harbour':         { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
+  'Jolly Harbour':           { lat: 17.0763, lng: -61.8882, abbr: 'JH' },
+  'Heritage Quay':           { lat: 17.1275, lng: -61.8468, abbr: 'HQ' },
+  "St. John's":              { lat: 17.1275, lng: -61.8468, abbr: 'HQ' },
+  'Antigua':                 { lat: 17.0016, lng: -61.7757, abbr: 'FHM' }, // default fallback
+};
+
+function dbResolveMarinaCoordsFromString(loc) {
+  if (!loc) return null;
+  const low = loc.toLowerCase();
+  for (const [name, coords] of Object.entries(DB_MARINAS)) {
+    if (low.includes(name.toLowerCase())) return coords;
+  }
+  return null;
+}
+
+function dbInitMap() {
+  if (!document.getElementById('db-map')) return;
+  if (typeof L === 'undefined') return;
+
+  if (dbMap) {
+    dbMap.remove();
+    dbMap = null;
+  }
+
+  // Centre on Falmouth Harbour
+  dbMap = L.map('db-map', {
+    center: [17.003, -61.773],
+    zoom: 14,
+    zoomControl: true,
+    attributionControl: true,
+    scrollWheelZoom: false
+  });
+
+  // OpenStreetMap tiles (free, no API key)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(dbMap);
+
+  // Add static marina labels
+  Object.entries(DB_MARINAS).forEach(([name, coords]) => {
+    if (['FHM','ASM','ND','JH','HQ'].includes(coords.abbr) &&
+        Object.entries(DB_MARINAS).filter(([n, c]) => c.abbr === coords.abbr)[0][0] === name) {
+      L.circleMarker([coords.lat, coords.lng], {
+        radius: 6, color: '#0b1d3a', fillColor: '#0b1d3a',
+        fillOpacity: 0.25, weight: 1.5
+      }).addTo(dbMap)
+        .bindTooltip(name, { permanent: false, direction: 'top', className: 'db-map-tooltip' });
+    }
+  });
+
+  dbMapMarkers = [];
+}
+
+function dbRenderMapVessels(inPort) {
+  if (!dbMap || typeof L === 'undefined') return;
+
+  // Clear existing vessel markers
+  dbMapMarkers.forEach(m => m.remove());
+  dbMapMarkers = [];
+
+  // Group vessels by resolved marina
+  const grouped = {};
+  inPort.forEach(v => {
+    const coords = dbResolveMarinaCoordsFromString(v.location) || DB_MARINAS['Antigua'];
+    const key = `${coords.lat},${coords.lng}`;
+    if (!grouped[key]) grouped[key] = { coords, vessels: [] };
+    grouped[key].vessels.push(v);
+  });
+
+  // Place a marker for each marina that has vessels
+  Object.values(grouped).forEach(({ coords, vessels }) => {
+    const names = vessels.map(v => `<b>${v.vessel}</b> — ${v.location}`).join('<br>');
+    const count = vessels.length;
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        background:var(--teal,#1a8a7d);color:#fff;
+        border-radius:50%;width:${count > 1 ? 34 : 28}px;height:${count > 1 ? 34 : 28}px;
+        display:flex;align-items:center;justify-content:center;
+        font-size:${count > 1 ? 14 : 16}px;font-weight:700;
+        border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);
+        cursor:pointer;
+      ">${count > 1 ? count : '⚓'}</div>`,
+      iconSize: [count > 1 ? 34 : 28, count > 1 ? 34 : 28],
+      iconAnchor: [count > 1 ? 17 : 14, count > 1 ? 17 : 14]
+    });
+
+    const marker = L.marker([coords.lat, coords.lng], { icon })
+      .addTo(dbMap)
+      .bindPopup(`<div style="font-size:13px;line-height:1.6;">${names}</div>`, { maxWidth: 220 });
+
+    dbMapMarkers.push(marker);
+  });
+}
+
+// ─── Main dashboard renderer ──────────────────────────────────
 function renderDashboard() {
   const base = new Date();
   base.setDate(base.getDate() + (dashboardDayOffset || 0));
@@ -4148,17 +4391,22 @@ function renderDashboard() {
   const dayEntries = allEntries.filter(e => e.serviceDate === todayStr);
   const dayMovements = dayEntries.filter(e => e.category === 'Vessel Movement')
     .sort((a, b) => (a.eta || a.etd || '99:99').localeCompare(b.eta || b.etd || '99:99'));
-  const dayTransfers = dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer')
+  const dayTransfers = dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer')
     .sort((a, b) => (a.transferPickupTime || '99:99').localeCompare(b.transferPickupTime || '99:99'));
   const dayServices = dayEntries.filter(e =>
-    e.category !== 'Vessel Movement' && e.serviceType !== 'Crew Transfer' && e.serviceType !== 'Guest Transfer'
+    e.category !== 'Vessel Movement' &&
+    e.serviceType !== 'Crew Transfer' && e.serviceType !== 'Guest Transfer' && e.serviceType !== 'Taxi Transfer'
   ).sort((a, b) => (a.eta || a.transferPickupTime || '99:99').localeCompare(b.eta || b.transferPickupTime || '99:99'));
 
   dbRenderUrgent(dayTransfers, dayEntries);
   dbRenderMovements(dayMovements);
   dbRenderTransfers(dayTransfers);
   dbRenderServices(dayServices);
-  dbRenderInAntigua();
+  const inPort = dbRenderInAntigua();
+  dbRenderKPI(dayMovements, dayEntries, inPort);
+  // Init map first render; update vessel pins every render
+  if (!dbMap) dbInitMap();
+  dbRenderMapVessels(inPort || []);
   dbRenderVessels(todayStr);
   dbRenderTeam(dayEntries);
   dbRenderCharges(dayEntries);
@@ -4166,12 +4414,52 @@ function renderDashboard() {
   dbRenderWeek(todayStr);
 }
 
+function dbRenderKPI(movements, dayEntries, inPort) {
+  // Vessels in port
+  const portCount = (inPort || []).length;
+  const portEl = document.getElementById('kpi-in-port');
+  const portSub = document.getElementById('kpi-in-port-sub');
+  if (portEl) portEl.textContent = portCount;
+  if (portSub) {
+    const names = (inPort || []).map(v => v.vessel).join(', ');
+    portSub.textContent = names || 'none logged';
+    portSub.title = names;
+  }
+
+  // Movements today
+  const mvEl = document.getElementById('kpi-movements');
+  const mvSub = document.getElementById('kpi-movements-sub');
+  if (mvEl) mvEl.textContent = movements.length;
+  if (mvSub) {
+    const arr = movements.filter(m => m.serviceType === 'Arrival').length;
+    const dep = movements.filter(m => m.serviceType === 'Departure').length;
+    mvSub.textContent = `${arr} arriv · ${dep} depart`;
+  }
+
+  // Urgent / overdue
+  const urgCount = dayEntries.filter(e => computeStatus(e) === 'overdue').length +
+    dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer').filter(e => !e.transferDriverId).length;
+  const urgEl = document.getElementById('kpi-urgent');
+  const urgSub = document.getElementById('kpi-urgent-sub');
+  const urgCard = document.getElementById('kpi-urgent-card');
+  if (urgEl) urgEl.textContent = urgCount;
+  if (urgSub) urgSub.textContent = urgCount === 0 ? 'all clear ✓' : 'action required';
+  if (urgCard) urgCard.style.background = urgCount === 0 ? '#15803d' : '#dc2626';
+
+  // Charges
+  const total = dayEntries.reduce((s, e) => s + (parseFloat(e.totalCharge) || 0), 0);
+  const chEl = document.getElementById('kpi-charges');
+  const chSub = document.getElementById('kpi-charges-sub');
+  if (chEl) chEl.textContent = total > 0 ? '$' + total.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '$0';
+  if (chSub) chSub.textContent = 'EC$ logged today';
+}
+
 function dbRenderUrgent(transfers, dayEntries) {
   const urgents = [];
   transfers.forEach(e => {
     if (!e.transferDriverId) {
       const time = (e.transferPickupTime || '').substring(0, 5) || 'Today';
-      urgents.push({ vessel: e.vessel, desc: 'Driver not assigned for ' + (e.serviceType || 'transfer'), deadline: time, icon: '🚗' });
+      urgents.push({ vessel: e.vessel, desc: 'Driver not assigned — ' + (e.serviceType || 'transfer'), deadline: time || '—', icon: '🚖' });
     }
   });
   dayEntries.forEach(e => {
@@ -4188,9 +4476,19 @@ function dbRenderUrgent(transfers, dayEntries) {
   const countEl = document.getElementById('db-urgent-count');
   const itemsEl = document.getElementById('db-urgent-items');
   if (!panel || !countEl || !itemsEl) return;
-  if (!urgents.length) { panel.style.display = 'none'; return; }
-  panel.style.display = '';
   countEl.textContent = urgents.length;
+  if (!urgents.length) {
+    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear — no urgent actions ✓</div>';
+    panel.style.borderColor = '#bbf7d0';
+    panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
+    panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
+    countEl.style.background = '#15803d';
+    return;
+  }
+  panel.style.borderColor = '#fca5a5';
+  panel.querySelector('.db-panel-header').style.background = '#fff5f5';
+  panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
+  countEl.style.background = '#dc2626';
   itemsEl.innerHTML = urgents.map(u => `
     <div class="db-urgent-item">
       <div class="db-urgent-icon">${u.icon}</div>
@@ -4339,7 +4637,7 @@ function dbRenderInAntigua() {
 
   if (!inPort.length) {
     el.innerHTML = '<div class="db-empty">No vessels currently in port</div>';
-    return;
+    return inPort;
   }
 
   el.innerHTML = inPort.map(v => {
@@ -4359,6 +4657,8 @@ function dbRenderInAntigua() {
         <span class="db-movement-badge badge-arriving" style="align-self:center;">IN PORT</span>
       </div>`;
   }).join('');
+
+  return inPort;
 }
 
 function dbRenderVessels(todayStr) {
