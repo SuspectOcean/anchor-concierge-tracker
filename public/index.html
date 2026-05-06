@@ -4102,7 +4102,8 @@ function openEditEntry(entryId) {
   // Status — show dropdown in edit mode
   document.getElementById('statusAutoMsg').classList.add('hidden');
   document.getElementById('statusInput').classList.remove('hidden');
-  document.getElementById('statusInput').value = entry.status || 'pending';
+  const _legacyStatusMap = { overdue: 'pending' };
+  document.getElementById('statusInput').value = _legacyStatusMap[entry.status] || entry.status || 'pending';
   document.getElementById('workCompleted').value = entry.workCompleted || '';
   document.getElementById('futureTask').value = entry.futureTask || '';
 
