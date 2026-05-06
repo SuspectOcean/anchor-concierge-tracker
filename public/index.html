@@ -283,6 +283,29 @@
   .invoiced-check input { width: 14px; height: 14px; accent-color: #7b1fa2; cursor: pointer; }
   .invoiced-check.checked { color: #7b1fa2; font-weight: 600; }
 
+  /* ─── Priority selector ───────────────────────────────────── */
+  .priority-selector { display: flex; gap: 4px; flex-wrap: wrap; }
+  .prio-btn {
+    padding: 4px 11px; border: 1.5px solid var(--gray-300); border-radius: 20px;
+    background: var(--white); font-size: 12px; font-weight: 500; color: var(--gray-600);
+    cursor: pointer; transition: all 0.15s; line-height: 1.4;
+  }
+  .prio-btn:hover:not(.active) { border-color: var(--gray-500); background: var(--gray-50); }
+  .prio-btn.active { color: var(--white); border-color: transparent; }
+  .prio-btn-low.active    { background: var(--gray-500); }
+  .prio-btn-normal.active { background: var(--gray-600); }
+  .prio-btn-high.active   { background: var(--orange); }
+  .prio-btn-critical.active { background: var(--red); }
+
+  /* Priority badges — log table and dashboard */
+  .prio-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 4px; text-transform: uppercase;
+    letter-spacing: 0.5px; vertical-align: middle; margin-left: 4px;
+  }
+  .prio-badge-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+  .prio-badge-high     { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+
   /* Timeline Styles */
   /* Calendar View */
   .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -832,6 +855,18 @@
             <select id="staffSelect">
               <option value="">Select staff...</option>
             </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Priority</label>
+            <div class="priority-selector" id="prioritySelector">
+              <button type="button" class="prio-btn prio-btn-low" onclick="setPriority('low')">Low</button>
+              <button type="button" class="prio-btn prio-btn-normal active" onclick="setPriority('normal')">Normal</button>
+              <button type="button" class="prio-btn prio-btn-high" onclick="setPriority('high')">High</button>
+              <button type="button" class="prio-btn prio-btn-critical" onclick="setPriority('critical')">Critical</button>
+            </div>
+            <input type="hidden" id="priorityInput" value="normal">
           </div>
         </div>
         <div class="form-row">
@@ -2364,7 +2399,8 @@ function entryFromDb(row) {
       : '',
     transferFlightArrival: row.eta || '',
     lastEditedBy: row.last_edited_by || '',
-    lastEditedAt: row.last_edited_at || ''
+    lastEditedAt: row.last_edited_at || '',
+    priority: row.priority || 'normal'
   };
 }
 
@@ -2415,7 +2451,8 @@ function entryToDb(entry) {
     transfer_extra_vehicle_count: parseInt(entry.transferExtraVehicleCount) || 0,
     transfer_notes: entry.transferFlightNumber
       ? ('Flight: ' + entry.transferFlightNumber + (entry.transferNotes ? '\n' + entry.transferNotes : ''))
-      : (entry.transferNotes || '')
+      : (entry.transferNotes || ''),
+    priority: entry.priority || 'normal'
   };
 }
 
@@ -2660,7 +2697,8 @@ function gatherFormData() {
     transferExtraVehicleCount: document.getElementById('transferExtraVehicleCount')?.value || 0,
     transferNotes: document.getElementById('transferNotes')?.value || '',
     transferFlightNumber: document.getElementById('transferFlightNumber')?.value || '',
-    transferFlightArrival: document.getElementById('transferFlightArrival')?.value || ''
+    transferFlightArrival: document.getElementById('transferFlightArrival')?.value || '',
+    priority: document.getElementById('priorityInput')?.value || 'normal'
   };
 
   // Combine customs charges + manual charge blocks → store as JSON
@@ -2761,7 +2799,16 @@ function resetForm() {
   if (document.getElementById('transferExtraVehicleCountRow')) document.getElementById('transferExtraVehicleCountRow').classList.add('hidden');
   document.getElementById('transferPanel').classList.add('hidden');
   if (document.getElementById('transferReturnTimeRow')) document.getElementById('transferReturnTimeRow').classList.add('hidden');
+  setPriority('normal');
   calculateTotal();
+}
+
+function setPriority(val) {
+  const input = document.getElementById('priorityInput');
+  if (input) input.value = val;
+  document.querySelectorAll('#prioritySelector .prio-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.classList.contains('prio-btn-' + val));
+  });
 }
 
 function updateAutoStatus() {
@@ -3236,15 +3283,23 @@ function renderLog() {
       if (other > 0) blocks.push({ rate: other, hours: 1, notes: 'Other charges', amount: other });
     }
 
+    const priority = entry.priority || 'normal';
+    const priorityBadge = priority === 'critical'
+      ? '<span class="prio-badge prio-badge-critical">critical</span>'
+      : priority === 'high' ? '<span class="prio-badge prio-badge-high">high</span>' : '';
+    const priorityBorder = priority === 'critical'
+      ? 'border-left:3px solid #dc2626;'
+      : priority === 'high' ? 'border-left:3px solid #fd7e14;' : '';
+
     const row = document.createElement('tr');
-    row.style.cursor = 'pointer';
+    row.style.cssText = `cursor:pointer;${priorityBorder}`;
     row.innerHTML = `
       <td>${entry.entryId}</td>
       <td>${entry.vessel}</td>
       <td style="font-size:12px;color:var(--gray-600);">${entry.staffMember || '—'}</td>
       <td>${entry.category}${entry.serviceType ? ' — ' + entry.serviceType : ''}</td>
       <td>${formatDate(entry.serviceDate)}</td>
-      <td><span class="status-badge status-${displayStatus}">${displayStatus}</span></td>
+      <td><span class="status-badge status-${displayStatus}">${displayStatus}</span>${priorityBadge}</td>
       <td style="font-weight:600;">${symbol}${total.toFixed(2)}</td>
       <td><button onclick="event.stopPropagation();openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="event.stopPropagation();deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
     `;
@@ -4172,6 +4227,9 @@ function openEditEntry(entryId) {
   document.getElementById('internalNotes').value = entry.internalNotes || '';
   document.getElementById('clientNotes').value = entry.clientNotes || '';
 
+  // Priority
+  setPriority(entry.priority || 'normal');
+
   calculateTotal();
 
   // Update submit bar for edit mode
@@ -4556,9 +4614,19 @@ function dbRenderKPI(movements, dayEntries, inPort) {
     mvSub.textContent = `${arr} arriv · ${dep} depart`;
   }
 
-  // Urgent / overdue
-  const urgCount = dayEntries.filter(e => e.category !== 'Vessel Movement' && computeStatus(e) === 'overdue').length +
-    dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer').filter(e => !e.transferDriverId).length;
+  // Urgent / overdue KPI — counts overdue + critical-active (deduplicated) + unassigned transfers
+  const urgentSet = new Set();
+  dayEntries.forEach(e => {
+    if (e.category === 'Vessel Movement') return;
+    const st = computeStatus(e);
+    const pr = e.priority || 'normal';
+    if (st === 'overdue') urgentSet.add(e.entryId);
+    if (pr === 'critical' && st !== 'completed' && st !== 'cancelled') urgentSet.add(e.entryId);
+  });
+  const unassignedTransfers = dayEntries.filter(e =>
+    (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer') && !e.transferDriverId
+  ).length;
+  const urgCount = urgentSet.size + unassignedTransfers;
   const urgEl = document.getElementById('kpi-urgent');
   const urgSub = document.getElementById('kpi-urgent-sub');
   const urgCard = document.getElementById('kpi-urgent-card');
@@ -4576,22 +4644,45 @@ function dbRenderKPI(movements, dayEntries, inPort) {
 
 function dbRenderUrgent(transfers, dayEntries) {
   const urgents = [];
+  const addedIds = new Set();
+
+  // 1. Unassigned transfers
   transfers.forEach(e => {
     if (!e.transferDriverId) {
       const time = (e.transferPickupTime || '').substring(0, 5) || 'Today';
       urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'Driver not assigned — ' + (e.serviceType || 'transfer'), deadline: time || '—', icon: '🚖' });
+      addedIds.add(e.entryId);
     }
   });
+
+  // 2. Overdue entries — escalate visually if critical or high
   dayEntries.forEach(e => {
-    // Vessel Movements are not actionable urgent items — skip them
     if (e.category === 'Vessel Movement') return;
-    if (computeStatus(e) === 'overdue') {
-      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline: 'Overdue', icon: '⏰' });
-    }
+    if (computeStatus(e) !== 'overdue') return;
+    const pr = e.priority || 'normal';
+    const icon = pr === 'critical' ? '🔴' : (pr === 'high' ? '⚠️' : '⏰');
+    const deadline = pr === 'critical' ? 'CRITICAL — OVERDUE' : (pr === 'high' ? 'HIGH — OVERDUE' : 'Overdue');
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline, icon });
+    addedIds.add(e.entryId);
   });
+
+  // 3. Critical entries not yet listed (not overdue but still needs action)
   dayEntries.forEach(e => {
+    if (e.category === 'Vessel Movement') return;
+    if ((e.priority || 'normal') !== 'critical') return;
+    if (addedIds.has(e.entryId)) return;
+    const st = computeStatus(e);
+    if (st === 'completed' || st === 'cancelled') return;
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + (e.serviceType ? ': ' + e.serviceType : ''), deadline: 'Critical', icon: '🔴' });
+    addedIds.add(e.entryId);
+  });
+
+  // 4. Legacy: "urgent" keyword in specialNotes (only if not already listed)
+  dayEntries.forEach(e => {
+    if (addedIds.has(e.entryId)) return;
     if (e.specialNotes && e.specialNotes.toLowerCase().includes('urgent')) {
       urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: '⚠️' });
+      addedIds.add(e.entryId);
     }
   });
   const panel = document.getElementById('db-urgent-panel');
