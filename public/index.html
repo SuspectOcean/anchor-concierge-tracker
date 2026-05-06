@@ -2753,11 +2753,12 @@ function updateAutoStatus() {
 function computeStatus(entry) {
   if (entry.status === 'cancelled') return 'cancelled';
   if (entry.status === 'completed' || entry.workCompleted === 'Yes') return 'completed';
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const serviceDate = new Date(entry.serviceDate);
-  serviceDate.setHours(0,0,0,0);
-  if (serviceDate < today) return 'overdue';
+  // Compare as YYYY-MM-DD strings in local time to avoid UTC offset false positives
+  const now = new Date();
+  const todayStr = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  if (entry.serviceDate && entry.serviceDate < todayStr) return 'overdue';
   return 'upcoming';
 }
 
@@ -3147,7 +3148,14 @@ function showView(view) {
   if (view === 'dashboard') {
     renderDashboard();
     // Leaflet needs to know its container size after display:block
-    setTimeout(() => { if (dbMap) dbMap.invalidateSize(); }, 100);
+    setTimeout(() => {
+      if (dbMap) {
+        const c = dbMap.getCenter();
+        const z = dbMap.getZoom();
+        dbMap.invalidateSize();
+        if (c && z !== undefined) dbMap.setView(c, z, { animate: false });
+      }
+    }, 100);
   }
 }
 
@@ -4421,9 +4429,13 @@ function dbRenderKPI(movements, dayEntries, inPort) {
   const portSub = document.getElementById('kpi-in-port-sub');
   if (portEl) portEl.textContent = portCount;
   if (portSub) {
-    const names = (inPort || []).map(v => v.vessel).join(', ');
-    portSub.textContent = names || 'none logged';
-    portSub.title = names;
+    const vessels = (inPort || []).map(v => v.vessel);
+    const allNames = vessels.join(', ');
+    const display = vessels.length <= 2
+      ? allNames
+      : vessels.slice(0, 2).join(', ') + ' +' + (vessels.length - 2) + ' more';
+    portSub.textContent = display || 'none logged';
+    portSub.title = allNames;
   }
 
   // Movements today
@@ -4437,7 +4449,7 @@ function dbRenderKPI(movements, dayEntries, inPort) {
   }
 
   // Urgent / overdue
-  const urgCount = dayEntries.filter(e => computeStatus(e) === 'overdue').length +
+  const urgCount = dayEntries.filter(e => e.category !== 'Vessel Movement' && computeStatus(e) === 'overdue').length +
     dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer').filter(e => !e.transferDriverId).length;
   const urgEl = document.getElementById('kpi-urgent');
   const urgSub = document.getElementById('kpi-urgent-sub');
@@ -4463,6 +4475,8 @@ function dbRenderUrgent(transfers, dayEntries) {
     }
   });
   dayEntries.forEach(e => {
+    // Vessel Movements are not actionable urgent items — skip them
+    if (e.category === 'Vessel Movement') return;
     if (computeStatus(e) === 'overdue') {
       urgents.push({ vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline: 'Overdue', icon: '⏰' });
     }
