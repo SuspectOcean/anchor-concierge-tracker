@@ -2809,7 +2809,8 @@ function selectStatus(status) {
 }
 
 function updateStatusPills() {
-  // Status pills removed — status is now auto-computed
+  // Intentional stub — status pills were removed in Phase 2B.
+  // Status is now auto-computed via computeStatus(). Safe to keep as a no-op.
 }
 
 function selectBillingType(type) {
@@ -3287,6 +3288,9 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
 }
 
+// TODO: Dead/no-op legacy function. Body has never executed any logic.
+// Overdue state is now computed on-the-fly by computeStatus() and never stored.
+// Safe to remove in a future cleanup pass — confirm all call sites first.
 function checkOverdueEntries() {
   const now = new Date();
   allEntries.forEach(entry => {
@@ -4309,6 +4313,7 @@ async function executeDeleteEntry(entryId) {
 // ============================================
 // DAILY DASHBOARD
 // ============================================
+// ─── Dashboard state ──────────────────────────────────────────
 let dashboardDayOffset = 0;
 
 function setDashboardDay(offset) {
@@ -4317,7 +4322,7 @@ function setDashboardDay(offset) {
   renderDashboard();
 }
 
-// ─── Map state ───────────────────────────────────────────────
+// ─── Dashboard map ────────────────────────────────────────────
 let dbMap = null;
 let dbMapMarkers = [];
 
@@ -4433,6 +4438,7 @@ function dbRenderMapVessels(inPort) {
 // Returns the list of panel IDs to show for a given role.
 // Admin and staff see everything. Future roles can be added here without
 // touching the dashboard HTML or renderDashboard() logic.
+// ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
   'kpi', 'map', 'movements', 'urgent', 'transfers',
   'services', 'quick-actions', 'week',
@@ -4459,7 +4465,7 @@ function applyDashboardConfig(visiblePanels) {
   });
 }
 
-// --- Dashboard navigation helpers ---
+// ─── Dashboard navigation helpers ────────────────────────────
 // Opens Movements and scrolls to the first today/future row (non-dimmed).
 // Safe no-op if no matching row exists.
 function navToMovementsToday() {
@@ -4485,6 +4491,7 @@ function navToLogOverdue() {
   }, 60);
 }
 
+// ─── Dashboard render functions ───────────────────────────────
 function renderDashboard() {
   // Apply role-based panel visibility (non-disruptive — admin/staff see all)
   applyDashboardConfig(getDashboardConfig(currentUser?.role));
@@ -4718,6 +4725,9 @@ function dbRenderServices(services) {
     </table>`;
 }
 
+// NOTE: In-port status is derived from the latest Vessel Movement entry per vessel,
+// not from a dedicated vessel status field. If movement records are missing or outdated,
+// the count and panel will not reflect reality. Keep movement data current.
 function dbRenderInAntigua() {
   const el = document.getElementById('db-in-antigua');
   const countEl = document.getElementById('db-antigua-count');
