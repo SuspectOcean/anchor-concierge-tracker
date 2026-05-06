@@ -799,8 +799,8 @@
 <div class="app-main">
   <!-- TAB BAR -->
   <div class="tab-bar" id="mobileTabBar">
-    <button class="tab-btn" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn active" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
+    <button class="tab-btn active" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="movements" onclick="showView('movements')">Movements</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
@@ -1468,7 +1468,7 @@
     </div>
 
     <!-- KPI Strip -->
-    <div class="db-kpi-strip">
+    <div class="db-kpi-strip" data-db-panel="kpi">
       <div class="db-kpi-card">
         <div class="db-kpi-label">Vessels in Port</div>
         <div class="db-kpi-value" id="kpi-in-port">—</div>
@@ -1492,7 +1492,7 @@
     </div>
 
     <!-- Vessel Map -->
-    <div class="db-map-container">
+    <div class="db-map-container" data-db-panel="map">
       <div class="db-map-label">🗺 English &amp; Falmouth Harbour</div>
       <div id="db-map"></div>
     </div>
@@ -1501,7 +1501,7 @@
     <div class="db-hero-row">
 
       <!-- Movements -->
-      <div class="db-panel" style="margin-bottom:0;">
+      <div class="db-panel" style="margin-bottom:0;" data-db-panel="movements">
         <div class="db-panel-header">
           <span style="font-size:15px;">🚢</span>
           <div>
@@ -1514,7 +1514,7 @@
       </div>
 
       <!-- Urgent Actions -->
-      <div class="db-panel db-urgent-panel" id="db-urgent-panel" style="margin-bottom:0;">
+      <div class="db-panel db-urgent-panel" id="db-urgent-panel" style="margin-bottom:0;" data-db-panel="urgent">
         <div class="db-panel-header">
           <span style="font-size:15px;">⚠️</span>
           <span class="db-urgent-title">Urgent / Overdue</span>
@@ -1527,7 +1527,7 @@
       </div>
 
       <!-- Transfers -->
-      <div class="db-panel" style="margin-bottom:0;">
+      <div class="db-panel" style="margin-bottom:0;" data-db-panel="transfers">
         <div class="db-panel-header">
           <span style="font-size:15px;">🚖</span>
           <div>
@@ -1551,7 +1551,7 @@
       <div>
 
         <!-- Scheduled Services -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="services">
           <div class="db-panel-header">
             <span style="font-size:15px;">🔧</span>
             <div>
@@ -1564,14 +1564,14 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="db-quick-actions">
+        <div class="db-quick-actions" data-db-panel="quick-actions">
           <button class="db-quick-btn qb-green" onclick="showView('movements')">🚢 + Movement</button>
           <button class="db-quick-btn qb-blue" onclick="showView('form')">🚖 + Transfer</button>
           <button class="db-quick-btn qb-purple" onclick="showView('form')">🔧 + Service</button>
         </div>
 
         <!-- This Week -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="week">
           <div class="db-panel-header">
             <span style="font-size:15px;">📅</span>
             <div>
@@ -1589,7 +1589,7 @@
       <div>
 
         <!-- Vessels in Antigua -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="in-antigua">
           <div class="db-panel-header">
             <span style="font-size:15px;">🇦🇬</span>
             <div>
@@ -1602,7 +1602,7 @@
         </div>
 
         <!-- Active Vessels Today -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="active-vessels">
           <div class="db-panel-header">
             <span style="font-size:15px;">⚓</span>
             <span class="db-panel-title">Active Vessels Today</span>
@@ -1612,7 +1612,7 @@
         </div>
 
         <!-- Team Workload -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="team">
           <div class="db-panel-header">
             <span style="font-size:15px;">👥</span>
             <span class="db-panel-title">Team Workload</span>
@@ -1621,7 +1621,7 @@
         </div>
 
         <!-- Today's Charges -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="charges">
           <div class="db-panel-header">
             <span style="font-size:15px;">💰</span>
             <span class="db-panel-title">Today's Charges</span>
@@ -1631,7 +1631,7 @@
         </div>
 
         <!-- What's Next -->
-        <div class="db-panel">
+        <div class="db-panel" data-db-panel="whats-next">
           <div class="db-panel-header">
             <span style="font-size:15px;">⚡</span>
             <span class="db-panel-title">What's Next</span>
@@ -2003,6 +2003,7 @@ async function handleLogin() {
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
+    showView('dashboard');
   } catch (err) {
     errorEl.textContent = err.message || 'Login failed';
     errorEl.style.display = 'block';
@@ -2052,6 +2053,7 @@ async function handleSignup() {
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
+    showView('dashboard');
   } catch (err) {
     errorEl.textContent = err.message || 'Signup failed';
     errorEl.style.display = 'block';
@@ -4421,7 +4423,40 @@ function dbRenderMapVessels(inPort) {
 }
 
 // ─── Main dashboard renderer ──────────────────────────────────
+// --- Dashboard role config infrastructure ---
+// Returns the list of panel IDs to show for a given role.
+// Admin and staff see everything. Future roles can be added here without
+// touching the dashboard HTML or renderDashboard() logic.
+const DB_ALL_PANELS = [
+  'kpi', 'map', 'movements', 'urgent', 'transfers',
+  'services', 'quick-actions', 'week',
+  'in-antigua', 'active-vessels', 'team', 'charges', 'whats-next'
+];
+
+function getDashboardConfig(role) {
+  switch (role) {
+    // Future: uncomment and configure these as real dashboards are built
+    // case 'driver':    return ['urgent', 'transfers'];
+    // case 'broker':    return ['kpi', 'map', 'movements', 'in-antigua', 'week'];
+    // case 'vessel':    return ['active-vessels', 'movements', 'services', 'whats-next'];
+    case 'admin':
+    case 'staff':
+    default:
+      return DB_ALL_PANELS;
+  }
+}
+
+function applyDashboardConfig(visiblePanels) {
+  document.querySelectorAll('#view-dashboard [data-db-panel]').forEach(el => {
+    const panel = el.getAttribute('data-db-panel');
+    el.style.display = visiblePanels.includes(panel) ? '' : 'none';
+  });
+}
+
 function renderDashboard() {
+  // Apply role-based panel visibility (non-disruptive — admin/staff see all)
+  applyDashboardConfig(getDashboardConfig(currentUser?.role));
+
   const base = new Date();
   base.setDate(base.getDate() + (dashboardDayOffset || 0));
   const todayStr = base.toISOString().split('T')[0];
@@ -4854,6 +4889,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadStaff();
     updateSubmissionDateTime();
     subscribeToChanges();
+    showView('dashboard');
   }
 
   document.getElementById('authEmail').addEventListener('keypress', (e) => {
