@@ -1470,17 +1470,17 @@
 
     <!-- KPI Strip -->
     <div class="db-kpi-strip" data-db-panel="kpi">
-      <div class="db-kpi-card">
+      <div class="db-kpi-card kpi-clickable" onclick="showView('movements')">
         <div class="db-kpi-label">Vessels in Port</div>
         <div class="db-kpi-value" id="kpi-in-port">—</div>
         <div class="db-kpi-sub" id="kpi-in-port-sub">loading…</div>
       </div>
-      <div class="db-kpi-card kpi-teal kpi-clickable" onclick="showView('movements')">
+      <div class="db-kpi-card kpi-teal kpi-clickable" onclick="navToMovementsToday()">
         <div class="db-kpi-label">Movements Today</div>
         <div class="db-kpi-value" id="kpi-movements">—</div>
         <div class="db-kpi-sub" id="kpi-movements-sub">arrivals &amp; departures</div>
       </div>
-      <div class="db-kpi-card kpi-red kpi-clickable" id="kpi-urgent-card" onclick="showView('log')">
+      <div class="db-kpi-card kpi-red kpi-clickable" id="kpi-urgent-card" onclick="navToLogOverdue()">
         <div class="db-kpi-label">Urgent / Overdue</div>
         <div class="db-kpi-value" id="kpi-urgent">—</div>
         <div class="db-kpi-sub" id="kpi-urgent-sub">action required</div>
@@ -4457,6 +4457,32 @@ function applyDashboardConfig(visiblePanels) {
     const panel = el.getAttribute('data-db-panel');
     el.style.display = visiblePanels.includes(panel) ? '' : 'none';
   });
+}
+
+// --- Dashboard navigation helpers ---
+// Opens Movements and scrolls to the first today/future row (non-dimmed).
+// Safe no-op if no matching row exists.
+function navToMovementsToday() {
+  showView('movements');
+  setTimeout(() => {
+    const tbody = document.getElementById('movementsTableBody');
+    if (!tbody) return;
+    // Past rows are rendered with inline opacity:0.5 — skip them
+    const firstCurrent = Array.from(tbody.querySelectorAll('tr')).find(
+      r => !r.style.opacity || r.style.opacity !== '0.5'
+    );
+    if (firstCurrent) firstCurrent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 60);
+}
+
+// Opens Service Log and scrolls to the first overdue status badge.
+// Safe no-op if no overdue rows exist.
+function navToLogOverdue() {
+  showView('log');
+  setTimeout(() => {
+    const firstOverdue = document.querySelector('#logTable .status-overdue');
+    if (firstOverdue) firstOverdue.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 60);
 }
 
 function renderDashboard() {
