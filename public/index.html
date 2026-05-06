@@ -270,8 +270,13 @@
     font-size: 11px; font-weight: 600;
   }
   .status-upcoming { background: #e8f0ff; color: var(--blue); }
+  .status-pending { background: #f0f4ff; color: #3b5bdb; }
+  .status-scheduled { background: #e8f0ff; color: var(--blue); }
+  .status-in-progress { background: #fff3cd; color: #856404; }
+  .status-awaiting-confirm { background: #f3e5f5; color: #7b1fa2; }
   .status-completed { background: var(--green-light); color: var(--green); }
   .status-overdue { background: #ffeaea; color: #d32f2f; }
+  .status-delayed { background: #fff0e0; color: #c05621; }
   .status-cancelled { background: var(--gray-100); color: var(--gray-600); }
   .status-invoiced { background: #f3e5f5; color: #7b1fa2; }
   .invoiced-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-500); }
@@ -297,8 +302,13 @@
   .cal-dots { display: flex; flex-direction: column; gap: 2px; }
   .cal-entry-pip { font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.4; }
   .cal-entry-pip.upcoming { background: #e8f0ff; color: var(--blue); }
+  .cal-entry-pip.pending { background: #f0f4ff; color: #3b5bdb; }
+  .cal-entry-pip.scheduled { background: #e8f0ff; color: var(--blue); }
+  .cal-entry-pip.in-progress { background: #fff3cd; color: #856404; }
+  .cal-entry-pip.awaiting-confirm { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.completed { background: var(--green-light); color: var(--green); }
   .cal-entry-pip.overdue { background: #ffeaea; color: #d32f2f; }
+  .cal-entry-pip.delayed { background: #fff0e0; color: #c05621; }
   .cal-entry-pip.cancelled { background: var(--gray-100); color: var(--gray-600); }
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
@@ -1162,10 +1172,14 @@
               Status is set automatically based on service date.
             </div>
             <select id="statusInput" class="hidden" onchange="">
-              <option value="upcoming">Upcoming</option>
+              <option value="pending">Pending</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="in-progress">In Progress</option>
+              <option value="awaiting-confirm">Awaiting Confirmation</option>
               <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
+              <option value="delayed">Delayed</option>
               <option value="cancelled">Cancelled</option>
+              <option value="upcoming" style="display:none;">Upcoming (Legacy)</option>
             </select>
           </div>
         </div>
@@ -2497,7 +2511,7 @@ function exitEditMode() {
   // Hide status dropdown, show auto message
   document.getElementById('statusAutoMsg').classList.remove('hidden');
   document.getElementById('statusInput').classList.add('hidden');
-  document.getElementById('statusInput').value = 'upcoming';
+  document.getElementById('statusInput').value = 'pending';
 }
 
 async function deleteEntry(entryId) {
@@ -2710,7 +2724,7 @@ function resetForm() {
   document.getElementById('clearedIn').value = '';
   document.getElementById('clearedOut').value = '';
   document.getElementById('marina').value = '';
-  document.getElementById('statusInput').value = 'upcoming';
+  document.getElementById('statusInput').value = 'pending';
   document.getElementById('workCompleted').value = '';
   document.getElementById('futureTask').value = '';
   document.getElementById('billingTypeInput').value = 'charged';
@@ -2759,15 +2773,24 @@ function updateAutoStatus() {
 }
 
 function computeStatus(entry) {
+  // Precedence: workCompleted wins first
+  if (entry.workCompleted === 'Yes') return 'completed';
+  if (entry.status === 'completed') return 'completed';
   if (entry.status === 'cancelled') return 'cancelled';
-  if (entry.status === 'completed' || entry.workCompleted === 'Yes') return 'completed';
-  // Compare as YYYY-MM-DD strings in local time to avoid UTC offset false positives
+  // Explicit operational states persist regardless of date
+  if (entry.status === 'in-progress' || entry.status === 'awaiting-confirm' || entry.status === 'delayed') return entry.status;
+  // Build today string in local time (avoids UTC offset false positives)
   const now = new Date();
   const todayStr = now.getFullYear() + '-' +
     String(now.getMonth() + 1).padStart(2, '0') + '-' +
     String(now.getDate()).padStart(2, '0');
+  // Scheduled: overdue if past, else scheduled
+  if (entry.status === 'scheduled') {
+    return (entry.serviceDate && entry.serviceDate < todayStr) ? 'overdue' : 'scheduled';
+  }
+  // pending, upcoming (legacy), blank, or missing — overdue if past, else pending
   if (entry.serviceDate && entry.serviceDate < todayStr) return 'overdue';
-  return 'upcoming';
+  return 'pending';
 }
 
 function normalizeStatus(status) {
@@ -3602,17 +3625,19 @@ function showDayDetail(dateStr) {
 
   // Update stats
   const total = dayEntries.length;
-  const upcoming = dayEntries.filter(e => computeStatus(e) === 'upcoming').length;
-  const completed = dayEntries.filter(e => computeStatus(e) === 'completed').length;
-  const overdue = dayEntries.filter(e => computeStatus(e) === 'overdue').length;
-  const cancelled = dayEntries.filter(e => computeStatus(e) === 'cancelled').length;
+  const statMap = {};
+  dayEntries.forEach(e => { const s = computeStatus(e); statMap[s] = (statMap[s] || 0) + 1; });
+  const active = (statMap['pending'] || 0) + (statMap['scheduled'] || 0);
   const statsEl = document.getElementById('dayDetailStats');
   statsEl.innerHTML = `
     <div class="day-stat"><div class="num">${total}</div><div class="label">Total</div></div>
-    ${upcoming ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${upcoming}</div><div class="label">Upcoming</div></div>` : ''}
-    ${completed ? `<div class="day-stat"><div class="num" style="color:var(--green)">${completed}</div><div class="label">Completed</div></div>` : ''}
-    ${overdue ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${overdue}</div><div class="label">Overdue</div></div>` : ''}
-    ${cancelled ? `<div class="day-stat"><div class="num" style="color:var(--gray-600)">${cancelled}</div><div class="label">Cancelled</div></div>` : ''}
+    ${active ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${active}</div><div class="label">Pending</div></div>` : ''}
+    ${statMap['in-progress'] ? `<div class="day-stat"><div class="num" style="color:#856404">${statMap['in-progress']}</div><div class="label">In Progress</div></div>` : ''}
+    ${statMap['awaiting-confirm'] ? `<div class="day-stat"><div class="num" style="color:#7b1fa2">${statMap['awaiting-confirm']}</div><div class="label">Awaiting</div></div>` : ''}
+    ${statMap['completed'] ? `<div class="day-stat"><div class="num" style="color:var(--green)">${statMap['completed']}</div><div class="label">Completed</div></div>` : ''}
+    ${statMap['overdue'] ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${statMap['overdue']}</div><div class="label">Overdue</div></div>` : ''}
+    ${statMap['delayed'] ? `<div class="day-stat"><div class="num" style="color:#c05621">${statMap['delayed']}</div><div class="label">Delayed</div></div>` : ''}
+    ${statMap['cancelled'] ? `<div class="day-stat"><div class="num" style="color:var(--gray-600)">${statMap['cancelled']}</div><div class="label">Cancelled</div></div>` : ''}
     ${presentVessels.length > 0 ? `<div class="day-stat"><div class="num" style="color:#00695c">⚓ ${presentVessels.length}</div><div class="label">In Port</div></div>` : ''}
   `;
 
@@ -3649,8 +3674,8 @@ function showDayDetail(dateStr) {
     listEl.innerHTML = presenceHtml + dayEntries.map(e => {
       const cs = computeStatus(e);
       const statusClass = cs;
-      const statusColors = { upcoming: 'var(--blue)', completed: 'var(--green)', overdue: '#d32f2f', cancelled: 'var(--gray-600)' };
-      const bgColors = { upcoming: '#e8f0ff', completed: 'var(--green-light)', overdue: '#ffeaea', cancelled: 'var(--gray-100)' };
+      const statusColors = { upcoming: 'var(--blue)', pending: '#3b5bdb', scheduled: 'var(--blue)', 'in-progress': '#856404', 'awaiting-confirm': '#7b1fa2', completed: 'var(--green)', overdue: '#d32f2f', delayed: '#c05621', cancelled: 'var(--gray-600)' };
+      const bgColors = { upcoming: '#e8f0ff', pending: '#f0f4ff', scheduled: '#e8f0ff', 'in-progress': '#fff3cd', 'awaiting-confirm': '#f3e5f5', completed: 'var(--green-light)', overdue: '#ffeaea', delayed: '#fff0e0', cancelled: 'var(--gray-100)' };
       const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
       const isMovement = (e.category === 'Vessel Movement');
       const driver = isTransfer && e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
@@ -4077,7 +4102,7 @@ function openEditEntry(entryId) {
   // Status — show dropdown in edit mode
   document.getElementById('statusAutoMsg').classList.add('hidden');
   document.getElementById('statusInput').classList.remove('hidden');
-  document.getElementById('statusInput').value = entry.status || 'upcoming';
+  document.getElementById('statusInput').value = entry.status || 'pending';
   document.getElementById('workCompleted').value = entry.workCompleted || '';
   document.getElementById('futureTask').value = entry.futureTask || '';
 
@@ -4561,9 +4586,14 @@ function dbRenderTransfers(transfers) {
     const driverName = driver ? driver.name : '⚠️ Unassigned';
     const time = (t.transferPickupTime || '—').substring(0, 5);
     const st = computeStatus(t);
-    let stCls = 'db-status-confirmed', stLabel = 'CONFIRMED';
+    let stCls = 'db-status-confirmed', stLabel = 'SCHEDULED';
     if (st === 'overdue') { stCls = 'db-status-overdue'; stLabel = 'OVERDUE'; }
-    else if (st === 'upcoming') { stCls = 'db-status-pending'; stLabel = 'PENDING'; }
+    else if (st === 'pending' || st === 'upcoming') { stCls = 'db-status-pending'; stLabel = 'PENDING'; }
+    else if (st === 'in-progress') { stCls = 'db-status-pending'; stLabel = 'IN PROGRESS'; }
+    else if (st === 'awaiting-confirm') { stCls = 'db-status-pending'; stLabel = 'AWAITING'; }
+    else if (st === 'delayed') { stCls = 'db-status-overdue'; stLabel = 'DELAYED'; }
+    else if (st === 'completed') { stCls = 'db-status-confirmed'; stLabel = 'COMPLETED'; }
+    else if (st === 'cancelled') { stCls = 'db-status-pending'; stLabel = 'CANCELLED'; }
     const meta = [
       driverName ? 'Driver: ' + driverName : null,
       t.transferPaxCount ? 'Pax: ' + t.transferPaxCount : null,
@@ -4598,7 +4628,11 @@ function dbRenderServices(services) {
     let dotCls = 'db-dot-scheduled', stLabel = 'Scheduled';
     if (st === 'completed') { dotCls = 'db-dot-completed'; stLabel = 'Completed'; }
     else if (st === 'overdue') { dotCls = 'db-dot-overdue'; stLabel = 'Overdue'; }
-    else if (s.workCompleted === 'Yes') { dotCls = 'db-dot-inprogress'; stLabel = 'In Progress'; }
+    else if (st === 'in-progress') { dotCls = 'db-dot-inprogress'; stLabel = 'In Progress'; }
+    else if (st === 'awaiting-confirm') { dotCls = 'db-dot-inprogress'; stLabel = 'Awaiting'; }
+    else if (st === 'delayed') { dotCls = 'db-dot-overdue'; stLabel = 'Delayed'; }
+    else if (st === 'pending') { dotCls = 'db-dot-scheduled'; stLabel = 'Pending'; }
+    else if (st === 'cancelled') { dotCls = 'db-dot-overdue'; stLabel = 'Cancelled'; }
     const catCls = catMap[s.category] || '';
     return `
       <tr>
