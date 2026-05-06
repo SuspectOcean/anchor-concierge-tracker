@@ -510,6 +510,8 @@
     display: flex; flex-direction: column; gap: 4px; box-shadow: var(--shadow-md);
     position: relative; overflow: hidden;
   }
+  .db-kpi-card.kpi-clickable { cursor: pointer; transition: filter 0.15s, transform 0.15s; }
+  .db-kpi-card.kpi-clickable:hover { filter: brightness(1.12); transform: translateY(-1px); }
   .db-kpi-card::after {
     content: ''; position: absolute; right: -10px; top: -10px;
     width: 60px; height: 60px; border-radius: 50%;
@@ -580,7 +582,9 @@
   .db-urgent-item {
     background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px;
     padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start;
+    cursor: pointer; transition: background 0.15s, box-shadow 0.15s;
   }
+  .db-urgent-item:hover { background: #fee2e2; box-shadow: 0 2px 8px rgba(220,38,38,0.15); }
   .db-urgent-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
   .db-urgent-vessel { font-size: 12px; font-weight: 700; color: var(--navy); }
   .db-urgent-desc { font-size: 11px; color: var(--gray-700); margin: 2px 0; }
@@ -589,8 +593,9 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Movements
   ═══════════════════════════════════════════ */
-  .db-movement-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); }
+  .db-movement-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.15s; }
   .db-movement-item:last-child { border-bottom: none; }
+  .db-movement-item:hover { background: var(--gray-50); }
   .db-movement-time { font-size: 14px; font-weight: 700; color: var(--navy); min-width: 44px; }
   .db-movement-time-sub { font-size: 10px; color: var(--gray-500); }
   .db-movement-icon { font-size: 18px; }
@@ -605,8 +610,9 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Transfers
   ═══════════════════════════════════════════ */
-  .db-transfer-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-transfer-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.15s; }
   .db-transfer-item:last-child { border-bottom: none; }
+  .db-transfer-item:hover { background: var(--gray-50); }
   .db-transfer-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
   .db-transfer-time { font-size: 13px; font-weight: 700; color: var(--navy); min-width: 40px; }
   .db-transfer-type { font-size: 12px; font-weight: 600; color: var(--navy); }
@@ -638,8 +644,9 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Vessel Cards (sidebar)
   ═══════════════════════════════════════════ */
-  .db-vessel-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-vessel-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.15s; }
   .db-vessel-card:last-child { border-bottom: none; }
+  .db-vessel-card:hover { background: var(--teal-light); }
   .db-vessel-thumb { width: 48px; height: 36px; border-radius: 6px; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
   .db-vessel-name { font-size: 13px; font-weight: 700; color: var(--navy); }
   .db-vessel-location { font-size: 11px; color: var(--gray-600); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
@@ -684,8 +691,9 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Week View
   ═══════════════════════════════════════════ */
-  .db-week-row { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--gray-100); }
+  .db-week-row { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.15s; }
   .db-week-row:last-child { border-bottom: none; }
+  .db-week-row:hover { background: var(--gray-50); }
   .db-week-date { min-width: 76px; font-size: 12px; font-weight: 600; color: var(--navy); }
   .db-week-detail { font-size: 12px; color: var(--gray-600); flex: 1; }
 
@@ -1452,12 +1460,12 @@
         <div class="db-kpi-value" id="kpi-in-port">—</div>
         <div class="db-kpi-sub" id="kpi-in-port-sub">loading…</div>
       </div>
-      <div class="db-kpi-card kpi-teal">
+      <div class="db-kpi-card kpi-teal kpi-clickable" onclick="showView('movements')">
         <div class="db-kpi-label">Movements Today</div>
         <div class="db-kpi-value" id="kpi-movements">—</div>
         <div class="db-kpi-sub" id="kpi-movements-sub">arrivals &amp; departures</div>
       </div>
-      <div class="db-kpi-card kpi-red" id="kpi-urgent-card">
+      <div class="db-kpi-card kpi-red kpi-clickable" id="kpi-urgent-card" onclick="showView('log')">
         <div class="db-kpi-label">Urgent / Overdue</div>
         <div class="db-kpi-value" id="kpi-urgent">—</div>
         <div class="db-kpi-sub" id="kpi-urgent-sub">action required</div>
@@ -4471,19 +4479,19 @@ function dbRenderUrgent(transfers, dayEntries) {
   transfers.forEach(e => {
     if (!e.transferDriverId) {
       const time = (e.transferPickupTime || '').substring(0, 5) || 'Today';
-      urgents.push({ vessel: e.vessel, desc: 'Driver not assigned — ' + (e.serviceType || 'transfer'), deadline: time || '—', icon: '🚖' });
+      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'Driver not assigned — ' + (e.serviceType || 'transfer'), deadline: time || '—', icon: '🚖' });
     }
   });
   dayEntries.forEach(e => {
     // Vessel Movements are not actionable urgent items — skip them
     if (e.category === 'Vessel Movement') return;
     if (computeStatus(e) === 'overdue') {
-      urgents.push({ vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline: 'Overdue', icon: '⏰' });
+      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + ' is overdue', deadline: 'Overdue', icon: '⏰' });
     }
   });
   dayEntries.forEach(e => {
     if (e.specialNotes && e.specialNotes.toLowerCase().includes('urgent')) {
-      urgents.push({ vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: '⚠️' });
+      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: '⚠️' });
     }
   });
   const panel = document.getElementById('db-urgent-panel');
@@ -4504,7 +4512,7 @@ function dbRenderUrgent(transfers, dayEntries) {
   panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
   countEl.style.background = '#dc2626';
   itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item">
+    <div class="db-urgent-item" ${u.entryId ? `onclick="openEditEntry('${u.entryId}')"` : ''}>
       <div class="db-urgent-icon">${u.icon}</div>
       <div>
         <div class="db-urgent-vessel">${u.vessel}</div>
@@ -4529,7 +4537,7 @@ function dbRenderMovements(movements) {
     else if (type === 'Relocation') { badge = '<span class="db-movement-badge badge-relocation">RELOCATION</span>'; icon = '⚓'; }
     const fromTo = [m.transferFrom, m.transferTo].filter(Boolean).join(' → ') || m.description || '';
     return `
-      <div class="db-movement-item">
+      <div class="db-movement-item" onclick="openEditEntry('${m.entryId}')">
         <div style="min-width:50px;">
           <div class="db-movement-time">${time}</div>
           ${timeLabel ? `<div class="db-movement-time-sub">${timeLabel} ${time}</div>` : ''}
@@ -4562,7 +4570,7 @@ function dbRenderTransfers(transfers) {
       t.transferFrom ? t.transferFrom : null
     ].filter(Boolean).join(' · ');
     return `
-      <div class="db-transfer-item">
+      <div class="db-transfer-item" onclick="openEditEntry('${t.entryId}')">
         <div class="db-transfer-dot"></div>
         <div class="db-transfer-time">${time}</div>
         <div style="flex:1;">
@@ -4659,7 +4667,7 @@ function dbRenderInAntigua() {
       ? new Date(v.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       : '—';
     return `
-      <div class="db-vessel-card">
+      <div class="db-vessel-card" onclick="showView('timeline')">
         <div class="db-vessel-thumb">🚢</div>
         <div style="flex:1;min-width:0;">
           <div class="db-vessel-name">${v.vessel}</div>
@@ -4790,7 +4798,7 @@ function dbRenderWeek(todayStr) {
     else if (m.serviceType === 'Relocation') badgeCls = 'badge-relocation';
     const time = (m.eta || m.etd || '').substring(0, 5);
     return `
-      <div class="db-week-row">
+      <div class="db-week-row" onclick="showDayDetail('${dStr}')">
         <div class="db-week-date">${dateLabel}</div>
         <div style="min-width:80px;"><span class="db-movement-badge ${badgeCls}" style="font-size:10px;padding:2px 8px;">${m.serviceType}</span></div>
         <div class="db-week-detail">${m.vessel}${fromTo ? ' · ' + fromTo : ''}${time ? ' · ' + time : ''}</div>
