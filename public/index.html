@@ -558,11 +558,48 @@
   .db-kpi-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
 
   /* ═══════════════════════════════════════════
+     DASHBOARD — Summary Calendar (Month/Week/Day)
+  ═══════════════════════════════════════════ */
+  .db-cal-card { background:#fff; border:1px solid var(--gray-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding:12px 14px; margin-bottom:14px; max-width:1100px; margin-left:auto; margin-right:auto; }
+  .db-cal-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .db-cal-nav { display:flex; gap:6px; }
+  .db-cal-nav button, .db-cal-views button { border:1px solid var(--gray-300); background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:12px; font-weight:600; cursor:pointer; }
+  .db-cal-nav button:hover, .db-cal-views button:hover { background:var(--gray-50); }
+  .db-cal-title { font-size:14px; font-weight:800; color:var(--navy); }
+  .db-cal-views { display:flex; gap:4px; margin-left:auto; }
+  .db-cal-views button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .db-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .db-cal-dow { font-size:10px; font-weight:700; text-transform:uppercase; color:var(--gray-500); text-align:center; padding:2px 0; }
+  .db-cal-cell { min-height:66px; border:1px solid var(--gray-100); border-radius:6px; padding:3px; background:var(--gray-50); overflow:hidden; cursor:pointer; }
+  .db-cal-cell.empty { background:transparent; border:none; cursor:default; }
+  .db-cal-cell.today { border-color:var(--teal); box-shadow:0 0 0 1px var(--teal) inset; }
+  .db-cal-daynum { font-size:11px; font-weight:700; color:var(--gray-600); }
+  .db-cal-pip { font-size:10px; line-height:1.3; padding:1px 4px; border-radius:4px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .db-cal-pip.move { background:#e3f2fd; color:#1565c0; }
+  .db-cal-pip.service { background:#e8f5e9; color:#2e7d32; }
+  .db-cal-pip.transfer { background:#fff8e1; color:#f9a825; }
+  .db-cal-pip.urgent { background:#ffebee; color:#c62828; font-weight:700; }
+  .db-cal-more { font-size:9px; color:var(--gray-500); margin-top:1px; }
+  .db-cal-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .db-cal-weekcol { min-height:120px; border:1px solid var(--gray-100); border-radius:6px; padding:4px; background:var(--gray-50); cursor:pointer; }
+  .db-cal-weekcol.today { border-color:var(--teal); box-shadow:0 0 0 1px var(--teal) inset; }
+  .db-cal-weekhead { font-size:11px; font-weight:700; color:var(--navy); margin-bottom:4px; text-align:center; }
+  .db-cal-day { display:flex; flex-direction:column; gap:10px; }
+  .db-cal-daysec-h { font-size:12px; font-weight:800; color:var(--navy); margin-bottom:4px; }
+  .db-cal-daysec .db-cal-pip { font-size:12px; padding:4px 8px; white-space:normal; }
+  .db-cal-empty { font-size:12px; color:var(--gray-500); text-align:center; padding:14px; }
+  .db-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:10px; color:var(--gray-600); }
+  .db-cal-legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+  .db-cal-legend .lg-move{background:#1565c0;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-urgent{background:#c62828;}
+  @media (max-width:600px){ .db-cal-cell{min-height:52px;} .db-cal-week{grid-template-columns:1fr;} .db-cal-weekcol{min-height:auto;} }
+
+  /* ═══════════════════════════════════════════
      DASHBOARD — Vessel Map
   ═══════════════════════════════════════════ */
   .db-map-container {
     border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 14px;
-    box-shadow: var(--shadow-md); height: 260px; position: relative;
+    box-shadow: var(--shadow-md); height: 440px; position: relative;
+    max-width: 1100px; margin-left: auto; margin-right: auto;
     border: 1px solid var(--gray-200);
   }
   #db-map { width: 100%; height: 100%; }
@@ -572,7 +609,7 @@
     padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;
     box-shadow: var(--shadow-sm);
   }
-  @media (max-width: 600px) { .db-map-container { height: 200px; } }
+  @media (max-width: 600px) { .db-map-container { height: 300px; } }
 
   /* ═══════════════════════════════════════════
      DASHBOARD — Hero Row (3 col above fold)
@@ -1524,6 +1561,30 @@
         <div class="db-kpi-label">Today's Charges</div>
         <div class="db-kpi-value" id="kpi-charges">—</div>
         <div class="db-kpi-sub" id="kpi-charges-sub">EC$ logged today</div>
+      </div>
+    </div>
+
+    <!-- Dashboard Summary Calendar -->
+    <div class="db-cal-card" data-db-panel="calendar">
+      <div class="db-cal-toolbar">
+        <div class="db-cal-nav">
+          <button type="button" onclick="dbCalPrev()" title="Previous">&#8249;</button>
+          <button type="button" onclick="dbCalToday()">Today</button>
+          <button type="button" onclick="dbCalNext()" title="Next">&#8250;</button>
+        </div>
+        <div class="db-cal-title" id="db-cal-title"></div>
+        <div class="db-cal-views">
+          <button type="button" data-view="month" class="active" onclick="dbCalSetView('month')">Month</button>
+          <button type="button" data-view="week" onclick="dbCalSetView('week')">Week</button>
+          <button type="button" data-view="day" onclick="dbCalSetView('day')">Day</button>
+        </div>
+      </div>
+      <div id="db-cal-body" class="db-cal-body"></div>
+      <div class="db-cal-legend">
+        <span><i class="lg-move"></i>Movement</span>
+        <span><i class="lg-service"></i>Service</span>
+        <span><i class="lg-transfer"></i>Transfer</span>
+        <span><i class="lg-urgent"></i>Urgent</span>
       </div>
     </div>
 
@@ -4386,18 +4447,42 @@ let dbMapMarkers = [];
 
 // Anchor-area marina coordinates (English/Falmouth Harbour, Antigua)
 const DB_MARINAS = {
-  'Falmouth Harbour Marina': { lat: 17.0016, lng: -61.7757, abbr: 'FHM' },
-  'FHM':                     { lat: 17.0016, lng: -61.7757, abbr: 'FHM' },
-  'Antigua Superyacht Marina': { lat: 17.0019, lng: -61.7745, abbr: 'ASM' },
-  'ASM':                     { lat: 17.0019, lng: -61.7745, abbr: 'ASM' },
-  "Nelson's Dockyard":       { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
-  'Nelsons Dockyard':        { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
-  'ND':                      { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
-  'English Harbour':         { lat: 17.0015, lng: -61.7663, abbr: 'ND' },
-  'Jolly Harbour':           { lat: 17.0763, lng: -61.8882, abbr: 'JH' },
-  'Heritage Quay':           { lat: 17.1275, lng: -61.8468, abbr: 'HQ' },
-  "St. John's":              { lat: 17.1275, lng: -61.8468, abbr: 'HQ' },
-  'Antigua':                 { lat: 17.0016, lng: -61.7757, abbr: 'FHM' }, // default fallback
+  // ─── Coordinates verified against public map sources (2026-07-01) ───
+  // Falmouth Harbour cluster
+  'Falmouth Harbour Marina':   { lat: 17.0137, lng: -61.7701, abbr: 'FHM' }, // Dockwalk 17deg00'49.3"N 61deg46'12.3"W
+  'FHM':                       { lat: 17.0137, lng: -61.7701, abbr: 'FHM' },
+  'Falmouth Harbour':          { lat: 17.0167, lng: -61.7667, abbr: 'FH'  }, // latitude.to bay centre
+  'FH':                        { lat: 17.0167, lng: -61.7667, abbr: 'FH'  },
+  // TODO: AYC + Antigua Superyacht Marina berth-level coords not individually published.
+  //       Placed at verified Falmouth Harbour points; confirm exact docks on site.
+  'Antigua Yacht Club Marina': { lat: 17.0167, lng: -61.7667, abbr: 'AYC' }, // TODO verify exact dock
+  'AYC':                       { lat: 17.0167, lng: -61.7667, abbr: 'AYC' }, // TODO verify exact dock
+  'Antigua Superyacht Marina': { lat: 17.0137, lng: -61.7701, abbr: 'ASM' }, // TODO verify exact dock
+  'ASM':                       { lat: 17.0137, lng: -61.7701, abbr: 'ASM' }, // TODO verify exact dock
+  'Catamaran Marina':          { lat: 17.0216, lng: -61.7747, abbr: 'CAT' }, // Waterway Guide N17deg01.296' W061deg46.483'
+  'CAT':                       { lat: 17.0216, lng: -61.7747, abbr: 'CAT' },
+  // English Harbour
+  "Nelson's Dockyard":         { lat: 17.0052, lng: -61.7650, abbr: 'ND' }, // latitude.to
+  'Nelsons Dockyard':          { lat: 17.0052, lng: -61.7650, abbr: 'ND' },
+  'ND':                        { lat: 17.0052, lng: -61.7650, abbr: 'ND' },
+  'English Harbour':           { lat: 17.0164, lng: -61.7674, abbr: 'EH' }, // latitude.to English Harbour Town
+  'EH':                        { lat: 17.0164, lng: -61.7674, abbr: 'EH' },
+  // West coast
+  'Jolly Harbour':             { lat: 17.0719, lng: -61.8871, abbr: 'JH' }, // marina 17deg04'18.8"N 61deg53'13.7"W
+  'JH':                        { lat: 17.0719, lng: -61.8871, abbr: 'JH' },
+  // North-east (Crabbs peninsula)
+  'North Sound Marina':        { lat: 17.0956, lng: -61.7837, abbr: 'NSM' }, // superyachtservicesguide / getamap
+  'North Sound':               { lat: 17.0956, lng: -61.7837, abbr: 'NSM' },
+  'NSM':                       { lat: 17.0956, lng: -61.7837, abbr: 'NSM' },
+  // Capital / cruise
+  'Heritage Quay':             { lat: 17.1212, lng: -61.8458, abbr: 'HQ' }, // Antigua Cruise Port
+  "St. John's":                { lat: 17.1212, lng: -61.8458, abbr: 'HQ' },
+  'St Johns':                  { lat: 17.1212, lng: -61.8458, abbr: 'HQ' },
+  // Airport
+  'V.C. Bird International Airport': { lat: 17.1367, lng: -61.7927, abbr: 'VCB' }, // Wikipedia 17deg08'12"N 61deg47'35"W
+  'VC Bird':                   { lat: 17.1367, lng: -61.7927, abbr: 'VCB' },
+  'Airport':                   { lat: 17.1367, lng: -61.7927, abbr: 'VCB' },
+  'Antigua':                   { lat: 17.0167, lng: -61.7667, abbr: 'FH' }, // default fallback -> Falmouth Harbour
 };
 
 function dbResolveMarinaCoordsFromString(loc) {
@@ -4407,6 +4492,125 @@ function dbResolveMarinaCoordsFromString(loc) {
     if (low.includes(name.toLowerCase())) return coords;
   }
   return null;
+}
+
+// ─── Dashboard summary calendar (Month / Week / Day) ──────────
+let dbCalView = 'month';
+let dbCalCursor = new Date();
+function dbCalEsc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function dbCalDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dbCalKind(e){
+  if (e.category === 'Vessel Movement') return 'move';
+  if (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer') return 'transfer';
+  return 'service';
+}
+function dbCalUrgent(e){
+  try { if (typeof computeStatus === 'function' && computeStatus(e) === 'overdue') return true; } catch(_){}
+  return e.priority === 'high' || e.priority === 'critical';
+}
+function dbCalFor(ds){ return (allEntries || []).filter(e => e.serviceDate === ds); }
+function dbCalPip(e){
+  const kind = dbCalKind(e);
+  let label;
+  if (kind === 'move') label = `${e.serviceType==='Arrival'?'⚓':e.serviceType==='Departure'?'🚢':'↔️'} ${e.vessel||''}`;
+  else if (kind === 'transfer') label = `🚐 ${e.transferPickupTime||''} ${e.transferFrom||''}→${e.transferTo||''}`.trim();
+  else label = `🔧 ${e.vessel||e.entryId||''}`;
+  const cls = dbCalUrgent(e) ? 'urgent' : kind;
+  const t = dbCalEsc(label);
+  return `<div class="db-cal-pip ${cls}" title="${t}">${t}</div>`;
+}
+function dbCalSetView(v){
+  dbCalView = v;
+  document.querySelectorAll('.db-cal-views button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  dbCalRender();
+}
+function dbCalToday(){ dbCalCursor = new Date(); dbCalRender(); }
+function dbCalPrev(){ dbCalShift(-1); }
+function dbCalNext(){ dbCalShift(1); }
+function dbCalShift(dir){
+  const d = new Date(dbCalCursor);
+  if (dbCalView === 'month') d.setMonth(d.getMonth() + dir);
+  else if (dbCalView === 'week') d.setDate(d.getDate() + 7 * dir);
+  else d.setDate(d.getDate() + dir);
+  dbCalCursor = d;
+  dbCalRender();
+}
+function dbCalOpenDay(ds){
+  dbCalCursor = new Date(ds + 'T00:00:00');
+  dbCalSetView('day');
+}
+const DB_CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DB_CAL_DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function dbCalRender(){
+  const body = document.getElementById('db-cal-body');
+  if (!body) return;
+  if (dbCalView === 'month') dbCalRenderMonth(body);
+  else if (dbCalView === 'week') dbCalRenderWeek(body);
+  else dbCalRenderDay(body);
+}
+function dbCalSetTitle(t){ const el = document.getElementById('db-cal-title'); if (el) el.textContent = t; }
+function dbCalRenderMonth(body){
+  const y = dbCalCursor.getFullYear(), m = dbCalCursor.getMonth();
+  dbCalSetTitle(`${DB_CAL_MONTHS[m]} ${y}`);
+  const todayStr = dbCalDateStr(new Date());
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  let html = '<div class="db-cal-grid">';
+  DB_CAL_DOW.forEach(d => html += `<div class="db-cal-dow">${d}</div>`);
+  for (let i = 0; i < firstDay; i++) html += '<div class="db-cal-cell empty"></div>';
+  for (let day = 1; day <= daysInMonth; day++){
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const items = dbCalFor(ds);
+    const cls = ['db-cal-cell']; if (ds === todayStr) cls.push('today');
+    html += `<div class="${cls.join(' ')}" onclick="dbCalOpenDay('${ds}')"><div class="db-cal-daynum">${day}</div>`;
+    items.slice(0, 3).forEach(e => html += dbCalPip(e));
+    if (items.length > 3) html += `<div class="db-cal-more">+${items.length - 3} more</div>`;
+    html += '</div>';
+  }
+  html += '</div>';
+  body.innerHTML = html;
+}
+function dbCalRenderWeek(body){
+  const cur = new Date(dbCalCursor);
+  const start = new Date(cur); start.setDate(cur.getDate() - cur.getDay());
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  dbCalSetTitle(`${DB_CAL_MONTHS[start.getMonth()]} ${start.getDate()} – ${DB_CAL_MONTHS[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`);
+  const todayStr = dbCalDateStr(new Date());
+  let html = '<div class="db-cal-week">';
+  for (let i = 0; i < 7; i++){
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const ds = dbCalDateStr(d);
+    const items = dbCalFor(ds);
+    html += `<div class="db-cal-weekcol ${ds === todayStr ? 'today' : ''}" onclick="dbCalOpenDay('${ds}')">`;
+    html += `<div class="db-cal-weekhead">${DB_CAL_DOW[i]} ${d.getDate()}</div>`;
+    if (!items.length) html += '<div class="db-cal-empty">—</div>';
+    items.forEach(e => html += dbCalPip(e));
+    html += '</div>';
+  }
+  html += '</div>';
+  body.innerHTML = html;
+}
+function dbCalRenderDay(body){
+  const d = new Date(dbCalCursor);
+  const ds = dbCalDateStr(d);
+  const dowFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  dbCalSetTitle(`${dowFull[d.getDay()]}, ${DB_CAL_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`);
+  const items = dbCalFor(ds);
+  const groups = { move: [], service: [], transfer: [] };
+  items.forEach(e => groups[dbCalKind(e)].push(e));
+  const sec = (label, arr) => {
+    if (!arr.length) return '';
+    let h = `<div class="db-cal-daysec"><div class="db-cal-daysec-h">${label} (${arr.length})</div>`;
+    arr.forEach(e => h += dbCalPip(e));
+    return h + '</div>';
+  };
+  let html = '<div class="db-cal-day">';
+  if (!items.length) html += '<div class="db-cal-empty">No movements, services or transfers on this day.</div>';
+  html += sec('🚢 Movements', groups.move);
+  html += sec('🔧 Services', groups.service);
+  html += sec('🚐 Transfers', groups.transfer);
+  html += '</div>';
+  body.innerHTML = html;
 }
 
 function dbInitMap() {
@@ -4435,7 +4639,7 @@ function dbInitMap() {
 
   // Add static marina labels
   Object.entries(DB_MARINAS).forEach(([name, coords]) => {
-    if (['FHM','ASM','ND','JH','HQ'].includes(coords.abbr) &&
+    if (['FHM','FH','AYC','CAT','ND','EH','JH','NSM','HQ','VCB'].includes(coords.abbr) &&
         Object.entries(DB_MARINAS).filter(([n, c]) => c.abbr === coords.abbr)[0][0] === name) {
       L.circleMarker([coords.lat, coords.lng], {
         radius: 6, color: '#0b1d3a', fillColor: '#0b1d3a',
@@ -4586,6 +4790,7 @@ function renderDashboard() {
   dbRenderCharges(dayEntries);
   dbRenderWhatsNext(dayEntries, base);
   dbRenderWeek(todayStr);
+  if (document.getElementById('db-cal-body')) dbCalRender();
 }
 
 function dbRenderKPI(movements, dayEntries, inPort) {
