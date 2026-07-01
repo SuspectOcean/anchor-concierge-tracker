@@ -3457,7 +3457,7 @@ function openSettingsModal() {
   // Admin-only sections
   ['vesselManagementSection', 'driverManagementSection', 'inviteCodeSection', 'mapEditorSection'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = isAdmin ? '' : 'none';
+    if (el) { el.classList.toggle('hidden', !isAdmin); el.style.display = isAdmin ? '' : 'none'; }
   });
   // Name: read-only for non-admins
   const nameInput = document.getElementById('settingsName');
