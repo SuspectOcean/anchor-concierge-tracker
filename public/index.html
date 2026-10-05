@@ -917,6 +917,17 @@
   .sec-body .db-map-container { margin: 0; border-radius: 0; }
   .sec-body .db-map-container { width: 100%; max-width: none; }
   .ag-row .status-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .edit-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff7ee; border: 1px solid #fbdcbf; border-left: 4px solid #fd7e14; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #7a3d06; }
+  .edit-banner button { background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--gray-700); white-space: nowrap; }
+  .vt-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+  .vt-act { background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--navy); cursor: pointer; }
+  .vt-act:hover { border-color: var(--teal); color: var(--teal); }
+  .vt-act-green { background: #15803d; border-color: #15803d; color: var(--white); }
+  .vt-act-green:hover { background: #126c34; color: var(--white); }
+  .vt-callout { border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+  .vt-callout-red { background: #fff5f5; border: 1px solid #fecaca; color: #7f1d1d; }
+  .vt-para { font-size: 13px; color: var(--gray-800); white-space: pre-wrap; margin: 0; }
+  #vesselDetailTitle .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; vertical-align: middle; margin-left: 6px; }
   /* sortable headings */
   .vt-sort { cursor: pointer; user-select: none; }
   .vt-sort:hover { background: var(--navy-light); }
@@ -1063,6 +1074,7 @@
 
   <!-- VIEW: NEW ENTRY FORM -->
   <div id="view-form">
+    <div id="editBanner" class="edit-banner" style="display:none;"><span id="editBannerText"></span><button type="button" onclick="cancelEdit()">Stop editing</button></div>
     <!-- VESSEL & STAFF -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
@@ -2878,6 +2890,7 @@ function cancelEdit() {
 
 function exitEditMode() {
   editingEntryId = null;
+  setEditBanner(null);
   editReturnView = 'log';
   resetForm();
   // Restore submit bar to create mode
@@ -4092,7 +4105,7 @@ function showDayDetail(dateStr) {
       const badgeBg = isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff');
       const badgeColor = isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)');
       const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
-      return `<div class="day-job" onclick="closeDayDetail();openEditEntry('${esc(e.entryId)}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to edit">
+      return `<div class="day-job" onclick="closeDayDetail();showEntryDetail('${esc(e.entryId)}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to open">
         <div class="day-job-header">
           <span class="day-job-title">${esc(e.entryId)} — ${esc(e.vessel || 'Unknown Vessel')}</span>
           <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${esc(isTransfer ? e.serviceType : cs)}</span>
@@ -4101,7 +4114,7 @@ function showDayDetail(dateStr) {
         ${transferInfo}
         ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${esc(e.description)}</div>` : ''}
         ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${sym}${Number(e.totalCharge).toFixed(2)}</div>` : ''}
-        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to open</div>
       </div>`;
     }).join('');
   }
@@ -4459,6 +4472,7 @@ function openEditEntry(entryId) {
 
   // Set edit mode
   editingEntryId = entryId;
+  setEditBanner(entry);
 
   // Reset form first
   resetForm();
@@ -4469,6 +4483,8 @@ function openEditEntry(entryId) {
   const isAdmin = currentUser && currentUser.role === 'admin';
   const staffSel = document.getElementById('staffSelect');
   if (isAdmin) {
+    // Keep the recorded staff name even if it is not a current user
+    if (entry.staffMember && ![...staffSel.options].some(o => o.value === entry.staffMember)) staffSel.appendChild(new Option(entry.staffMember, entry.staffMember));
     staffSel.value = entry.staffMember || '';
   } else {
     // Keep original staff member for display but don't allow change
@@ -4978,7 +4994,7 @@ function showVesselDetail(key) {
     const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
     const total = entryChargeBlocks(e).total;
     sums[sym] = (sums[sym] || 0) + total;
-    return `<tr class="vt-click" onclick="closeModal('vesselDetailModal');openEditEntry('${esc(e.entryId)}')">
+    return `<tr class="vt-click" onclick="showEntryDetail('${esc(e.entryId)}')">
       <td>${esc(fmtDate(e.serviceDate))}${e.serviceTime ? ' ' + esc(e.serviceTime) : ''}</td><td>${esc(e.entryId)}</td>
       <td>${esc(e.category || '')}${e.serviceType ? ' — ' + esc(e.serviceType) : ''}</td><td>${esc(e.staffMember || '—')}</td>
       <td><span class="status-badge status-${esc(st)}">${esc(st)}</span></td><td style="font-weight:600;">${sym}${total.toFixed(2)}</td></tr>`;
@@ -5074,6 +5090,96 @@ function showCrewDetail(encodedKey) {
       stints.map(st => `<tr><td>${vesselLink(st)}</td><td>${esc(st.ranks.join(', '))}</td><td>${esc(fmtDate(st.from))}</td><td>${esc(fmtDate(st.to))}</td><td>${st.n}</td></tr>`).join('')}</tbody></table></div>
     <p class="vt-note" style="margin-top:10px;">A sighting is one arrival or departure clearance that lists this person. Dates are clearance dates, not joining or leaving dates.</p>`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+
+// ---------- Entry record: what a job is, and the buttons to resolve it ----------
+function showEntryDetail(entryId) {
+  const e = allEntries.find(x => x.entryId === entryId);
+  if (!e) return showToast('Entry not found');
+  const today = antiguaToday();
+  const st = computeStatus(e);
+  const statusLabel = { pending: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting confirmation', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' }[st] || st;
+  const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
+  const { blocks, total } = entryChargeBlocks(e);
+  const driver = e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
+  const transfer = isTransferEntry(e);
+  const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
+  const note = (label, value) => value ? `<h3 class="vt-h3">${label}</h3><p class="vt-para">${esc(value)}</p>` : '';
+  const late = st === 'overdue' && e.serviceDate ? daysBetween(e.serviceDate, today) : 0;
+
+  const why = st === 'overdue'
+    ? `<div class="vt-callout vt-callout-red"><b>Overdue by ${late} day${late === 1 ? '' : 's'}.</b> The service date (${esc(fmtDate(e.serviceDate))}) has passed and the job is not marked completed or cancelled. If the work was done, press "Mark completed". If it never happened, press "Cancel job".</div>`
+    : (transfer && !driver && st !== 'completed' && st !== 'cancelled' ? '<div class="vt-callout vt-callout-red"><b>No driver assigned.</b> Press "Edit" to choose a driver.</div>' : '');
+
+  const chargeRows = blocks.map((b, i) => `<tr><td>${esc(b.notes || ('Charge ' + (i + 1)))}</td><td>${Number(b.hours) > 0 && Number(b.rate) > 0 ? esc(b.hours) + ' h × ' + sym + Number(b.rate).toFixed(2) : ''}</td><td style="font-weight:600;">${sym}${(Number(b.amount) || 0).toFixed(2)}</td></tr>`).join('');
+  const canWrite = canWriteUser();
+  const done = st === 'completed' || st === 'cancelled';
+  const vKey = vtKey(e.vessel);
+
+  document.getElementById('vesselDetailTitle').innerHTML = esc(e.entryId) + ' · ' + esc(e.vessel || 'No vessel') + ` <span class="status-badge status-${esc(st)}">${esc(statusLabel)}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    ${why}
+    <div class="vt-actions">
+      ${canWrite && !done ? `<button type="button" class="vt-act vt-act-green" onclick="quickSetStatus('${esc(e.entryId)}','completed')">✓ Mark completed</button>` : ''}
+      ${canWrite && !done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','cancelled')">Cancel job</button>` : ''}
+      ${canWrite && done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','pending')">Reopen</button>` : ''}
+      ${canWrite ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');openEditEntry('${esc(e.entryId)}')">Edit</button>` : ''}
+      ${vKey ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(vKey)}')">Vessel record</button>` : ''}
+    </div>
+    <div class="vt-facts">
+      ${fact('Service', (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : ''))}
+      ${fact('Service date', fmtDate(e.serviceDate) + (e.serviceTime ? ' ' + e.serviceTime : ''))}
+      ${fact('Priority', e.priority && e.priority !== 'normal' ? e.priority : '')}
+      ${fact('Staff', e.staffMember)}
+      ${fact('Logged on', fmtDate(e.submissionDate))}
+      ${fact('Cleared in at', e.clearedIn)}${fact('Cleared out at', e.clearedOut)}${fact('Marina / berth', e.marina)}
+      ${transfer ? fact('Route', [e.transferFrom, e.transferTo].filter(Boolean).join(' → ')) + fact('Pickup time', e.transferPickupTime) + fact('Driver', driver ? driver.name + (driver.phone ? ' (' + driver.phone + ')' : '') : 'Not assigned') + fact('Passengers', e.transferPaxCount || '') + fact('Flight', e.transferFlightNumber) + fact('Return', e.transferIsReturn ? (e.transferReturnTime || 'Yes') : '') : ''}
+      ${fact('Future task', e.futureTask)}
+      ${fact('Total charge', total > 0 ? sym + total.toFixed(2) : 'No charge')}
+    </div>
+    ${note('Description', e.description)}
+    ${transfer ? note('Transfer notes', e.transferNotes) : ''}
+    ${note('Notes for client', e.specialNotes)}${note('Internal notes', e.internalNotes)}${note('Client notes', e.clientNotes)}
+    ${chargeRows ? `<h3 class="vt-h3">Charges</h3><div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Item</th><th>Basis</th><th>Amount</th></tr></thead><tbody>${chargeRows}</tbody></table></div>` : ''}
+    ${e.lastEditedBy ? `<p class="vt-note" style="margin-top:10px;">Last edited by ${esc(e.lastEditedBy)}${e.lastEditedAt ? ' on ' + esc(fmtDate(e.lastEditedAt.split('T')[0])) : ''}</p>` : ''}`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+
+// One-click resolve from the entry record.
+async function quickSetStatus(entryId, status) {
+  if (!canWriteUser()) return showToast('Your role is read-only');
+  const e = allEntries.find(x => x.entryId === entryId);
+  if (!e) return;
+  if (status === 'cancelled' && !confirm('Cancel ' + entryId + '? It stays in the log, marked cancelled.')) return;
+  const who = currentUser.full_name || currentUser.email;
+  const change = { status, work_completed: status === 'completed' ? 'Yes' : '', last_edited_by: who, last_edited_at: new Date().toISOString() };
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const { data, error } = await sb.from('entries').update(change).eq('entry_id', entryId).select('entry_id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('The database did not accept the change');
+    await logAudit({ entry_id: entryId, action: 'status_change', changed_fields: ['status', 'work_completed'], new_values: { status, work_completed: change.work_completed }, performed_by: currentUser.id, performed_by_name: who });
+    e.status = status; e.workCompleted = change.work_completed; e.lastEditedBy = who; e.lastEditedAt = change.last_edited_at;
+    refreshViews();
+    showEntryDetail(entryId);
+    showToast(entryId + (status === 'completed' ? ' marked completed' : status === 'cancelled' ? ' cancelled' : ' reopened'));
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Status change error:', err);
+    showToast('Could not update: ' + err.message);
+    updateSyncBadge(false);
+  }
+}
+
+// Makes it obvious the form is editing an existing entry, not creating one.
+function setEditBanner(entry) {
+  const banner = document.getElementById('editBanner');
+  const tab = document.querySelector('.tab-btn[data-view="form"]');
+  if (banner) {
+    banner.style.display = entry ? '' : 'none';
+    if (entry) document.getElementById('editBannerText').textContent = 'Editing ' + entry.entryId + ' · ' + (entry.vessel || 'No vessel') + ' · ' + (entry.category || '') + (entry.serviceType ? ' — ' + entry.serviceType : '') + ' · ' + fmtDate(entry.serviceDate);
+  }
+  if (tab) tab.textContent = entry ? 'Editing ' + entry.entryId : '+ New Entry';
 }
 
 // ---------- Vessels view (almanac) ----------
@@ -5849,14 +5955,14 @@ function agendaItems(fromStr, toStr) {
       items.push({
         date: e.serviceDate, time: (e.transferPickupTime || '').slice(0, 5), kind: 'transfer', badge: e.serviceType, vessel: e.vessel,
         detail: [[e.transferFrom, e.transferTo].filter(Boolean).join(' → '), e.transferPaxCount ? e.transferPaxCount + ' pax' : '', driver ? 'Driver: ' + driver.name : 'No driver assigned'].filter(Boolean).join(' · '),
-        status: st, warn: !driver, click: `openEditEntry('${esc(e.entryId)}')`
+        status: st, warn: !driver, click: `showEntryDetail('${esc(e.entryId)}')`
       });
     } else {
       items.push({
         date: e.serviceDate, time: (e.serviceTime || '').slice(0, 5), kind: 'service', badge: e.category || 'Service', vessel: e.vessel,
         detail: [e.serviceType, e.staffMember, e.description].filter(Boolean).join(' · '),
         status: st, warn: (e.priority === 'critical' || e.priority === 'high') && st !== 'completed' && st !== 'cancelled',
-        click: `openEditEntry('${esc(e.entryId)}')`
+        click: `showEntryDetail('${esc(e.entryId)}')`
       });
     }
   });
@@ -6048,7 +6154,7 @@ function dbRenderUrgent(todayStr) {
   panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
   countEl.style.background = '#dc2626';
   itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item" onclick="openEditEntry('${esc(u.entryId)}')">
+    <div class="db-urgent-item" onclick="showEntryDetail('${esc(u.entryId)}')">
       <div class="db-urgent-icon">${u.icon}</div>
       <div>
         <div class="db-urgent-vessel">${esc(u.vessel)}</div>
