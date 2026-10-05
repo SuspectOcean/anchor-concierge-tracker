@@ -902,6 +902,8 @@
   .ag-vessel { font-weight: 700; color: var(--navy); }
   .ag-detail { font-size: 11px; color: var(--gray-600); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ag-warn { color: #dc2626; font-size: 10px; }
+  .ag-none { padding: 10px 16px; font-size: 12px; color: var(--gray-500); }
+  .ag-row .ag-time { white-space: nowrap; }
   .ag-badge-intended { background: #fff1e3; color: #9a5a12; }
   .ag-badge-transfer { background: #fff8e1; color: #a16207; }
   .ag-badge-service { background: #e7f6ec; color: #1b6b3a; }
@@ -1817,6 +1819,19 @@
       </div>
     </div>
 
+    <!-- Antigua vessel activity (from the sheet) -->
+    <div class="db-panel" data-db-panel="vessel-activity">
+      <div class="db-panel-header">
+        <span style="font-size:15px;">⚓</span>
+        <div>
+          <div class="db-panel-title">Antigua Vessel Activity</div>
+          <div class="db-panel-sub" id="vt-activity-sub"></div>
+        </div>
+        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">Almanac →</a>
+      </div>
+      <div id="vt-activity"></div>
+    </div>
+
     <div class="db-layout">
 
       <!-- LEFT: agenda -->
@@ -1837,6 +1852,18 @@
           <div class="ag-tabs" id="ag-tabs"></div>
           <div id="ag-body"></div>
         </div>
+
+        <div class="db-panel" data-db-panel="in-antigua">
+          <div class="db-panel-header">
+            <span style="font-size:15px;">🇦🇬</span>
+            <div>
+              <div class="db-panel-title">Vessels in Antigua</div>
+              <div class="db-panel-sub">Currently in port</div>
+            </div>
+            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
+          </div>
+          <div id="db-in-antigua"></div>
+        </div>
       </div>
 
       <!-- RIGHT: sidebar -->
@@ -1851,18 +1878,6 @@
           <div class="db-urgent-items" id="db-urgent-items">
             <div class="db-empty">No urgent actions</div>
           </div>
-        </div>
-
-        <div class="db-panel" data-db-panel="in-antigua">
-          <div class="db-panel-header">
-            <span style="font-size:15px;">🇦🇬</span>
-            <div>
-              <div class="db-panel-title">Vessels in Antigua</div>
-              <div class="db-panel-sub">Currently in port</div>
-            </div>
-            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
-          </div>
-          <div id="db-in-antigua"></div>
         </div>
 
         <div class="db-panel" data-db-panel="crew-alerts">
@@ -1887,19 +1902,6 @@
       </div>
 
     </div><!-- /db-layout -->
-
-    <!-- Antigua vessel activity (from the sheet) -->
-    <div class="db-panel" data-db-panel="vessel-activity">
-      <div class="db-panel-header">
-        <span style="font-size:15px;">⚓</span>
-        <div>
-          <div class="db-panel-title">Antigua Vessel Activity</div>
-          <div class="db-panel-sub" id="vt-activity-sub"></div>
-        </div>
-        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">Almanac →</a>
-      </div>
-      <div id="vt-activity"></div>
-    </div>
 
     <!-- Month calendar (closed by default) -->
     <div class="db-panel" data-db-panel="calendar">
@@ -5884,12 +5886,7 @@ function renderAgenda(todayStr) {
   const moveCls = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation' };
   const statusLabel = { pending: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' };
 
-  bodyEl.innerHTML = days.map(day => {
-    const list = items.filter(i => i.date === day);
-    const rel = day === todayStr ? 'Today' : day === addDays(todayStr, 1) ? 'Tomorrow' : '';
-    const head = `<div class="ag-day${day === todayStr ? ' ag-day-today' : ''}"><span>${rel ? rel + ' · ' : ''}${esc(fmtDate(day, { weekday: 'long', day: 'numeric', month: 'long' }))}</span><span class="ag-day-n">${list.length || ''}</span></div>`;
-    if (!list.length) return head + '<div class="db-empty">Nothing scheduled</div>';
-    return head + list.map(i => `
+  const rowHtml = i => `
       <div class="ag-row ${kindCls[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
         <div class="ag-time">${esc(i.time || '—')}</div>
         <div class="ag-main">
@@ -5897,8 +5894,24 @@ function renderAgenda(todayStr) {
           ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
         </div>
         ${i.status ? `<span class="status-badge status-${esc(i.status)}">${esc(statusLabel[i.status] || i.status)}</span>` : ''}
-      </div>`).join('');
-  }).join('');
+      </div>`;
+
+  // On the single-day views, also show what is coming next so a quiet day is not a blank panel.
+  let comingUp = '';
+  if (range.from === range.to) {
+    const next = agendaItems(addDays(to, 1), addDays(todayStr, 60)).slice(0, 6);
+    comingUp = `<div class="ag-day"><span>Coming up</span><span class="ag-day-n">${next.length || ''}</span></div>` + (next.length
+      ? next.map(i => rowHtml(Object.assign({}, i, { time: fmtShort(i.date) + (i.time ? ' ' + i.time : '') }))).join('')
+      : '<div class="ag-none">Nothing logged for the next 60 days</div>');
+  }
+
+  bodyEl.innerHTML = days.map(day => {
+    const list = items.filter(i => i.date === day);
+    const rel = day === todayStr ? 'Today' : day === addDays(todayStr, 1) ? 'Tomorrow' : '';
+    const head = `<div class="ag-day${day === todayStr ? ' ag-day-today' : ''}"><span>${rel ? rel + ' · ' : ''}${esc(fmtDate(day, { weekday: 'long', day: 'numeric', month: 'long' }))}</span><span class="ag-day-n">${list.length || ''}</span></div>`;
+    if (!list.length) return head + '<div class="ag-none">Nothing scheduled</div>';
+    return head + list.map(rowHtml).join('');
+  }).join('') + comingUp;
 }
 
 // Collapsible dashboard sections (calendar, map). Closed by default, remembered per browser.
@@ -6087,7 +6100,8 @@ function dbRenderTeam(dayEntries) {
   if (!el) return;
   const counts = {};
   dayEntries.forEach(e => { if (e.staffMember) counts[e.staffMember] = (counts[e.staffMember] || 0) + 1; });
-  if (!Object.keys(counts).length) { el.innerHTML = '<div class="db-empty">No staff assignments today</div>'; return; }
+  const teamPanel = el.closest('[data-db-panel]');
+  if (!Object.keys(counts).length) { el.innerHTML = ''; if (teamPanel) teamPanel.style.display = 'none'; return; }
   const max = Math.max(...Object.values(counts));
   const colors = ['#14b8a6', '#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e', '#ef4444'];
   el.innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, count], i) => {
