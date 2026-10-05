@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <style>
   :root {
     --navy: #0b1d3a;
@@ -792,6 +792,98 @@
     .db-quick-actions { flex-direction: column; }
     .db-quick-btn { padding: 12px; }
   }
+
+  /* ═══════════════════════════════════════════
+     VESSEL TRACKING (sheet data)
+  ═══════════════════════════════════════════ */
+  .auth-info { display: none; font-size: 13px; color: var(--teal); background: var(--teal-light); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .auth-note { font-size: 13px; color: var(--gray-600); line-height: 1.5; margin-bottom: 14px; }
+  .vt-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 12px 14px 4px; }
+  @media (max-width: 960px) { .vt-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .vt-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .vt-tile { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .vt-tile-key { background: #eef4fb; border-color: #cfe0f3; }
+  .vt-tile-label { font-size: 10px; font-weight: 700; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vt-tile-value { font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1.25; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .vt-tile-text .vt-tile-value { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 5px; }
+  .vt-tile-unit { font-size: 11px; font-weight: 600; color: var(--gray-600); }
+  .vt-tl-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px 6px; }
+  .vt-tl-range { font-size: 12px; font-weight: 700; color: var(--navy); }
+  .vt-tl-keys { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; color: var(--gray-600); flex: 1; }
+  .vt-tl-keys span { display: inline-flex; align-items: center; gap: 4px; }
+  .vt-k { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.06); }
+  .vt-tl-nav { display: flex; gap: 4px; }
+  .vt-tl-nav button { background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; color: var(--gray-700); }
+  .vt-tl-nav button:hover { border-color: var(--teal); }
+  .vt-tl-wrap { overflow-x: auto; padding: 0 14px 14px; }
+  .vt-tl { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; font-size: 12px; table-layout: fixed; }
+  .vt-tl th, .vt-tl td { border-bottom: 1px solid var(--gray-100); height: 26px; padding: 0; text-align: center; }
+  .vt-tl th { font-size: 10px; font-weight: 600; color: var(--gray-600); height: 34px; }
+  .vt-tl-day span { display: block; font-size: 9px; color: var(--gray-500); font-weight: 500; }
+  .vt-tl-day.vt-we { color: var(--gray-500); }
+  .vt-tl .vt-tl-name { width: 170px; text-align: left; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--navy); position: sticky; left: 0; background: var(--white); z-index: 1; }
+  .vt-tl th.vt-tl-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); }
+  .vt-legend { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--gray-500); margin-left: 6px; }
+  .vt-tl .vt-tl-num { width: 44px; color: var(--gray-700); font-variant-numeric: tabular-nums; }
+  .vt-tl-group td { text-align: left; padding: 6px 8px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #9a5a12; background: #fff7ee; height: auto; }
+  .vt-tl-row { cursor: pointer; }
+  .vt-tl-row:hover .vt-tl-name { color: var(--teal); }
+  /* soft tints, not solid fills */
+  .vt-stay { background: #e6f0fa; }
+  .vt-arr { background: #bcd6f0; color: #1d4f85; font-size: 10px; }
+  .vt-dep { background: #fbdcbf; color: #9a5a12; font-size: 10px; }
+  .vt-plan { background: repeating-linear-gradient(135deg, #f1f6fb, #f1f6fb 4px, #ffffff 4px, #ffffff 8px); }
+  .vt-today { box-shadow: inset 0 0 0 999px rgba(253, 126, 20, 0.10); }
+  th.vt-today { color: #c2560a; font-weight: 800; box-shadow: inset 0 -3px 0 #fd7e14, inset 0 0 0 999px rgba(253, 126, 20, 0.10); }
+  .vt-k.vt-today { background: rgba(253, 126, 20, 0.18); box-shadow: none; }
+  .vt-star { color: #d08a1e; font-size: 12px; }
+  .vt-chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--gray-100); color: var(--gray-700); white-space: nowrap; }
+  .vt-chip-current { background: #dcfce7; color: #15803d; }
+  .vt-chip-departed { background: var(--gray-100); color: var(--gray-700); }
+  .vt-chip-expected { background: #e6f0fa; color: #1d4f85; }
+  .vt-chip-unknown { background: #fff7ee; color: #9a5a12; }
+  .vt-alert { display: flex; gap: 10px; align-items: flex-start; padding: 9px 14px; border-bottom: 1px solid var(--gray-100); border-left: 3px solid transparent; }
+  .vt-alert:last-child { border-bottom: none; }
+  .vt-al-pass { border-left-color: #dc2626; background: #fffafa; }
+  .vt-al-warn { border-left-color: #fd7e14; background: #fffbf6; }
+  .vt-al-bday { border-left-color: #bcd6f0; }
+  .vt-alert-icon { font-size: 15px; }
+  .vt-alert-name { font-size: 12px; font-weight: 700; color: var(--navy); }
+  .vt-alert-detail { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+  .vt-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .vt-tabs button { background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; color: var(--gray-700); cursor: pointer; }
+  .vt-tabs button.active { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .vt-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .vt-toolbar input[type="search"], .vt-toolbar select { padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 13px; background: var(--white); }
+  .vt-toolbar input[type="search"] { flex: 1; min-width: 180px; }
+  .vt-toolbar .vt-count { font-size: 12px; color: var(--gray-600); margin-left: auto; white-space: nowrap; }
+  .vt-toolbar .vt-btn { background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--gray-700); cursor: pointer; }
+  .vt-toolbar .vt-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .vt-table td, .vt-table th { white-space: nowrap; }
+  .vt-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-100); }
+  .vt-click { cursor: pointer; }
+  .vt-click:hover td { background: var(--gray-50); }
+  .vt-h3 { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; margin: 16px 0 8px; }
+  .vt-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .vt-fact { background: var(--gray-50); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .vt-fact span { display: block; font-size: 10px; font-weight: 700; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; }
+  .vt-fact b { display: block; font-size: 13px; color: var(--navy); overflow: hidden; text-overflow: ellipsis; }
+  .vt-stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 960px) { .vt-stat-grid { grid-template-columns: 1fr; } }
+  .vt-stat-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 4px 14px 14px; margin-bottom: 12px; overflow: hidden; }
+  .vt-note { font-size: 12px; color: var(--gray-600); margin: 0 0 10px; }
+  .vt-sync-note { font-size: 12px; color: var(--gray-600); background: #eef4fb; border: 1px solid #cfe0f3; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; }
+  .user-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 6px; }
+  @media (max-width: 520px) { .vt-tl-keys { flex-basis: 100%; order: 3; } }
+  /* phone width: stop wide tables pushing the page sideways */
+  .db-layout { grid-template-columns: minmax(0, 1fr) 300px; }
+  @media (max-width: 960px) { .db-layout { grid-template-columns: minmax(0, 1fr); } }
+  .db-layout > div, .db-hero-row > * { min-width: 0; }
+  #db-services { overflow-x: auto; }
+  .tab-bar { overflow-x: auto; }
+  .tab-btn { white-space: nowrap; }
+  .user-row select { padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 12px; }
+
 </style>
 </head>
 
@@ -822,6 +914,9 @@
       <div class="auth-toggle">
         Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthPanel('signup')">Sign Up</a>
       </div>
+      <div class="auth-toggle" style="margin-top:8px;">
+        <a href="javascript:void(0)" onclick="toggleAuthPanel('reset')">Forgot password?</a>
+      </div>
     </div>
 
     <div id="signupPanel" class="hidden">
@@ -850,6 +945,43 @@
         <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">Back</button>
       </div>
     </div>
+
+    <div id="resetPanel" class="hidden">
+      <p class="auth-note">Enter your email. If an account exists, a link to set a new password is sent to it.</p>
+      <div class="auth-group">
+        <label>Email</label>
+        <input type="email" id="resetEmail" placeholder="your@email.com" autocomplete="email">
+        <div class="auth-error" id="resetError"></div>
+        <div class="auth-info" id="resetInfo"></div>
+      </div>
+      <div class="auth-buttons">
+        <button class="btn-auth btn-auth-primary" onclick="handleForgotPassword()">Send Reset Link</button>
+        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">Back</button>
+      </div>
+    </div>
+
+    <div id="setPasswordPanel" class="hidden">
+      <p class="auth-note">Set a new password. Minimum 8 characters.</p>
+      <div class="auth-group">
+        <label>New Password</label>
+        <input type="password" id="newPassword" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="auth-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="newPasswordConfirm" placeholder="••••••••" autocomplete="new-password">
+        <div class="auth-error" id="setPasswordError"></div>
+      </div>
+      <div class="auth-buttons">
+        <button class="btn-auth btn-auth-primary" onclick="handleSetNewPassword()">Save New Password</button>
+      </div>
+    </div>
+
+    <div id="pendingPanel" class="hidden">
+      <p class="auth-note"><strong>Account awaiting approval.</strong><br>Your account exists but has not been approved yet. Ask an Anchor Concierge admin to approve it in Settings, then sign in again.</p>
+      <div class="auth-buttons">
+        <button class="btn-auth btn-auth-secondary" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -866,7 +998,7 @@
     <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
       <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
-      <button onclick="loadEntries().then(()=>showToast('Data refreshed.'))" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
+      <button onclick="refreshAll()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
       <button id="settingsBtn" onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
       <button onclick="handleLogout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Sign out">Sign Out</button>
     </div>
@@ -881,6 +1013,7 @@
     <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
     <button class="tab-btn" data-view="movements" onclick="showView('movements')">Movements</button>
     <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
+    <button class="tab-btn" data-view="vessels" onclick="showView('vessels')">Vessels</button>
   </div>
 
   <!-- VIEW: NEW ENTRY FORM -->
@@ -964,7 +1097,6 @@
                 <option>Brokerage</option>
                 <option>General Support</option>
               </select>
-              <button class="add-btn" onclick="showAddModal('category')">+</button>
             </div>
           </div>
           <div class="form-group">
@@ -973,7 +1105,6 @@
               <select id="serviceType" onchange="onServiceTypeChange()">
                 <option value="">Select type...</option>
               </select>
-              <button class="add-btn" onclick="showAddModal('serviceType')">+</button>
             </div>
           </div>
         </div>
@@ -1383,6 +1514,23 @@
   <div id="view-log" style="display:none;">
     <div class="section-card">
       <div class="section-body">
+        <div class="vt-toolbar">
+          <input type="search" id="logSearch" placeholder="Search vessel, staff, category, entry ID…" oninput="renderLog()">
+          <select id="logStatusFilter" onchange="renderLog()">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="in-progress">In progress</option>
+            <option value="awaiting-confirm">Awaiting confirmation</option>
+            <option value="overdue">Overdue</option>
+            <option value="delayed">Delayed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <span class="vt-count" id="logCount"></span>
+          <button type="button" class="vt-btn" onclick="exportCSV()">Export CSV</button>
+          <button type="button" class="vt-btn" onclick="exportXLSX()">Export Excel</button>
+        </div>
         <div class="log-table-wrap">
           <table class="log-table" id="logTable">
             <thead>
@@ -1519,7 +1667,7 @@
     <!-- Movements List -->
     <div class="section-card">
       <div class="section-header">
-        <h2>&#x1F4C5; Upcoming Movements</h2>
+        <h2>&#x1F4C5; Planned Movements (entered in the app)</h2>
       </div>
       <div class="section-body">
         <div class="log-table-wrap">
@@ -1539,6 +1687,79 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- Clearance log: read-only copy of the sheet -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>&#x1F4D2; Clearance Log (from the sheet)</h2>
+      </div>
+      <div class="section-body">
+        <div class="vt-sync-note">Arrivals and departures cleared through SailClear and eSeaClear. Read-only here: the Google Sheet "2026 - 2027 Season" is the master copy.</div>
+        <div class="vt-toolbar">
+          <input type="search" id="vt-clearance-search" placeholder="Search vessel, port, captain, reference…" oninput="vtRenderClearanceLog()">
+          <select id="vt-clearance-scope" onchange="vtRenderClearanceLog()">
+            <option value="season">This season</option>
+            <option value="all">All seasons</option>
+          </select>
+          <span class="vt-count" id="vt-clearance-count"></span>
+        </div>
+        <div class="log-table-wrap">
+          <table class="log-table vt-table">
+            <thead><tr><th>Date</th><th>Time</th><th>Vessel</th><th>Movement</th><th>Port</th><th>Last / next port</th><th>Crew</th><th>Guests</th><th>Captain</th><th>Source</th></tr></thead>
+            <tbody id="vt-clearance-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VESSELS VIEW (almanac from the sheet) -->
+  <div id="view-vessels" style="display:none;">
+    <div class="vt-tabs">
+      <button type="button" data-tab="vessels" class="active" onclick="vtSetTab('vessels')">Vessel almanac</button>
+      <button type="button" data-tab="crew" onclick="vtSetTab('crew')">Crew almanac</button>
+      <button type="button" data-tab="stats" onclick="vtSetTab('stats')">Statistics</button>
+    </div>
+
+    <div id="vt-pane-vessels" class="section-card">
+      <div class="section-body">
+        <div class="vt-toolbar">
+          <input type="search" id="vt-vessel-search" placeholder="Search vessel, flag, type, captain…" oninput="vtRenderVesselAlmanac()">
+          <span class="vt-count" id="vt-vessel-count"></span>
+        </div>
+        <div class="log-table-wrap">
+          <table class="log-table vt-table">
+            <thead><tr><th>Vessel</th><th>Flag</th><th>Type</th><th>LOA</th><th>Arrivals</th><th>Departures</th><th>First seen</th><th>Last seen</th><th>Latest captain</th><th>Now</th></tr></thead>
+            <tbody id="vt-vessel-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="vt-pane-crew" class="section-card" style="display:none;">
+      <div class="section-body">
+        <div class="vt-toolbar">
+          <input type="search" id="vt-crew-search" placeholder="Search name, vessel, rank…" oninput="vtRenderCrewAlmanac()">
+          <select id="vt-crew-filter" onchange="vtRenderCrewAlmanac()">
+            <option value="">All crew</option>
+            <option value="season">Seen this season</option>
+            <option value="returning">Returning this season</option>
+            <option value="moved">Changed vessel</option>
+          </select>
+          <span class="vt-count" id="vt-crew-count"></span>
+        </div>
+        <div class="log-table-wrap">
+          <table class="log-table vt-table">
+            <thead><tr><th>Name</th><th>Sightings</th><th>Vessels worked on</th><th>Latest vessel</th><th>Latest rank</th><th>First seen</th><th>Last seen</th><th>Changes</th></tr></thead>
+            <tbody id="vt-crew-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="vt-pane-stats" style="display:none;">
+      <div id="vt-stats"></div>
     </div>
   </div>
 
@@ -1578,6 +1799,19 @@
         <div class="db-kpi-value" id="kpi-charges">—</div>
         <div class="db-kpi-sub" id="kpi-charges-sub">EC$ logged today</div>
       </div>
+    </div>
+
+    <!-- Antigua vessel activity (from the sheet) -->
+    <div class="db-panel" data-db-panel="vessel-activity">
+      <div class="db-panel-header">
+        <span style="font-size:15px;">⚓</span>
+        <div>
+          <div class="db-panel-title">Antigua Vessel Activity</div>
+          <div class="db-panel-sub" id="vt-activity-sub"></div>
+        </div>
+        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">Almanac →</a>
+      </div>
+      <div id="vt-activity"></div>
     </div>
 
     <!-- Dashboard Summary Calendar -->
@@ -1714,6 +1948,19 @@
           <div id="db-in-antigua"></div>
         </div>
 
+        <!-- Crew alerts (passports and birthdays) -->
+        <div class="db-panel" data-db-panel="crew-alerts">
+          <div class="db-panel-header">
+            <span style="font-size:15px;">🛂</span>
+            <div>
+              <div class="db-panel-title">Crew Alerts</div>
+              <div class="db-panel-sub">Passports &amp; birthdays</div>
+            </div>
+            <span class="db-urgent-count" id="vt-alerts-count" style="background:var(--orange);margin-left:auto;">0</span>
+          </div>
+          <div id="vt-alerts"></div>
+        </div>
+
         <!-- Active Vessels Today -->
         <div class="db-panel" data-db-panel="active-vessels">
           <div class="db-panel-header">
@@ -1774,163 +2021,16 @@
     </div>
   </div>
 
-  <!-- EDIT ENTRY MODAL -->
-  <div class="modal-overlay hidden" id="editEntryModal" onclick="if(event.target === this) closeModal('editEntryModal')">
-    <div class="modal-content" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+  <!-- VESSEL DETAIL MODAL -->
+  <div class="modal-overlay hidden" id="vesselDetailModal" onclick="if(event.target === this) closeModal('vesselDetailModal')">
+    <div class="modal-content" style="max-width:820px;max-height:88vh;overflow-y:auto;">
       <div class="modal-header">
-        <h2 id="editEntryTitle">Edit Entry</h2>
-        <button class="modal-close" onclick="closeModal('editEntryModal')">✕</button>
+        <h2 id="vesselDetailTitle">Vessel</h2>
+        <button class="modal-close" onclick="closeModal('vesselDetailModal')">✕</button>
       </div>
-      <input type="hidden" id="editEntryId">
-
-      <!-- Vessel & Staff -->
-      <div style="margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Vessel & Staff</h3>
-        <div class="form-row">
-          <div class="form-group"><label>Vessel</label><select id="editVessel"></select></div>
-          <div class="form-group"><label>Staff Member</label><select id="editStaff"></select></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Service Date</label><input type="date" id="editServiceDate"></div>
-          <div class="form-group"><label>Service Time</label><input type="time" id="editServiceTime"></div>
-        </div>
-      </div>
-
-      <!-- Service Details -->
-      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Service Details</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Category</label>
-            <select id="editCategory">
-              <option value="">Select...</option>
-              <option>Customs & Immigration</option>
-              <option>Provisioning & Sourcing</option>
-              <option>Logistics & Shipping</option>
-              <option>Crew Services</option>
-              <option>Berth & Marina</option>
-              <option>Consulting & Admin</option>
-              <option>Transfer</option>
-              <option>Brokerage</option>
-              <option>General Support</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Service Type</label>
-            <input type="text" id="editServiceType" placeholder="Service type">
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group"><label>Description</label><textarea id="editDescription" rows="2"></textarea></div>
-        </div>
-      </div>
-
-      <!-- Location -->
-      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Location</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Cleared In</label>
-            <select id="editClearedIn">
-              <option value="">Select...</option>
-              <option>North Sound, Crabbs</option>
-              <option>Jolly Harbour</option>
-              <option>English Harbour</option>
-              <option>St. Johns</option>
-              <option>Barbuda</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Cleared Out</label>
-            <select id="editClearedOut">
-              <option value="">Select...</option>
-              <option>North Sound, Crabbs</option>
-              <option>Jolly Harbour</option>
-              <option>English Harbour</option>
-              <option>St. Johns</option>
-              <option>Barbuda</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-group"><label>Marina / Berth</label><input type="text" id="editMarina"></div>
-        </div>
-      </div>
-
-      <!-- Status & Scheduling -->
-      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Status & Scheduling</h3>
-        <div class="form-row single">
-          <div class="form-group">
-            <label>Status</label>
-            <select id="editStatus">
-              <option value="upcoming">Upcoming</option>
-              <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Work Completed</label>
-            <select id="editWorkCompleted"><option value="">No</option><option value="Yes">Yes</option></select>
-          </div>
-          <div class="form-group"><label>Future Task</label><input type="text" id="editFutureTask"></div>
-        </div>
-      </div>
-
-      <!-- Charges -->
-      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Charges</h3>
-        <input type="hidden" id="editBillingType" value="charged">
-        <input type="hidden" id="editAdditionalCrewCharge" value="0">
-        <input type="hidden" id="editDisbursementFee" value="0">
-        <input type="hidden" id="editOtherCharges" value="0">
-        <input type="hidden" id="editAgencyFee" value="0">
-        <div class="form-row" style="margin-bottom:12px;">
-          <div class="form-group">
-            <label>Currency</label>
-            <select id="editCurrency" onchange="calculateEditTotal()"><option value="USD">USD ($)</option><option value="XCD">XCD (EC$)</option></select>
-          </div>
-        </div>
-
-        <!-- Primary charge block -->
-        <div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-bottom:10px;">
-          <div class="form-row" style="margin-bottom:6px;">
-            <div class="form-group" style="margin-bottom:0;"><label>Rate per Hour</label><input type="number" id="editHourlyRate" min="0" step="0.01" value="80" placeholder="80.00" oninput="calculateEditTotal()"></div>
-            <div class="form-group" style="margin-bottom:0;"><label>Hours</label><input type="number" id="editServiceHours" min="0" step="0.5" placeholder="0" oninput="calculateEditTotal()"></div>
-          </div>
-          <div class="form-group" style="margin-bottom:0;"><label>Notes</label><textarea id="editChargeNotes" rows="2" placeholder="What was this charge for..." style="font-size:13px;"></textarea></div>
-        </div>
-
-        <!-- Additional charge blocks -->
-        <div id="editAdditionalChargesContainer"></div>
-
-        <button type="button" onclick="addChargeBlock('','','',document.getElementById('editAdditionalChargesContainer'),'edit-')" style="margin-top:4px;margin-bottom:12px;background:none;border:1px dashed var(--gray-300);color:var(--teal);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;">+ Add Charge</button>
-
-        <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-top:8px;">
-          <div id="editCalcChargeRows"></div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--navy);border-top:1px solid var(--gray-200);padding-top:8px;margin-top:4px;"><span>Total</span><span id="editCalcTotal">$ 0.00</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:4px;"><span id="editCalcConvertLabel">Equivalent in XCD</span><span id="editCalcConvert">EC$ 0.00</span></div>
-        </div>
-      </div>
-
-      <!-- Notes -->
-      <div style="border-top:1px solid var(--gray-200);padding-top:16px;margin-bottom:16px;">
-        <h3 style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">Notes</h3>
-        <div class="form-row single"><div class="form-group"><label>Special Notes</label><textarea id="editSpecialNotes" rows="2"></textarea></div></div>
-        <div class="form-row single"><div class="form-group"><label>Internal Notes</label><textarea id="editInternalNotes" rows="2"></textarea></div></div>
-        <div class="form-row single"><div class="form-group"><label>Client Notes</label><textarea id="editClientNotes" rows="2"></textarea></div></div>
-        <input type="hidden" id="editOverrideNote" value="">
-      </div>
-
-      <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
-        <button onclick="confirmDeleteEntry()" style="background:#d32f2f;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Delete Entry</button>
-        <div>
-          <button class="btn-secondary" onclick="closeModal('editEntryModal')" style="margin-right:8px;">Cancel</button>
-          <button onclick="saveEditedEntry()" style="background:var(--teal);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;">Save Changes</button>
-        </div>
+      <div id="vesselDetailBody"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('vesselDetailModal')">Close</button>
       </div>
     </div>
   </div>
@@ -2048,6 +2148,15 @@
         </div>
       </div>
 
+      <!-- Users (collapsible, admin) -->
+      <div id="userManagementSection" class="set-sec hidden">
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Users (Admin)</span><span class="set-chev">▸</span></button>
+        <div class="set-sec-body collapsed">
+          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">Pending accounts cannot see any data until given a role. Viewer is read-only.</p>
+          <div id="userList" style="max-height:260px;overflow:auto;"></div>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('settingsModal')">Close</button>
       </div>
@@ -2095,6 +2204,90 @@ const SUPABASE_URL = 'https://ahgrdvxrxaghnjqudwib.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoZ3JkdnhyeGFnaG5qcXVkd2liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTc1NzMsImV4cCI6MjA5MTYzMzU3M30.0S-gf62DmqYkR-jGYnDezUBuedITuoHrEk97nkw-HYw';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ============================================
+// SHARED HELPERS (escaping, Antigua dates, paging)
+// ============================================
+const APP_TZ = 'America/Antigua';
+
+// Escape any stored or typed text before it goes into innerHTML.
+function esc(x) {
+  return (x == null ? '' : String(x)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Today's date in Antigua as 'YYYY-MM-DD', whatever the device time zone is.
+function antiguaToday(offsetDays) {
+  const s = new Intl.DateTimeFormat('en-CA', { timeZone: APP_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return offsetDays ? addDays(s, offsetDays) : s;
+}
+// Current time in Antigua as 'HH:MM'.
+function antiguaNowTime() {
+  return new Intl.DateTimeFormat('en-GB', { timeZone: APP_TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+}
+// 'YYYY-MM-DD' -> Date at local noon (never shifts the calendar day).
+function parseYMD(s) {
+  const p = String(s || '').slice(0, 10).split('-').map(Number);
+  return new Date(p[0], (p[1] || 1) - 1, p[2] || 1, 12, 0, 0);
+}
+function ymd(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function addDays(s, n) { const d = parseYMD(s); d.setDate(d.getDate() + n); return ymd(d); }
+function daysBetween(a, b) { return Math.round((parseYMD(b) - parseYMD(a)) / 86400000); }
+function fmtDate(s, opts) {
+  if (!s) return '';
+  return parseYMD(s).toLocaleDateString('en-GB', opts || { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function fmtShort(s) { return fmtDate(s, { day: 'numeric', month: 'short' }); }
+
+// Read every row of a table, 1000 at a time (the API returns at most 1000 per request).
+async function fetchAll(table, build) {
+  const size = 1000;
+  let from = 0;
+  const out = [];
+  for (;;) {
+    let q = sb.from(table).select('*');
+    if (build) q = build(q);
+    const { data, error } = await q.range(from, from + size - 1);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < size) break;
+    from += size;
+  }
+  return out;
+}
+
+function isAdminUser() { return !!(currentUser && currentUser.role === 'admin'); }
+function canWriteUser() { return !!(currentUser && ['admin', 'manager', 'staff'].includes(currentUser.role)); }
+
+async function logAudit(row) {
+  try {
+    const { error } = await sb.from('audit_log').insert(row);
+    if (error) console.warn('Audit log not written:', error.message);
+  } catch (e) { console.warn('Audit log not written:', e && e.message); }
+}
+
+function viewVisible(name) {
+  const el = document.getElementById('view-' + name);
+  return !!el && el.style.display !== 'none';
+}
+// Re-draw whatever is on screen after data changed.
+function refreshViews() {
+  vtInvalidate();
+  renderLog();
+  if (viewVisible('dashboard')) renderDashboard();
+  if (viewVisible('movements')) renderMovementsList();
+  if (viewVisible('timeline')) renderTimeline();
+  if (viewVisible('vessels')) renderVesselsView();
+}
+async function refreshAll() {
+  await loadEntries();
+  await loadVessels();
+  await loadVesselTracking();
+  refreshViews();
+  showToast('Data refreshed.');
+}
+
+
 function toggleShowPassword(inputId, btn) {
   const input = document.getElementById(inputId);
   if (input.type === 'password') {
@@ -2114,40 +2307,64 @@ let editingEntryId = null; // Set when editing an existing entry via main form
 let editReturnView = 'log'; // View to return to after save/cancel of an edit
 let allDrivers = [];
 let isOnline = true;
+let realtimeSubscribed = false;
 
 // ============================================
 // AUTH FUNCTIONS
 // ============================================
+const AUTH_PANELS = ['loginPanel', 'signupPanel', 'resetPanel', 'setPasswordPanel', 'pendingPanel'];
+let passwordRecoveryMode = false;
+
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function toggleAuthPanel(panel) {
+  AUTH_PANELS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', id !== panel + 'Panel');
+  });
+  ['authError', 'signupError', 'resetError', 'setPasswordError'].forEach(id => showAuthError(id, ''));
+  const info = document.getElementById('resetInfo');
+  if (info) info.style.display = 'none';
+}
+
+// Runs after any successful sign-in or restored session.
+async function enterApp() {
+  await loadUserProfile();
+  if (!currentUser.role || currentUser.role === 'pending') {
+    document.getElementById('authGate').classList.remove('hidden');
+    toggleAuthPanel('pending');
+    return;
+  }
+  document.getElementById('authGate').classList.add('hidden');
+  await loadEntries();
+  await loadVessels();
+  await loadDrivers();
+  await loadMapLocations();
+  await loadStaff();
+  await loadVesselTracking();
+  updateSubmissionDateTime();
+  subscribeToChanges();
+  showView('dashboard');
+}
+
 async function handleLogin() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
-  const errorEl = document.getElementById('authError');
-
-  if (!email || !password) {
-    errorEl.textContent = 'Please enter email and password';
-    errorEl.style.display = 'block';
-    return;
-  }
-
+  if (!email || !password) return showAuthError('authError', 'Please enter email and password');
   try {
-    errorEl.style.display = 'none';
+    showAuthError('authError', '');
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
+    document.getElementById('authPassword').value = '';
     currentUser = data.user;
-    await loadUserProfile();
-    document.getElementById('authGate').classList.add('hidden');
-    await loadEntries();
-    await loadVessels();
-    await loadDrivers();
-    await loadMapLocations();
-    await loadStaff();
-    updateSubmissionDateTime();
-    subscribeToChanges();
-    showView('dashboard');
+    await enterApp();
   } catch (err) {
-    errorEl.textContent = err.message || 'Login failed';
-    errorEl.style.display = 'block';
+    showAuthError('authError', err.message || 'Login failed');
   }
 }
 
@@ -2156,70 +2373,94 @@ async function handleSignup() {
   const fullName = document.getElementById('signupName').value.trim();
   const inviteCode = document.getElementById('signupInviteCode').value.trim();
   const password = document.getElementById('signupPassword').value;
-  const errorEl = document.getElementById('signupError');
 
-  if (!email || !fullName || !inviteCode || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
-  }
+  if (!email || !fullName || !inviteCode || !password) return showAuthError('signupError', 'Please fill in all fields');
+  if (password.length < 8) return showAuthError('signupError', 'Password must be at least 8 characters');
 
   try {
-    errorEl.style.display = 'none';
-
+    showAuthError('signupError', '');
     const { data: valid, error: rpcError } = await sb.rpc('validate_invite_code', { code: inviteCode });
     if (rpcError) throw rpcError;
-    if (!valid) {
-      errorEl.textContent = 'Invalid invite code. Contact your admin for access.';
-      errorEl.style.display = 'block';
+    if (!valid) return showAuthError('signupError', 'Invalid invite code. Contact your admin for access.');
+
+    // The invite code is checked again on the server when the account is created.
+    // The profile row is created by the database, not by this page.
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { full_name: fullName, invite_code: inviteCode } }
+    });
+    if (error) throw error;
+    document.getElementById('signupPassword').value = '';
+
+    if (!data.session) {
+      toggleAuthPanel('login');
+      showAuthError('authError', 'Account created. Check your email to confirm it, then sign in.');
       return;
     }
-
-    const { data, error } = await sb.auth.signUp({ email, password });
-    if (error) throw error;
-
     currentUser = data.user;
-    await sb.from('profiles').insert({
-      id: currentUser.id,
-      email,
-      full_name: fullName,
-      role: 'staff'
-    });
-
-    await loadUserProfile();
-    document.getElementById('authGate').classList.add('hidden');
-    await loadEntries();
-    await loadVessels();
-    await loadDrivers();
-    await loadMapLocations();
-    await loadStaff();
-    updateSubmissionDateTime();
-    subscribeToChanges();
-    showView('dashboard');
+    await enterApp();
   } catch (err) {
-    errorEl.textContent = err.message || 'Signup failed';
-    errorEl.style.display = 'block';
+    showAuthError('signupError', err.message || 'Signup failed');
   }
 }
 
+async function handleForgotPassword() {
+  const email = document.getElementById('resetEmail').value.trim();
+  if (!email) return showAuthError('resetError', 'Please enter your email');
+  showAuthError('resetError', '');
+  try {
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href.split('#')[0].split('?')[0] });
+  } catch (e) { /* same message either way: never reveal whether the email exists */ }
+  const info = document.getElementById('resetInfo');
+  info.textContent = 'If an account exists for that email, a password reset link has been sent.';
+  info.style.display = 'block';
+}
+
+async function handleSetNewPassword() {
+  const p1 = document.getElementById('newPassword').value;
+  const p2 = document.getElementById('newPasswordConfirm').value;
+  if (p1.length < 8) return showAuthError('setPasswordError', 'Password must be at least 8 characters');
+  if (p1 !== p2) return showAuthError('setPasswordError', 'Passwords do not match');
+  try {
+    showAuthError('setPasswordError', '');
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    document.getElementById('newPassword').value = '';
+    document.getElementById('newPasswordConfirm').value = '';
+    passwordRecoveryMode = false;
+    await sb.auth.signOut();
+    currentUser = null;
+    toggleAuthPanel('login');
+    showToast('Password updated. Please sign in.');
+  } catch (err) {
+    showAuthError('setPasswordError', err.message || 'Could not update password');
+  }
+}
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    passwordRecoveryMode = true;
+    document.getElementById('authGate').classList.remove('hidden');
+    toggleAuthPanel('setPassword');
+  }
+});
+
 async function handleLogout() {
   try {
+    try { await sb.removeAllChannels(); } catch (e) {}
+    realtimeSubscribed = false;
     await sb.auth.signOut();
     currentUser = null;
     allEntries = [];
     allVessels = [];
+    allDrivers = [];
+    vtReset();
     document.getElementById('authGate').classList.remove('hidden');
+    toggleAuthPanel('login');
     resetForm();
   } catch (err) {
     console.error('Logout error:', err);
   }
-}
-
-function toggleAuthPanel(panel) {
-  document.getElementById('loginPanel').classList.toggle('hidden', panel !== 'login');
-  document.getElementById('signupPanel').classList.toggle('hidden', panel !== 'signup');
-  document.getElementById('authError').style.display = 'none';
-  document.getElementById('signupError').style.display = 'none';
 }
 
 async function loadUserProfile() {
@@ -2265,27 +2506,25 @@ function updateHeaderWithUser() {
 }
 
 async function loadStaff() {
-  const { data, error } = await sb.from('profiles').select('id, full_name, email');
+  const { data, error } = await sb.from('profiles').select('id, full_name, email, role');
   if (error || !data) return;
   const select = document.getElementById('staffSelect');
-  const isAdmin = currentUser && currentUser.role === 'admin';
+  const isAdmin = isAdminUser();
   const staffGroup = document.getElementById('staffGroup');
 
   if (!isAdmin) {
     // Non-admin: auto-assign own name, hide selector
     const myName = currentUser.full_name || currentUser.email;
-    select.innerHTML = `<option value="${myName}">${myName}</option>`;
+    select.innerHTML = '';
+    select.appendChild(new Option(myName, myName));
     select.value = myName;
     if (staffGroup) staffGroup.style.display = 'none';
   } else {
-    // Admin: show all staff
+    // Admin: show all approved staff
     const current = select.value;
     select.innerHTML = '<option value="">Select staff...</option>';
-    data.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.full_name || p.email;
-      opt.textContent = p.full_name || p.email;
-      select.appendChild(opt);
+    data.filter(p => p.role !== 'pending').forEach(p => {
+      select.appendChild(new Option(p.full_name || p.email, p.full_name || p.email));
     });
     if (current) select.value = current;
     if (staffGroup) staffGroup.style.display = '';
@@ -2297,11 +2536,10 @@ async function loadStaff() {
 // ============================================
 async function loadEntries() {
   try {
-    const { data, error } = await sb.from('entries').select('*').eq('is_deleted', false).order('created_at', { ascending: false });
-    if (error) throw error;
-    allEntries = (data || []).map(row => entryFromDb(row));
-    renderLog();
-    checkOverdueEntries();
+    // Paged: the API returns at most 1000 rows per request.
+    const data = await fetchAll('entries', q => q.eq('is_deleted', false).order('created_at', { ascending: false }).order('id'));
+    allEntries = data.map(row => entryFromDb(row));
+    refreshViews();
     updateSyncBadge(true);
   } catch (err) {
     console.error('Load entries error:', err);
@@ -2357,13 +2595,13 @@ function renderDriverList() {
   el.innerHTML = allDrivers.map(d => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;">
       <div>
-        <span style="font-size:13px;font-weight:500;color:var(--navy);">${d.name}</span>
-        ${d.phone ? `<span style="font-size:11px;color:var(--gray-500);margin-left:8px;">${d.phone}</span>` : ''}
-        ${d.vehicle_type ? `<span style="font-size:11px;color:var(--gray-400);margin-left:8px;">${d.vehicle_type}</span>` : ''}
+        <span style="font-size:13px;font-weight:500;color:var(--navy);">${esc(d.name)}</span>
+        ${d.phone ? `<span style="font-size:11px;color:var(--gray-500);margin-left:8px;">${esc(d.phone)}</span>` : ''}
+        ${d.vehicle_type ? `<span style="font-size:11px;color:var(--gray-400);margin-left:8px;">${esc(d.vehicle_type)}</span>` : ''}
       </div>
       <div style="display:flex;gap:8px;">
-        <button onclick="editDriver('${d.id}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button>
-        <button onclick="removeDriver('${d.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
+        <button onclick="editDriver('${esc(d.id)}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button>
+        <button onclick="removeDriver('${esc(d.id)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
       </div>
     </div>
   `).join('');
@@ -2422,23 +2660,30 @@ function renderVesselList() {
     return;
   }
   el.innerHTML = allVessels.map(v => `
-    <div data-vname="${(v.name||'').toLowerCase().replace(/"/g,'')}" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;">
-      <span style="font-size:13px;font-weight:500;color:var(--navy);">${v.name}</span>
+    <div data-vname="${esc((v.name || '').toLowerCase())}" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:500;color:var(--navy);">${esc(v.name)}${v.flag ? ` <span style="font-weight:400;color:var(--gray-500);font-size:11px;">${esc(v.flag)}${v.loa_m != null ? ' · ' + esc(v.loa_m) + ' m' : ''}</span>` : ''}</span>
       <div style="display:flex;gap:8px;">
-        <button onclick="renameVessel('${v.id}','${v.name.replace(/'/g, "\\'")}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Rename</button>
-        <button onclick="deactivateVessel('${v.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
+        <button onclick="renameVessel('${esc(v.id)}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Rename</button>
+        <button onclick="deactivateVessel('${esc(v.id)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Remove</button>
       </div>
     </div>
   `).join('');
 }
 
-async function renameVessel(id, currentName) {
-  const newName = prompt('Rename vessel:', currentName);
-  if (!newName || newName.trim() === currentName) return;
-  const { error } = await sb.from('vessels').update({ name: newName.trim() }).eq('id', id);
+async function renameVessel(id) {
+  const vessel = allVessels.find(v => v.id === id);
+  if (!vessel) return;
+  const currentName = vessel.name;
+  const newName = (prompt('Rename vessel:', currentName) || '').trim();
+  if (!newName || newName === currentName) return;
+  const { error } = await sb.from('vessels').update({ name: newName }).eq('id', id);
   if (error) { showToast('Failed: ' + error.message); return; }
+  // Entries point at the vessel by name, so carry the new name across to keep its history.
+  const { error: moveError } = await sb.from('entries').update({ vessel: newName }).eq('vessel', currentName);
+  if (moveError) showToast('Vessel renamed, but its entries still show the old name: ' + moveError.message);
   await loadVessels();
-  showToast('Vessel renamed');
+  await loadEntries();
+  if (!moveError) showToast('Vessel renamed');
 }
 
 async function deactivateVessel(id) {
@@ -2505,7 +2750,8 @@ function entryFromDb(row) {
     transferFlightArrival: row.eta || '',
     lastEditedBy: row.last_edited_by || '',
     lastEditedAt: row.last_edited_at || '',
-    priority: row.priority || 'normal'
+    priority: row.priority || 'normal',
+    serviceTime: row.service_time || ''
   };
 }
 
@@ -2557,11 +2803,13 @@ function entryToDb(entry) {
     transfer_notes: entry.transferFlightNumber
       ? ('Flight: ' + entry.transferFlightNumber + (entry.transferNotes ? '\n' + entry.transferNotes : ''))
       : (entry.transferNotes || ''),
-    priority: entry.priority || 'normal'
+    priority: entry.priority || 'normal',
+    service_time: entry.serviceTime || ''
   };
 }
 
 async function submitEntry() {
+  if (!canWriteUser()) { showToast('Your role is read-only'); return; }
   const entry = gatherFormData();
   const validation = validateEntry(entry);
   if (!validation.valid) {
@@ -2571,63 +2819,70 @@ async function submitEntry() {
 
   try {
     updateSyncBadge(true, 'Syncing');
+    const who = currentUser.full_name || currentUser.email;
 
     if (editingEntryId) {
       // UPDATE existing entry
       entry.entryId = editingEntryId;
       entry.status = document.getElementById('statusInput').value;
       const existing = allEntries.find(e => e.entryId === editingEntryId);
+      // Keep the original submission date: an edit is not a new submission.
+      entry.submissionDate = (existing && existing.submissionDate) || entry.submissionDate;
       const updated = { ...existing, ...entry };
       const dbData = entryToDb(updated);
       delete dbData.entry_id;
-      dbData.last_edited_by = currentUser.full_name || currentUser.email;
+      dbData.last_edited_by = who;
       dbData.last_edited_at = new Date().toISOString();
 
       const { error } = await sb.from('entries').update(dbData).eq('entry_id', editingEntryId);
       if (error) throw error;
 
-      await sb.from('audit_log').insert({
+      await logAudit({
         entry_id: editingEntryId,
         action: 'update',
         changed_fields: Object.keys(entry),
         new_values: entry,
         performed_by: currentUser.id,
-        performed_by_name: currentUser.full_name || currentUser.email
+        performed_by_name: who
       });
 
-      // Update in-memory
       const idx = allEntries.findIndex(e => e.entryId === editingEntryId);
       if (idx !== -1) {
-        updated.lastEditedBy = currentUser.full_name || currentUser.email;
+        updated.lastEditedBy = who;
         updated.lastEditedAt = new Date().toISOString();
         allEntries[idx] = updated;
       }
 
+      const back = editReturnView || 'log';
       exitEditMode();
-      showView(editReturnView || 'log');
+      refreshViews();
+      showView(back);
       showToast('Entry updated successfully');
     } else {
       // CREATE new entry
       const { data: idData, error: idError } = await sb.rpc('next_entry_id');
       if (idError) throw idError;
       entry.entryId = idData;
-      entry.submissionDate = new Date().toISOString().split('T')[0];
-      entry.createdBy = currentUser.id;
+      entry.submissionDate = antiguaToday();
+      entry.status = 'upcoming';   // shown as pending or overdue from the service date
 
-      const { error: insertError } = await sb.from('entries').insert([entryToDb(entry)]);
+      const dbData = entryToDb(entry);
+      dbData.created_by = currentUser.id;
+      const { error: insertError } = await sb.from('entries').insert([dbData]);
       if (insertError) throw insertError;
 
-      await sb.from('audit_log').insert({
+      await logAudit({
         entry_id: entry.entryId,
         action: 'create',
         changed_fields: Object.keys(entry),
         new_values: entry,
         performed_by: currentUser.id,
-        performed_by_name: currentUser.full_name || currentUser.email
+        performed_by_name: who
       });
 
       allEntries.unshift(entry);
       resetForm();
+      refreshViews();
       showView('log');
       showToast('Entry created successfully');
     }
@@ -2662,6 +2917,7 @@ function exitEditMode() {
 }
 
 async function deleteEntry(entryId) {
+  if (!isAdminUser()) { showToast('Only an admin can delete entries'); return; }
   if (!confirm('Are you sure you want to delete this entry?')) return;
 
   try {
@@ -2674,7 +2930,7 @@ async function deleteEntry(entryId) {
 
     if (error) throw error;
 
-    await sb.from('audit_log').insert({
+    await logAudit({
       entry_id: entryId,
       action: 'delete',
       performed_by: currentUser.id,
@@ -2682,7 +2938,7 @@ async function deleteEntry(entryId) {
     });
 
     allEntries = allEntries.filter(e => e.entryId !== entryId);
-    renderLog();
+    refreshViews();
     showToast('Entry deleted');
     updateSyncBadge(true);
   } catch (err) {
@@ -2719,17 +2975,23 @@ async function addVessel() {
 }
 
 function subscribeToChanges() {
-  if (!supabase) return;
+  if (realtimeSubscribed) return;   // one set of channels per session
+  realtimeSubscribed = true;
 
   sb.channel('entries-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
-      loadEntries();
-    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => { loadEntries(); })
     .subscribe();
 
   sb.channel('vessels-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, (payload) => {
-      loadVessels();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, () => { loadVessels(); })
+    .subscribe();
+
+  // A new row here means the sheet has just synced: pull the fresh copy.
+  sb.channel('sheet-sync')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sync_runs' }, async () => {
+      await loadVessels();
+      await loadVesselTracking();
+      refreshViews();
     })
     .subscribe();
 }
@@ -2758,8 +3020,9 @@ function updateSyncBadge(online, status) {
 function gatherFormData() {
   const entry = {
     entryId: '',
-    submissionDate: new Date().toISOString().split('T')[0],
+    submissionDate: antiguaToday(),
     serviceDate: document.getElementById('serviceDate').value,
+    serviceTime: document.getElementById('serviceTime').value || '',
     vessel: document.getElementById('vesselSelect').value,
     staffMember: document.getElementById('staffSelect').value,
     category: document.getElementById('serviceCategory').value,
@@ -2861,6 +3124,20 @@ function validateEntry(entry) {
   return { valid: true };
 }
 
+// Clears the Customs & Immigration picker so one entry's charges cannot carry into the next.
+function resetCustoms() {
+  window._customsCharges = [];
+  document.querySelectorAll('#customsCheckList input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  const defaults = { customsInboundCrew: 0, customsInboundGuests: 0, customsOutboundCrew: 0, customsOutboundGuests: 0,
+    customsSignoffCount: 1, customsTransferCount: 1, customsTravelEdits: 0, customsFailureCount: 0 };
+  Object.entries(defaults).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+  ['customsFieldsInbound', 'customsFieldsOutbound', 'customsFieldsSignoff', 'customsFieldsTransfer', 'customsFieldsTravel', 'customsFieldsFailure', 'customsPriceBreakdown']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
+  const rows = document.getElementById('customsPriceRows');
+  if (rows) rows.innerHTML = '';
+  if (typeof updateCustomsDropdownLabel === 'function') updateCustomsDropdownLabel();
+}
+
 function resetForm() {
   document.getElementById('vesselSelect').value = '';
   document.getElementById('staffSelect').value = '';
@@ -2883,6 +3160,11 @@ function resetForm() {
   document.getElementById('serviceHours').value = '';
   document.getElementById('chargeNotes').value = '';
   document.getElementById('additionalChargesContainer').innerHTML = '';
+  resetCustoms();
+  document.getElementById('customsServicesPanel').classList.add('hidden');
+  window.isCustomsCategory = false;
+  { const tg = document.getElementById('serviceType').closest('.form-group'); if (tg) tg.style.display = ''; }
+  document.getElementById('serviceType').innerHTML = '<option value="">Select type...</option>';
   calculateTotal();
   document.getElementById('specialNotes').value = '';
   document.getElementById('internalNotes').value = '';
@@ -2917,16 +3199,8 @@ function setPriority(val) {
 }
 
 function updateAutoStatus() {
-  const serviceDate = new Date(document.getElementById('serviceDate').value);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  serviceDate.setHours(0, 0, 0, 0);
-
-  if (serviceDate < today) {
-    selectStatus('overdue');
-  } else {
-    selectStatus('upcoming');
-  }
+  // Status is worked out from the service date when an entry is shown (computeStatus),
+  // so there is nothing to store here. Kept because the date field calls it.
 }
 
 function computeStatus(entry) {
@@ -2936,11 +3210,8 @@ function computeStatus(entry) {
   if (entry.status === 'cancelled') return 'cancelled';
   // Explicit operational states persist regardless of date
   if (entry.status === 'in-progress' || entry.status === 'awaiting-confirm' || entry.status === 'delayed') return entry.status;
-  // Build today string in local time (avoids UTC offset false positives)
-  const now = new Date();
-  const todayStr = now.getFullYear() + '-' +
-    String(now.getMonth() + 1).padStart(2, '0') + '-' +
-    String(now.getDate()).padStart(2, '0');
+  // Today in Antigua, whatever time zone the device is in
+  const todayStr = antiguaToday();
   // Scheduled: overdue if past, else scheduled
   if (entry.status === 'scheduled') {
     return (entry.serviceDate && entry.serviceDate < todayStr) ? 'overdue' : 'scheduled';
@@ -2957,12 +3228,6 @@ function normalizeStatus(status) {
 
 function selectStatus(status) {
   document.getElementById('statusInput').value = status;
-  updateStatusPills();
-}
-
-function updateStatusPills() {
-  // Intentional stub — status pills were removed in Phase 2B.
-  // Status is now auto-computed via computeStatus(). Safe to keep as a no-op.
 }
 
 function selectBillingType(type) {
@@ -3006,12 +3271,18 @@ function updateServiceTypes() {
     return;
   }
 
+  // Leaving Customs: drop its auto-priced charges so they cannot leak into this entry.
+  resetCustoms();
+  calculateTotal();
+
   const types = {
     'Provisioning & Sourcing': ['Food', 'Beverages', 'Supplies', 'Equipment'],
     'Crew Services': ['Crew Change', 'Training', 'Recruitment', 'Medical'],
     'Berth & Marina': ['Docking', 'Mooring', 'Repairs', 'Maintenance'],
     'Transfer': ['Crew Transfer', 'Guest Transfer'],
     'Brokerage': ['Charter', 'Sale', 'Purchase', 'Valuation'],
+    'Logistics & Shipping': ['Freight Forwarding', 'Customs Brokerage', 'Courier & Parcels', 'Parts Delivery', 'Storage'],
+    'Consulting & Admin': ['Documentation', 'Permits & Licences', 'Advisory', 'Admin Support'],
     'General Support': ['Concierge', 'Admin', 'Other']
   };
 
@@ -3026,8 +3297,6 @@ function updateServiceTypes() {
 
 const XCD_RATE = 2.70;
 
-let additionalCostCounter = 0;
-
 function addChargeBlock(rate, hours, notes, container, prefix) {
   const ctr = container || document.getElementById('additionalChargesContainer');
   const pfx = prefix || '';
@@ -3039,16 +3308,16 @@ function addChargeBlock(rate, hours, notes, container, prefix) {
     <div class="form-row" style="margin-bottom:6px;">
       <div class="form-group" style="margin-bottom:0;">
         <label>Rate per Hour</label>
-        <input type="number" class="${pfx}charge-rate" min="0" step="0.01" value="${rate || 80}" placeholder="80.00" oninput="${calcFn}">
+        <input type="number" class="${pfx}charge-rate" min="0" step="0.01" value="${esc(rate || 80)}" placeholder="80.00" oninput="${calcFn}">
       </div>
       <div class="form-group" style="margin-bottom:0;">
         <label>Hours</label>
-        <input type="number" class="${pfx}charge-hours" min="0" step="0.5" value="${hours || ''}" placeholder="0" oninput="${calcFn}">
+        <input type="number" class="${pfx}charge-hours" min="0" step="0.5" value="${esc(hours || '')}" placeholder="0" oninput="${calcFn}">
       </div>
     </div>
     <div class="form-group" style="margin-bottom:0;">
       <label>Notes</label>
-      <textarea class="${pfx}charge-notes" rows="2" placeholder="What was this charge for..." style="font-size:13px;">${notes || ''}</textarea>
+      <textarea class="${pfx}charge-notes" rows="2" placeholder="What was this charge for..." style="font-size:13px;">${esc(notes || '')}</textarea>
     </div>
   `;
   ctr.appendChild(block);
@@ -3097,14 +3366,14 @@ function calculateTotal() {
   const customsCharges = window._customsCharges || [];
   customsCharges.forEach(c => {
     total += c.amount;
-    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + c.label + '</span><span class="calc-value">' + c.amount.toFixed(2) + '</span></div>';
+    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + esc(c.label) + '</span><span class="calc-value">' + c.amount.toFixed(2) + '</span></div>';
   });
 
   // Manual charge blocks
   blocks.forEach((b, i) => {
     total += b.amount;
     const label = b.notes || ('Charge ' + (i + 1));
-    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + label + (b.hours > 0 ? ' (' + b.hours + ' hrs × ' + symbol + b.rate.toFixed(2) + ')' : '') + '</span><span class="calc-value">' + b.amount.toFixed(2) + '</span></div>';
+    rowsEl.innerHTML += '<div class="calc-row"><span class="calc-label">' + esc(label) + (b.hours > 0 ? ' (' + b.hours + ' hrs × ' + symbol + b.rate.toFixed(2) + ')' : '') + '</span><span class="calc-value">' + b.amount.toFixed(2) + '</span></div>';
   });
 
   document.getElementById('calcTotal').textContent = symbol + ' ' + total.toFixed(2);
@@ -3115,28 +3384,6 @@ function calculateTotal() {
   } else {
     document.getElementById('calcConvertLabel').textContent = 'Equivalent in USD';
     document.getElementById('calcConvert').textContent = '$ ' + (total / XCD_RATE).toFixed(2);
-  }
-}
-
-function calculateEditTotal() {
-  const currency = document.getElementById('editCurrency').value;
-  const symbol = currency === 'XCD' ? 'EC$' : '$';
-  const blocks = getChargeBlocks('edit-');
-  let total = 0;
-  const rowsEl = document.getElementById('editCalcChargeRows');
-  rowsEl.innerHTML = '';
-  blocks.forEach((b, i) => {
-    total += b.amount;
-    const label = b.notes || ('Charge ' + (i + 1));
-    rowsEl.innerHTML += '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);margin-bottom:4px;"><span>' + label + ' (' + b.hours + ' hrs × ' + symbol + b.rate.toFixed(2) + ')</span><span>' + b.amount.toFixed(2) + '</span></div>';
-  });
-  document.getElementById('editCalcTotal').textContent = symbol + ' ' + total.toFixed(2);
-  if (currency === 'USD') {
-    document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in XCD';
-    document.getElementById('editCalcConvert').textContent = 'EC$ ' + (total * XCD_RATE).toFixed(2);
-  } else {
-    document.getElementById('editCalcConvertLabel').textContent = 'Equivalent in USD';
-    document.getElementById('editCalcConvert').textContent = '$ ' + (total / XCD_RATE).toFixed(2);
   }
 }
 
@@ -3287,7 +3534,7 @@ function recalcCustoms() {
     breakdownEl.classList.remove('hidden');
     rowsEl.innerHTML = rows.map(r =>
       `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;">
-        <span>${r.label}</span><span style="font-weight:600;">$${r.amount.toFixed(2)}</span>
+        <span>${esc(r.label)}</span><span style="font-weight:600;">$${r.amount.toFixed(2)}</span>
       </div>`
     ).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--gray-200);font-weight:700;font-size:14px;">
       <span>Total</span><span>$${total.toFixed(2)}</span>
@@ -3334,6 +3581,7 @@ function showView(view) {
   if (view === 'form') updateSubmissionDateTime();
   if (view === 'movements') { populateMovementVesselSelects(); renderMovementsList(); }
   if (view === 'timeline') renderTimeline();
+  if (view === 'vessels') renderVesselsView();
   if (view === 'dashboard') {
     renderDashboard();
     // Leaflet needs to know its container size after display:block
@@ -3348,45 +3596,69 @@ function showView(view) {
   }
 }
 
-function renderLog() {
-  const tbody = document.getElementById('logTableBody');
-  tbody.innerHTML = '';
-
-  allEntries.forEach(entry => {
-    const displayStatus = computeStatus(entry);
-    const currency = entry.currency || 'USD';
-    const symbol = currency === 'XCD' ? 'EC$' : '$';
-
-    // Parse charge blocks from overrideNote
-    let blocks = [];
-    let total = 0;
-    try {
-      const parsed = JSON.parse(entry.overrideNote || '[]');
-      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].rate !== undefined) {
-        // New format: charge blocks with rate/hours/notes/amount
-        blocks = parsed;
-        total = blocks.reduce((s, b) => s + (b.amount || 0), 0);
-      } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].label !== undefined) {
-        // Legacy format: label/amount costs
-        const base = parseFloat(entry.baseCharge) || 0;
-        const agency = parseFloat(entry.agencyFee) || 0;
-        const other = parseFloat(entry.otherCharges) || 0;
-        total = base + agency + other;
-        if (base > 0) blocks.push({ rate: 80, hours: base / 80, notes: 'Base charge', amount: base });
-        parsed.forEach(c => blocks.push({ rate: c.amount, hours: 1, notes: c.label, amount: c.amount }));
-      } else {
-        throw 'fallback';
-      }
-    } catch(e) {
-      // No JSON — use raw fields
+function entryChargeBlocks(entry) {
+  // Parse charge blocks from overrideNote
+  let blocks = [];
+  let total = 0;
+  try {
+    const parsed = JSON.parse(entry.overrideNote || '[]');
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].rate !== undefined) {
+      blocks = parsed;
+      total = blocks.reduce((s, b) => s + (b.amount || 0), 0);
+    } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].label !== undefined) {
       const base = parseFloat(entry.baseCharge) || 0;
       const agency = parseFloat(entry.agencyFee) || 0;
       const other = parseFloat(entry.otherCharges) || 0;
       total = base + agency + other;
-      if (base > 0) blocks.push({ rate: 80, hours: base / 80, notes: 'Service charge', amount: base });
-      if (agency > 0) blocks.push({ rate: agency, hours: 1, notes: 'Agency fee', amount: agency });
-      if (other > 0) blocks.push({ rate: other, hours: 1, notes: 'Other charges', amount: other });
+      if (base > 0) blocks.push({ rate: 80, hours: base / 80, notes: 'Base charge', amount: base });
+      parsed.forEach(c => blocks.push({ rate: c.amount, hours: 1, notes: c.label, amount: c.amount }));
+    } else {
+      throw 'fallback';
     }
+  } catch(e) {
+    blocks = [];
+    const base = parseFloat(entry.baseCharge) || 0;
+    const agency = parseFloat(entry.agencyFee) || 0;
+    const other = parseFloat(entry.otherCharges) || 0;
+    total = base + agency + other;
+    if (base > 0) blocks.push({ rate: 80, hours: base / 80, notes: 'Service charge', amount: base });
+    if (agency > 0) blocks.push({ rate: agency, hours: 1, notes: 'Agency fee', amount: agency });
+    if (other > 0) blocks.push({ rate: other, hours: 1, notes: 'Other charges', amount: other });
+  }
+  return { blocks, total };
+}
+
+// Entries shown in the Service Log: everything except vessel movements
+// (those have their own tab), narrowed by the search box and status filter.
+function logFilteredEntries() {
+  const q = (document.getElementById('logSearch')?.value || '').toLowerCase().trim();
+  const status = document.getElementById('logStatusFilter')?.value || '';
+  return allEntries.filter(e => {
+    if (e.category === 'Vessel Movement') return false;
+    if (status && computeStatus(e) !== status) return false;
+    if (!q) return true;
+    return [e.entryId, e.vessel, e.staffMember, e.category, e.serviceType, e.description, e.serviceDate].join(' ').toLowerCase().includes(q);
+  });
+}
+
+function renderLog() {
+  const tbody = document.getElementById('logTableBody');
+  tbody.innerHTML = '';
+  const list = logFilteredEntries();
+  const countEl = document.getElementById('logCount');
+  if (countEl) countEl.textContent = list.length + ' entr' + (list.length === 1 ? 'y' : 'ies');
+  const admin = isAdminUser();
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-500);">No entries match.</td></tr>';
+    return;
+  }
+
+  list.forEach(entry => {
+    const displayStatus = computeStatus(entry);
+    const currency = entry.currency || 'USD';
+    const symbol = currency === 'XCD' ? 'EC$' : '$';
+    const { blocks, total } = entryChargeBlocks(entry);
 
     const priority = entry.priority || 'normal';
     const priorityBadge = priority === 'critical'
@@ -3399,14 +3671,14 @@ function renderLog() {
     const row = document.createElement('tr');
     row.style.cssText = `cursor:pointer;${priorityBorder}`;
     row.innerHTML = `
-      <td>${entry.entryId}</td>
-      <td>${entry.vessel}</td>
-      <td style="font-size:12px;color:var(--gray-600);">${entry.staffMember || '—'}</td>
-      <td>${entry.category}${entry.serviceType ? ' — ' + entry.serviceType : ''}</td>
-      <td>${formatDate(entry.serviceDate)}</td>
-      <td><span class="status-badge status-${displayStatus}">${displayStatus}</span>${priorityBadge}</td>
+      <td>${esc(entry.entryId)}</td>
+      <td>${esc(entry.vessel)}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${esc(entry.staffMember || '—')}</td>
+      <td>${esc(entry.category)}${entry.serviceType ? ' — ' + esc(entry.serviceType) : ''}</td>
+      <td>${esc(fmtDate(entry.serviceDate))}${entry.serviceTime ? ' ' + esc(entry.serviceTime) : ''}</td>
+      <td><span class="status-badge status-${esc(displayStatus)}">${esc(displayStatus)}</span>${priorityBadge}</td>
       <td style="font-weight:600;">${symbol}${total.toFixed(2)}</td>
-      <td><button onclick="event.stopPropagation();openEditEntry('${entry.entryId}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button> <button onclick="event.stopPropagation();deleteEntry('${entry.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button></td>
+      <td><button onclick="event.stopPropagation();openEditEntry('${esc(entry.entryId)}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button>${admin ? ` <button onclick="event.stopPropagation();deleteEntry('${esc(entry.entryId)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>` : ''}</td>
     `;
     row.onclick = function() {
       const next = this.nextElementSibling;
@@ -3416,9 +3688,9 @@ function renderLog() {
         let chargesHtml = '';
         blocks.forEach((b, i) => {
           const label = b.notes || ('Charge ' + (i + 1));
-          const hrs = b.hours || 0;
-          const rate = b.rate || 0;
-          chargesHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span>' + label + (hrs > 0 && rate > 0 ? ' (' + hrs + ' hrs × ' + symbol + rate.toFixed(2) + ')' : '') + '</span><span>' + symbol + (b.amount || 0).toFixed(2) + '</span></div>';
+          const hrs = Number(b.hours) || 0;
+          const rate = Number(b.rate) || 0;
+          chargesHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span>' + esc(label) + (hrs > 0 && rate > 0 ? ' (' + hrs + ' hrs × ' + symbol + rate.toFixed(2) + ')' : '') + '</span><span>' + symbol + (Number(b.amount) || 0).toFixed(2) + '</span></div>';
         });
         const detail = document.createElement('tr');
         detail.className = 'log-detail-row';
@@ -3426,8 +3698,8 @@ function renderLog() {
           chargesHtml +
           '<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--gray-300);padding-top:6px;margin-top:6px;"><span>Total</span><span>' + symbol + total.toFixed(2) + '</span></div>' +
           (currency === 'USD' ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in XCD</span><span>EC$' + (total * XCD_RATE).toFixed(2) + '</span></div>' : '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in USD</span><span>$' + (total / XCD_RATE).toFixed(2) + '</span></div>') +
-          (entry.description ? '<div style="margin-top:8px;color:var(--gray-600);font-size:12px;"><strong>Notes:</strong> ' + entry.description + '</div>' : '') +
-          (entry.lastEditedBy ? '<div style="margin-top:6px;color:var(--gray-400);font-size:11px;font-style:italic;">Last edited by ' + entry.lastEditedBy + (entry.lastEditedAt ? ' on ' + formatDate(entry.lastEditedAt.split('T')[0]) : '') + '</div>' : '') +
+          (entry.description ? '<div style="margin-top:8px;color:var(--gray-600);font-size:12px;"><strong>Notes:</strong> ' + esc(entry.description) + '</div>' : '') +
+          (entry.lastEditedBy ? '<div style="margin-top:6px;color:var(--gray-400);font-size:11px;font-style:italic;">Last edited by ' + esc(entry.lastEditedBy) + (entry.lastEditedAt ? ' on ' + esc(fmtDate(entry.lastEditedAt.split('T')[0])) : '') + '</div>' : '') +
           '</div></td>';
         this.after(detail);
       }
@@ -3448,21 +3720,6 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
 }
 
-// TODO: Dead/no-op legacy function. Body has never executed any logic.
-// Overdue state is now computed on-the-fly by computeStatus() and never stored.
-// Safe to remove in a future cleanup pass — confirm all call sites first.
-function checkOverdueEntries() {
-  const now = new Date();
-  allEntries.forEach(entry => {
-    if (entry.status !== 'completed' && entry.status !== 'cancelled') {
-      const serviceDate = new Date(entry.serviceDate);
-      if (serviceDate < now && entry.status !== 'overdue') {
-        // Mark as overdue in UI
-      }
-    }
-  });
-}
-
 function populateVesselSelect() {
   const select = document.getElementById('vesselSelect');
   select.innerHTML = '<option value="">Select vessel...</option>';
@@ -3478,7 +3735,7 @@ function openSettingsModal() {
   document.getElementById('settingsModal').classList.remove('hidden');
   const isAdmin = currentUser && currentUser.role === 'admin';
   // Admin-only sections
-  ['vesselManagementSection', 'driverManagementSection', 'inviteCodeSection', 'mapEditorSection'].forEach(id => {
+  ['vesselManagementSection', 'driverManagementSection', 'inviteCodeSection', 'mapEditorSection', 'userManagementSection'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.classList.toggle('hidden', !isAdmin); el.style.display = isAdmin ? '' : 'none'; }
   });
@@ -3494,12 +3751,43 @@ function openSettingsModal() {
   if (isAdmin) {
     renderDriverList();
     loadInviteCode();
+    loadUsers();
   }
 }
 
 function applyRoleUI() {
   // Settings button visible to all (profile editing)
   // Admin-only sections are toggled in openSettingsModal()
+}
+
+// ─── Users (admin) ────────────────────────────────────────────
+const USER_ROLES = ['pending', 'viewer', 'staff', 'manager', 'admin'];
+async function loadUsers() {
+  const el = document.getElementById('userList');
+  if (!el) return;
+  const { data, error } = await sb.from('profiles').select('id, email, full_name, role').order('email');
+  if (error) { el.innerHTML = '<p style="font-size:13px;color:var(--red);">Could not load users: ' + esc(error.message) + '</p>'; return; }
+  el.innerHTML = (data || []).map(u => `
+    <div class="user-row">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--navy);">${esc(u.full_name || '(no name)')}${u.role === 'pending' ? ' <span class="vt-chip vt-chip-unknown">Awaiting approval</span>' : ''}</div>
+        <div style="font-size:11px;color:var(--gray-600);overflow:hidden;text-overflow:ellipsis;">${esc(u.email)}</div>
+      </div>
+      <select onchange="setUserRole('${esc(u.id)}', this.value)" ${u.id === currentUser.id ? 'disabled title="You cannot change your own role"' : ''}>
+        ${USER_ROLES.map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('')}
+      </select>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--gray-400);">No users.</p>';
+}
+async function setUserRole(id, role) {
+  if (!USER_ROLES.includes(role)) return;
+  const { data, error } = await sb.from('profiles').update({ role }).eq('id', id).select('id');
+  if (error || !data || !data.length) {
+    showToast('Role not changed' + (error ? ': ' + error.message : '. The database refused it.'));
+  } else {
+    showToast('Role updated');
+  }
+  await loadUsers();
+  await loadStaff();
 }
 
 async function loadInviteCode() {
@@ -3523,7 +3811,7 @@ function closeModal(id) {
 
 function showAddModal(type) {
   document.getElementById('addModalTitle').textContent = `Add ${type}`;
-  document.getElementById('addModalBody').innerHTML = `<input type="text" id="addModalInput" placeholder="Enter ${type} name">`;
+  document.getElementById('addModalBody').innerHTML = `<input type="text" id="addModalInput" placeholder="Enter ${esc(type)} name">`;
   document.getElementById('addModal').dataset.type = type;
   document.getElementById('addModal').classList.remove('hidden');
   document.getElementById('addModalInput').focus();
@@ -3550,48 +3838,65 @@ async function saveAddModalItem() {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString();
+  return fmtDate(dateStr);
 }
 
 function formatCurrency(val) {
   return '$' + parseFloat(val || 0).toFixed(2);
 }
 
-function exportCSV() {
-  if (!allEntries.length) { showToast('No entries to export'); return; }
-  const headers = ['Entry ID','Vessel','Category','Service Type','Service Date','Status','Staff','Description','Billable','Currency','Total Charge','Marina','Cleared In','Cleared Out','Special Notes'];
-  const rows = allEntries.map(e => [
-    e.entryId, e.vessel, e.category, e.serviceType, e.serviceDate, e.status,
-    e.staffMember, e.description, e.billable, e.currency, e.totalCharge,
+const EXPORT_HEADERS = ['Entry ID','Vessel','Category','Service Type','Service Date','Service Time','Status','Staff','Description','Billable','Currency','Total Charge','Marina','Cleared In','Cleared Out','Special Notes'];
+function exportRows() {
+  // Exports what the Service Log is showing (search and filter applied).
+  return logFilteredEntries().map(e => [
+    e.entryId, e.vessel, e.category, e.serviceType, e.serviceDate, e.serviceTime || '', computeStatus(e),
+    e.staffMember, e.description, e.billable, e.currency, parseFloat(e.totalCharge) || 0,
     e.marina, e.clearedIn, e.clearedOut, e.specialNotes
-  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`));
-  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
+  ]);
+}
+// Stop spreadsheet programs from treating typed text as a formula.
+function csvSafe(v) {
+  let s = v == null ? '' : String(v);
+  if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `anchor-concierge-export-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportCSV() {
+  const rows = exportRows();
+  if (!rows.length) { showToast('No entries to export'); return; }
+  const csv = [EXPORT_HEADERS.map(csvSafe).join(','), ...rows.map(r => r.map(csvSafe).join(','))].join('\r\n');
+  downloadBlob(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }), `anchor-concierge-export-${antiguaToday()}.csv`);
   showToast('CSV exported');
 }
 
 function exportJSON() {
-  if (!allEntries.length) { showToast('No entries to export'); return; }
-  const blob = new Blob([JSON.stringify(allEntries, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `anchor-concierge-export-${new Date().toISOString().slice(0,10)}.json`;
-  a.click(); URL.revokeObjectURL(url);
+  const list = logFilteredEntries();
+  if (!list.length) { showToast('No entries to export'); return; }
+  downloadBlob(new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' }), `anchor-concierge-export-${antiguaToday()}.json`);
   showToast('JSON exported');
 }
 
 function exportXLSX() {
-  showToast('XLSX export coming soon — use CSV for now');
+  const rows = exportRows();
+  if (!rows.length) { showToast('No entries to export'); return; }
+  if (typeof XLSX === 'undefined') { showToast('Excel export is unavailable. Use CSV.'); return; }
+  const ws = XLSX.utils.aoa_to_sheet([EXPORT_HEADERS, ...rows]);
+  ws['!cols'] = EXPORT_HEADERS.map((h, i) => ({ wch: Math.min(40, Math.max(h.length + 2, ...rows.map(r => String(r[i] == null ? '' : r[i]).length + 2))) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Service Log');
+  XLSX.writeFile(wb, `anchor-concierge-export-${antiguaToday()}.xlsx`);
+  showToast('Excel file exported');
 }
 
-let calendarMonth = new Date().getMonth();
-let calendarYear = new Date().getFullYear();
+let calendarMonth = parseYMD(antiguaToday()).getMonth();
+let calendarYear = parseYMD(antiguaToday()).getFullYear();
 
 // ========== VESSEL PRESENCE ==========
 
@@ -3609,71 +3914,36 @@ function getVesselColor(vesselName) {
   return _vesselColorMap[vesselName];
 }
 
-function getVesselPresenceRanges(vesselName) {
-  // Get all movements for this vessel, sorted by date+time
-  const movements = allEntries
-    .filter(e => e.category === 'Vessel Movement' && e.vessel === vesselName && (e.serviceType === 'Arrival' || e.serviceType === 'Departure'))
-    .sort((a, b) => {
-      if (a.serviceDate !== b.serviceDate) return a.serviceDate < b.serviceDate ? -1 : 1;
-      const tA = a.specialNotes || '00:00';
-      const tB = b.specialNotes || '00:00';
-      return tA < tB ? -1 : 1;
-    });
-
-  const ranges = [];
-  let currentStart = null;
-
-  for (const mv of movements) {
-    if (mv.serviceType === 'Arrival') {
-      if (!currentStart) currentStart = mv.serviceDate;
-      // Multiple arrivals in a row = continuous presence, keep earliest start
-    } else if (mv.serviceType === 'Departure') {
-      if (currentStart) {
-        ranges.push({ start: currentStart, end: mv.serviceDate, vessel: vesselName });
-        currentStart = null;
-      }
-      // Departure without prior arrival = ignore
+// Date ranges each vessel was in Antigua, from the same visit rule the dashboard uses.
+function presenceRangesAll() {
+  if (vtCache.ranges) return vtCache.ranges;
+  const today = antiguaToday();
+  const ranges = vtVisits().map(v => {
+    const st = visitStatus(v, today);
+    if (!v.start) return { vessel: v.vessel, key: v.key, start: v.end, end: v.end };
+    if (st === 'current') {
+      const planned = v.arrival && v.arrival.intendedDeparture > today ? v.arrival.intendedDeparture : today;
+      return { vessel: v.vessel, key: v.key, start: v.start, end: v.end || planned };
     }
-  }
-
-  // Open-ended: arrival with no departure
-  if (currentStart) {
-    ranges.push({ start: currentStart, end: null, vessel: vesselName });
-  }
-
+    // 'unknown' = no departure on file: show the arrival day only
+    return { vessel: v.vessel, key: v.key, start: v.start, end: v.end || v.start };
+  });
+  vtCache.ranges = ranges;
   return ranges;
 }
 
 function getAllPresenceForMonth(year, month) {
-  // Get unique vessels with movements
-  const movementVessels = [...new Set(allEntries
-    .filter(e => e.category === 'Vessel Movement')
-    .map(e => e.vessel)
-  )];
-
-  // Precompute all ranges
-  const allRanges = [];
-  movementVessels.forEach(v => {
-    getVesselPresenceRanges(v).forEach(r => allRanges.push(r));
-  });
-
-  // Build a map of dateStr → [vessel names present]
+  const ranges = presenceRangesAll();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const presenceMap = {};
-
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const vessels = [];
-    for (const r of allRanges) {
-      if (dateStr >= r.start && (r.end === null || dateStr <= r.end)) {
-        vessels.push(r.vessel);
-      }
+    for (const r of ranges) {
+      if (dateStr >= r.start && dateStr <= r.end && !vessels.includes(r.vessel)) vessels.push(r.vessel);
     }
-    if (vessels.length > 0) {
-      presenceMap[dateStr] = vessels;
-    }
+    if (vessels.length > 0) presenceMap[dateStr] = vessels.sort((a, b) => a.localeCompare(b));
   }
-
   return presenceMap;
 }
 
@@ -3689,7 +3959,10 @@ function nextMonth() {
   renderCalendar();
 }
 
+function mvEmoji(type) { return type === 'Arrival' ? '⚓ ' : type === 'Departure' ? '🚢 ' : '↔️ '; }
+
 function renderCalendar() {
+  vtInvalidate();
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const header = document.getElementById('calendarMonth');
   if (header) header.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
@@ -3697,80 +3970,70 @@ function renderCalendar() {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
 
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const todayStr = antiguaToday();
   const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
   const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
   const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
-
-  // Precompute presence for this month
   const presenceMap = getAllPresenceForMonth(calendarYear, calendarMonth);
 
   let html = '';
-  // Day-of-week headers
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
     html += `<div class="cal-dow">${d}</div>`;
   });
 
-  // Previous month trailing days
   for (let i = firstDay - 1; i >= 0; i--) {
     const d = prevMonthDays - i;
     html += `<div class="cal-cell other-month"><div class="cal-day">${d}</div></div>`;
   }
 
-  // Current month days
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
-    const isToday = dateStr === todayStr;
-    const presentVessels = presenceMap[dateStr] || [];
+    const dayEntries = allEntries.filter(e => e.serviceDate === dateStr && e.category !== 'Vessel Movement');
+    const dayMoves = movementsOn(dateStr);
+    const presentVessels = (presenceMap[dateStr] || []).slice();
+    // A relocation or a movement with no matching visit still shows on its day
+    dayMoves.forEach(m => { if (m.vessel && !presentVessels.includes(m.vessel)) presentVessels.push(m.vessel); });
     const classes = ['cal-cell'];
-    if (isToday) classes.push('today');
+    if (dateStr === todayStr) classes.push('today');
 
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
 
-    // Presence bars — colored bars per vessel, with emoji if movement on this day
     if (presentVessels.length > 0) {
       const maxBars = 3;
-      const dayMovements = dayEntries.filter(e => e.category === 'Vessel Movement');
       presentVessels.slice(0, maxBars).forEach(v => {
         const color = getVesselColor(v);
-        const mv = dayMovements.find(e => e.vessel === v);
-        const emoji = mv ? (mv.serviceType === 'Arrival' ? '⚓ ' : mv.serviceType === 'Departure' ? '🚢 ' : '↔️ ') : '';
-        html += `<div class="cal-presence-bar" style="background:${color};">${emoji}${v}</div>`;
+        const mv = dayMoves.find(m => m.vessel === v);
+        html += `<div class="cal-presence-bar" style="background:${color};">${mv ? mvEmoji(mv.type) : ''}${esc(v)}</div>`;
       });
       if (presentVessels.length > maxBars) {
         html += `<div class="cal-presence-bar" style="background:var(--gray-500);">+${presentVessels.length - maxBars} more</div>`;
       }
     }
 
-    const nonMovementEntries = dayEntries.filter(e => e.category !== 'Vessel Movement');
-    if (nonMovementEntries.length > 0) {
+    if (dayEntries.length > 0) {
       html += '<div class="cal-dots">';
       const maxShow = 3;
-      nonMovementEntries.slice(0, maxShow).forEach(e => {
-        const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
+      dayEntries.slice(0, maxShow).forEach(e => {
         const cs = computeStatus(e);
         let statusClass, label;
-        if (isTransfer) {
+        if (isTransferEntry(e)) {
           statusClass = 'transfer';
           label = `🚐 ${e.transferPickupTime || ''} ${e.transferFrom || ''} → ${e.transferTo || ''}`.trim();
         } else {
           statusClass = cs;
           label = e.vessel || e.entryId;
         }
-        html += `<div class="cal-entry-pip ${statusClass}">${label}</div>`;
+        html += `<div class="cal-entry-pip ${statusClass}">${esc(label)}</div>`;
       });
-      if (nonMovementEntries.length > maxShow) {
-        html += `<div class="cal-more">+${nonMovementEntries.length - maxShow} more</div>`;
+      if (dayEntries.length > maxShow) {
+        html += `<div class="cal-more">+${dayEntries.length - maxShow} more</div>`;
       }
       html += '</div>';
     }
     html += '</div>';
   }
 
-  // Next month leading days to fill the grid
   const totalCells = firstDay + daysInMonth;
   const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
   for (let i = 1; i <= remaining; i++) {
@@ -3781,25 +4044,25 @@ function renderCalendar() {
 }
 
 function showDayDetail(dateStr) {
-  const dayEntries = allEntries.filter(e => e.serviceDate === dateStr);
-  const d = new Date(dateStr + 'T12:00:00');
+  const dayEntries = allEntries.filter(e => e.serviceDate === dateStr && e.category !== 'Vessel Movement');
+  const dayMoves = movementsOn(dateStr);
+  const d = parseYMD(dateStr);
   const formatted = d.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  // Check vessel presence for this date
   const presenceMap = getAllPresenceForMonth(d.getFullYear(), d.getMonth());
-  const presentVessels = presenceMap[dateStr] || [];
+  const presentVessels = (presenceMap[dateStr] || []).slice();
+  dayMoves.forEach(m => { if (m.vessel && !presentVessels.includes(m.vessel)) presentVessels.push(m.vessel); });
 
-  // Update header
   document.getElementById('dayDetailDate').textContent = formatted;
 
-  // Update stats
   const total = dayEntries.length;
   const statMap = {};
   dayEntries.forEach(e => { const s = computeStatus(e); statMap[s] = (statMap[s] || 0) + 1; });
   const active = (statMap['pending'] || 0) + (statMap['scheduled'] || 0);
   const statsEl = document.getElementById('dayDetailStats');
   statsEl.innerHTML = `
-    <div class="day-stat"><div class="num">${total}</div><div class="label">Total</div></div>
+    <div class="day-stat"><div class="num">${total}</div><div class="label">Services</div></div>
+    ${dayMoves.length ? `<div class="day-stat"><div class="num" style="color:#00695c">${dayMoves.length}</div><div class="label">Movements</div></div>` : ''}
     ${active ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${active}</div><div class="label">Pending</div></div>` : ''}
     ${statMap['in-progress'] ? `<div class="day-stat"><div class="num" style="color:#856404">${statMap['in-progress']}</div><div class="label">In Progress</div></div>` : ''}
     ${statMap['awaiting-confirm'] ? `<div class="day-stat"><div class="num" style="color:#7b1fa2">${statMap['awaiting-confirm']}</div><div class="label">Awaiting</div></div>` : ''}
@@ -3810,80 +4073,57 @@ function showDayDetail(dateStr) {
     ${presentVessels.length > 0 ? `<div class="day-stat"><div class="num" style="color:#00695c">⚓ ${presentVessels.length}</div><div class="label">In Port</div></div>` : ''}
   `;
 
-  // Update list
   const listEl = document.getElementById('dayDetailList');
-  // Vessel presence banner
   let presenceHtml = '';
   if (presentVessels.length > 0) {
     presenceHtml = `<div style="background:var(--gray-50);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
       <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">⚓ Vessels in Port</div>
       ${presentVessels.map(v => {
         const color = getVesselColor(v);
-        // Find movements for this vessel on this date
-        const vesselMovements = allEntries.filter(e => e.category === 'Vessel Movement' && e.vessel === v && e.serviceDate === dateStr);
-        let movementInfo = '';
-        if (vesselMovements.length > 0) {
-          movementInfo = vesselMovements.map(m => {
-            const icon = m.serviceType === 'Arrival' ? '⚓' : m.serviceType === 'Departure' ? '🚢' : '↔️';
-            const time = m.specialNotes ? m.specialNotes + ' — ' : '';
-            const loc = m.clearedOut && m.clearedIn ? m.clearedOut + ' → ' + m.clearedIn : m.clearedIn || m.clearedOut || '';
-            return `<div style="font-size:11px;color:var(--gray-600);margin-left:16px;padding:1px 0;">${icon} ${time}${m.serviceType}${loc ? ' · ' + loc : ''}</div>`;
-          }).join('');
-        }
-        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${v}</span></div>${movementInfo}`;
+        const movementInfo = dayMoves.filter(m => m.vessel === v).map(m => {
+          const people = m.crew != null ? ' · ' + m.crew + ' crew' + (m.guests ? ', ' + m.guests + ' guests' : '') : '';
+          const loc = mvFromTo(m);
+          return `<div style="font-size:11px;color:var(--gray-600);margin-left:16px;padding:1px 0;">${mvEmoji(m.type)}${m.time ? esc(m.time) + ' — ' : ''}${esc(m.type)}${loc ? ' · ' + esc(loc) : ''}${esc(people)}</div>`;
+        }).join('');
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;cursor:pointer;" onclick="closeDayDetail();showVesselDetail('${esc(vtKey(v))}')"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${esc(v)}</span></div>${movementInfo}`;
       }).join('')}
     </div>`;
   }
 
   if (dayEntries.length === 0 && presentVessels.length === 0) {
     listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services or vessels for this day.</div>';
-  } else if (dayEntries.length === 0) {
-    listEl.innerHTML = presenceHtml;
   } else {
+    const statusColors = { upcoming: 'var(--blue)', pending: '#3b5bdb', scheduled: 'var(--blue)', 'in-progress': '#856404', 'awaiting-confirm': '#7b1fa2', completed: 'var(--green)', overdue: '#d32f2f', delayed: '#c05621', cancelled: 'var(--gray-600)' };
+    const bgColors = { upcoming: '#e8f0ff', pending: '#f0f4ff', scheduled: '#e8f0ff', 'in-progress': '#fff3cd', 'awaiting-confirm': '#f3e5f5', completed: 'var(--green-light)', overdue: '#ffeaea', delayed: '#fff0e0', cancelled: 'var(--gray-100)' };
     listEl.innerHTML = presenceHtml + dayEntries.map(e => {
       const cs = computeStatus(e);
-      const statusClass = cs;
-      const statusColors = { upcoming: 'var(--blue)', pending: '#3b5bdb', scheduled: 'var(--blue)', 'in-progress': '#856404', 'awaiting-confirm': '#7b1fa2', completed: 'var(--green)', overdue: '#d32f2f', delayed: '#c05621', cancelled: 'var(--gray-600)' };
-      const bgColors = { upcoming: '#e8f0ff', pending: '#f0f4ff', scheduled: '#e8f0ff', 'in-progress': '#fff3cd', 'awaiting-confirm': '#f3e5f5', completed: 'var(--green-light)', overdue: '#ffeaea', delayed: '#fff0e0', cancelled: 'var(--gray-100)' };
-      const isTransfer = (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer');
-      const isMovement = (e.category === 'Vessel Movement');
-      const driver = isTransfer && e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
+      const isTransfer = isTransferEntry(e);
+      const driver = isTransfer && e.transferDriverId ? allDrivers.find(dr => dr.id === e.transferDriverId) : null;
       const transferInfo = isTransfer ? `
         <div style="background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12px;">
-          <div style="font-weight:600;color:#f9a825;">🚐 ${e.serviceType}</div>
-          ${e.transferPickupTime ? `<div>Pickup: ${e.transferPickupTime}</div>` : ''}
-          ${e.transferFrom || e.transferTo ? `<div>${e.transferFrom || '?'} → ${e.transferTo || '?'}</div>` : ''}
-          ${driver ? `<div>Driver: ${driver.name}${driver.phone ? ' (' + driver.phone + ')' : ''}</div>` : ''}
-          ${e.transferPaxCount ? `<div>Passengers: ${e.transferPaxCount}</div>` : ''}
-          ${e.transferIsReturn && e.transferReturnTime ? `<div>Return: ${e.transferReturnTime}</div>` : ''}
-          ${e.transferExtraVehicle ? `<div>Extra vehicles for luggage: ${e.transferExtraVehicleCount || 1}</div>` : ''}
-          ${e.transferNotes ? `<div style="margin-top:4px;color:var(--gray-600);">${e.transferNotes}</div>` : ''}
+          <div style="font-weight:600;color:#f9a825;">🚐 ${esc(e.serviceType)}</div>
+          ${e.transferPickupTime ? `<div>Pickup: ${esc(e.transferPickupTime)}</div>` : ''}
+          ${e.transferFrom || e.transferTo ? `<div>${esc(e.transferFrom || '?')} → ${esc(e.transferTo || '?')}</div>` : ''}
+          ${driver ? `<div>Driver: ${esc(driver.name)}${driver.phone ? ' (' + esc(driver.phone) + ')' : ''}</div>` : ''}
+          ${e.transferPaxCount ? `<div>Passengers: ${esc(e.transferPaxCount)}</div>` : ''}
+          ${e.transferIsReturn && e.transferReturnTime ? `<div>Return: ${esc(e.transferReturnTime)}</div>` : ''}
+          ${e.transferExtraVehicle ? `<div>Extra vehicles for luggage: ${esc(e.transferExtraVehicleCount || 1)}</div>` : ''}
+          ${e.transferNotes ? `<div style="margin-top:4px;color:var(--gray-600);">${esc(e.transferNotes)}</div>` : ''}
         </div>
       ` : '';
-      const mvIcon = e.serviceType === 'Arrival' ? '⚓' : e.serviceType === 'Departure' ? '🚢' : '↔️';
-      const movementInfo = isMovement ? `
-        <div style="background:#e0f2f1;border:1px solid #80cbc4;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:12px;">
-          <div style="font-weight:600;color:#00695c;">${mvIcon} ${e.serviceType}</div>
-          ${e.specialNotes ? `<div>Time: ${e.specialNotes}</div>` : ''}
-          ${e.clearedOut ? `<div>From: ${e.clearedOut}</div>` : ''}
-          ${e.clearedIn ? `<div>To: ${e.clearedIn}</div>` : ''}
-          ${e.description ? `<div style="margin-top:4px;color:var(--gray-600);">${e.description}</div>` : ''}
-        </div>
-      ` : '';
-      const borderColor = isMovement ? '#80cbc4' : (isTransfer ? '#ffd54f' : '');
-      const badgeBg = isMovement ? '#e0f2f1' : (isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff'));
-      const badgeColor = isMovement ? '#00695c' : (isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)'));
-      const badgeText = isMovement ? e.serviceType : (isTransfer ? e.serviceType : cs);
-      return `<div class="day-job" onclick="${isMovement ? '' : "openEditEntry('" + e.entryId + "')"}" style="cursor:${isMovement ? 'default' : 'pointer'};${borderColor ? 'border-left:3px solid ' + borderColor + ';' : ''}" ${isMovement ? '' : 'title="Click to edit"'}>
+      const badgeBg = isTransfer ? '#fff8e1' : (bgColors[cs] || '#e8f0ff');
+      const badgeColor = isTransfer ? '#f9a825' : (statusColors[cs] || 'var(--blue)');
+      const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
+      return `<div class="day-job" onclick="closeDayDetail();openEditEntry('${esc(e.entryId)}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to edit">
         <div class="day-job-header">
-          <span class="day-job-title">${isMovement ? (mvIcon + ' ' + e.vessel) : (e.entryId + ' — ' + (e.vessel || 'Unknown Vessel'))}</span>
-          <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${badgeText}</span>
+          <span class="day-job-title">${esc(e.entryId)} — ${esc(e.vessel || 'Unknown Vessel')}</span>
+          <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${esc(isTransfer ? e.serviceType : cs)}</span>
         </div>
-        ${isMovement ? movementInfo : `<div class="day-job-detail">${e.category || 'General'}${e.serviceType ? ' / ' + e.serviceType : ''}</div>`}
+        <div class="day-job-detail">${esc(e.category || 'General')}${e.serviceType ? ' / ' + esc(e.serviceType) : ''}${e.serviceTime ? ' · ' + esc(e.serviceTime) : ''}</div>
         ${transferInfo}
-        ${!isMovement && e.description ? `<div class="day-job-detail" style="margin-top:4px">${e.description}</div>` : ''}
-        ${!isMovement && e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${e.currency || 'USD'} $${Number(e.totalCharge).toFixed(2)}</div>` : ''}
-        ${!isMovement ? '<div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>' : ''}
+        ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${esc(e.description)}</div>` : ''}
+        ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${sym}${Number(e.totalCharge).toFixed(2)}</div>` : ''}
+        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to edit</div>
       </div>`;
     }).join('');
   }
@@ -3972,6 +4212,7 @@ async function submitMovement() {
       };
       const { error } = await sb.from('entries').update(dbUpdate).eq('entry_id', editingMovementId);
       if (error) throw error;
+      await logAudit({ entry_id: editingMovementId, action: 'update', changed_fields: Object.keys(dbUpdate), new_values: dbUpdate, performed_by: currentUser.id, performed_by_name: currentUser.full_name || currentUser.email });
       // Update in-memory
       const idx = allEntries.findIndex(e => e.entryId === editingMovementId);
       if (idx !== -1) {
@@ -4013,7 +4254,7 @@ async function saveMovement(mv) {
 
     const entry = {
       entryId: idData,
-      submissionDate: new Date().toISOString().split('T')[0],
+      submissionDate: antiguaToday(),
       serviceDate: mv.date,
       vessel: mv.vessel,
       staffMember: '',
@@ -4064,6 +4305,8 @@ async function saveMovement(mv) {
     const { error } = await sb.from('entries').insert([entryToDb(entry)]);
     if (error) throw error;
 
+    await logAudit({ entry_id: entry.entryId, action: 'create', changed_fields: ['vessel', 'serviceType', 'serviceDate'], new_values: { vessel: entry.vessel, serviceType: entry.serviceType, serviceDate: entry.serviceDate, category: entry.category }, performed_by: currentUser.id, performed_by_name: currentUser.full_name || currentUser.email });
+
     allEntries.unshift(entry);
     renderMovementsList();
     updateSyncBadge(true);
@@ -4079,7 +4322,7 @@ async function saveMovement(mv) {
 function parseMovementText(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const movements = [];
-  const currentYear = new Date().getFullYear();
+  const currentYear = parseYMD(antiguaToday()).getFullYear();
   const monthMap = { jan:0, feb:1, mar:2, apr:3, april:3, may:4, jun:5, june:5, jul:6, july:6, aug:7, sep:8, sept:8, oct:9, nov:10, dec:11 };
 
   for (const line of lines) {
@@ -4139,14 +4382,14 @@ function parseAndPreviewMovements() {
   const previewEl = document.getElementById('mvImportPreview');
   previewEl.innerHTML = `
     <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-bottom:8px;">
-      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">${movements.length} movement${movements.length > 1 ? 's' : ''} found for ${vessel}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;">${movements.length} movement${movements.length > 1 ? 's' : ''} found for ${esc(vessel)}</div>
       ${movements.map((m, i) => `
         <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--gray-200);font-size:13px;" id="mvPreview${i}">
           <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--teal);" data-mv-idx="${i}">
-          <span style="min-width:80px;font-weight:600;">${m.date}</span>
-          <span style="min-width:40px;color:var(--gray-500);">${m.time || '—'}</span>
-          <span class="status-badge status-${m.type === 'Arrival' ? 'completed' : m.type === 'Departure' ? 'overdue' : 'upcoming'}" style="font-size:11px;">${m.type}</span>
-          <span style="flex:1;">${m.from ? m.from + ' → ' : ''}${m.to || m.notes || ''}</span>
+          <span style="min-width:80px;font-weight:600;">${esc(m.date)}</span>
+          <span style="min-width:40px;color:var(--gray-500);">${esc(m.time || '—')}</span>
+          <span class="status-badge status-${m.type === 'Arrival' ? 'completed' : m.type === 'Departure' ? 'overdue' : 'upcoming'}" style="font-size:11px;">${esc(m.type)}</span>
+          <span style="flex:1;">${esc(m.from ? m.from + ' → ' : '')}${esc(m.to || m.notes || '')}</span>
         </div>
       `).join('')}
     </div>
@@ -4194,6 +4437,8 @@ function getMovements() {
 }
 
 function renderMovementsList() {
+  vtInvalidate();
+  vtRenderClearanceLog();
   const tbody = document.getElementById('movementsTableBody');
   if (!tbody) return;
   const movements = getMovements();
@@ -4201,27 +4446,27 @@ function renderMovementsList() {
   const typeBg = { Arrival: 'var(--green-light)', Departure: '#ffeaea', Relocation: '#e8f0ff' };
 
   if (movements.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500);">No vessel movements recorded yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500);">No planned movements recorded yet.</td></tr>';
     return;
   }
 
+  const today = antiguaToday();
+  const admin = isAdminUser();
   tbody.innerHTML = movements.map(e => {
-    const time = e.specialNotes || '';
     const type = e.serviceType || '';
     const from = e.clearedOut || '';
     const to = e.clearedIn || '';
-    const notes = e.description || '';
-    const isPast = e.serviceDate < new Date().toISOString().split('T')[0];
+    const isPast = e.serviceDate < today;
     return `<tr style="${isPast ? 'opacity:0.5;' : ''}">
-      <td>${formatDate(e.serviceDate)}</td>
-      <td>${time}</td>
-      <td style="font-weight:600;">${e.vessel}</td>
-      <td><span style="background:${typeBg[type] || '#e8f0ff'};color:${typeColors[type] || 'var(--blue)'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">${type}</span></td>
-      <td>${from || to ? (from ? from : '') + (from && to ? ' → ' : '') + (to ? to : '') : '—'}</td>
-      <td style="font-size:12px;color:var(--gray-600);">${notes}</td>
+      <td>${esc(fmtDate(e.serviceDate))}</td>
+      <td>${esc(e.specialNotes || '')}</td>
+      <td style="font-weight:600;">${esc(e.vessel)}</td>
+      <td><span style="background:${typeBg[type] || '#e8f0ff'};color:${typeColors[type] || 'var(--blue)'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">${esc(type)}</span></td>
+      <td>${from || to ? esc(from) + (from && to ? ' → ' : '') + esc(to) : '—'}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${esc(e.description || '')}</td>
       <td style="white-space:nowrap;">
-        <button onclick="editMovement('${e.entryId}')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;font-weight:600;margin-right:8px;">Edit</button>
-        <button onclick="deleteEntry('${e.entryId}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>
+        <button onclick="editMovement('${esc(e.entryId)}')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;font-weight:600;margin-right:8px;">Edit</button>
+        ${admin ? `<button onclick="deleteEntry('${esc(e.entryId)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -4250,7 +4495,8 @@ function openEditEntry(entryId) {
   } else {
     // Keep original staff member for display but don't allow change
     const origStaff = entry.staffMember || currentUser.full_name || currentUser.email;
-    staffSel.innerHTML = `<option value="${origStaff}">${origStaff}</option>`;
+    staffSel.innerHTML = '';
+    staffSel.appendChild(new Option(origStaff, origStaff));
     staffSel.value = origStaff;
   }
   document.getElementById('serviceDate').value = entry.serviceDate || '';
@@ -4345,132 +4591,577 @@ function openEditEntry(entryId) {
   showView('form');
 }
 
-async function saveEditedEntry() {
-  const entryId = document.getElementById('editEntryId').value;
-  const entry = allEntries.find(e => e.entryId === entryId);
-  if (!entry) return;
+// ============================================
+// VESSEL TRACKING (read-only copy of the Google Sheet "2026 - 2027 Season")
+// The sheet is the master. Nothing in this section writes to the database.
+// ============================================
+let vtMovements = [];     // vessel_movements rows
+let vtSightings = [];     // crew_sightings rows
+let vtCrew = [];          // crew_members rows
+let vtCrewPrivate = {};   // crew_id -> { date_of_birth, passport_expiry } (admins only)
+let vtAlerts = [];        // crew_alerts() rows
+let vtLastSync = null;    // latest sync_runs row
+let vtCache = {};         // derived data, cleared whenever source data changes
+let vtTlOffset = 0;       // timeline strip offset in days
+let vtTab = 'vessels';
 
-  const updated = {
-    vessel: document.getElementById('editVessel').value,
-    staffMember: document.getElementById('editStaff').value,
-    serviceDate: document.getElementById('editServiceDate').value,
-    serviceTime: document.getElementById('editServiceTime').value,
-    category: document.getElementById('editCategory').value,
-    serviceType: document.getElementById('editServiceType').value,
-    description: document.getElementById('editDescription').value,
-    clearedIn: document.getElementById('editClearedIn').value,
-    clearedOut: document.getElementById('editClearedOut').value,
-    marina: document.getElementById('editMarina').value,
-    status: document.getElementById('editStatus').value,
-    workCompleted: document.getElementById('editWorkCompleted').value,
-    futureTask: document.getElementById('editFutureTask').value,
-    billingType: document.getElementById('editBillingType').value,
-    currency: document.getElementById('editCurrency').value,
-    baseCharge: 0,
-    additionalCrewCharge: 0,
-    agencyFee: 0,
-    disbursementFee: 0,
-    specialNotes: document.getElementById('editSpecialNotes').value,
-    internalNotes: document.getElementById('editInternalNotes').value,
-    clientNotes: document.getElementById('editClientNotes').value,
-  };
-  // Charge blocks → store in override_note as JSON, compute totals
-  const editBlocks = getChargeBlocks('edit-');
-  const editTotal = editBlocks.reduce((s, b) => s + b.amount, 0);
-  updated.baseCharge = (editBlocks.length > 0 ? editBlocks[0].amount : 0).toFixed(2);
-  updated.otherCharges = (editBlocks.length > 1 ? editBlocks.slice(1).reduce((s, b) => s + b.amount, 0) : 0).toFixed(2);
-  updated.overrideNote = editBlocks.length > 0 ? JSON.stringify(editBlocks) : '';
-  updated.totalCharge = editTotal;
+function vtReset() {
+  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtLastSync = null; vtCache = {};
+}
+function vtInvalidate() { vtCache = {}; }
 
+async function loadVesselTracking() {
   try {
-    updateSyncBadge(true, 'Syncing');
-    const dbData = entryToDb({ ...entry, ...updated, entryId });
-    delete dbData.entry_id;
-    dbData.last_edited_by = currentUser.full_name || currentUser.email;
-    dbData.last_edited_at = new Date().toISOString();
-
-    const { error } = await sb.from('entries').update(dbData).eq('entry_id', entryId);
-    if (error) throw error;
-
-    await sb.from('audit_log').insert({
-      entry_id: entryId,
-      action: 'update',
-      changed_fields: Object.keys(updated),
-      new_values: updated,
-      performed_by: currentUser.id,
-      performed_by_name: currentUser.full_name || currentUser.email
-    });
-
-    // Update local
-    Object.assign(entry, updated);
-    entry.lastEditedBy = currentUser.full_name || currentUser.email;
-    entry.lastEditedAt = new Date().toISOString();
-    closeModal('editEntryModal');
-    showDayDetail(entry.serviceDate);
-    renderLog();
-    renderCalendar();
-    showToast('Entry updated');
-    updateSyncBadge(true);
+    const [mov, sig, crew] = await Promise.all([
+      fetchAll('vessel_movements', q => q.order('movement_date').order('id')),
+      fetchAll('crew_sightings', q => q.order('sighting_date').order('id')),
+      fetchAll('crew_members', q => q.order('full_name').order('id'))
+    ]);
+    vtMovements = mov; vtSightings = sig; vtCrew = crew;
+    vtCrewPrivate = {};
+    if (isAdminUser()) {
+      try {
+        (await fetchAll('crew_private', q => q.order('crew_id'))).forEach(r => { vtCrewPrivate[r.crew_id] = r; });
+      } catch (e) { console.warn('crew_private not loaded:', e.message); }
+    }
+    try {
+      const { data, error } = await sb.rpc('crew_alerts');
+      vtAlerts = error ? [] : (data || []);
+    } catch (e) { vtAlerts = []; }
+    try {
+      const { data } = await sb.from('sync_runs').select('*').order('id', { ascending: false }).limit(1);
+      vtLastSync = data && data[0] ? data[0] : null;
+    } catch (e) { vtLastSync = null; }
   } catch (err) {
-    console.error('Update error:', err);
-    showToast('Failed to update: ' + err.message);
-    updateSyncBadge(false);
+    console.error('Vessel tracking load error:', err);
   }
+  vtInvalidate();
 }
 
-function confirmDeleteEntry() {
-  const entryId = document.getElementById('editEntryId').value;
-  if (!entryId) return;
+function vtKey(n) { return String(n || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function seasonStartFor(dayStr) {
+  const y = +dayStr.slice(0, 4), m = +dayStr.slice(5, 7);
+  return (m >= 10 ? y : y - 1) + '-10-01';
+}
+function seasonLabelFor(dayStr) {
+  const s = +seasonStartFor(dayStr).slice(0, 4);
+  return s + '-' + String((s + 1) % 100).padStart(2, '0');
+}
 
-  const overlay = document.createElement('div');
-  overlay.id = 'deleteConfirmOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:center;justify-content:center;';
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:24px;max-width:380px;width:90%;text-align:center;">
-      <h3 style="margin:0 0 8px;color:var(--navy);">Delete Entry?</h3>
-      <p style="color:var(--gray-500);margin:0 0 20px;font-size:14px;">This will permanently remove <strong>${entryId}</strong>. This cannot be undone.</p>
-      <div style="display:flex;gap:12px;justify-content:center;">
-        <button onclick="document.getElementById('deleteConfirmOverlay').remove()" style="padding:10px 24px;border:1px solid var(--gray-300);background:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Cancel</button>
-        <button onclick="executeDeleteEntry('${entryId}')" style="padding:10px 24px;background:#d32f2f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Delete</button>
+// One list of movements from both sources, in one shape.
+//   sheet  = clearance records synced from the sheet (arrivals and departures)
+//   manual = movements typed into this app (arrivals, departures, relocations)
+function unifiedMovements() {
+  if (vtCache.unified) return vtCache.unified;
+  const out = [];
+  vtMovements.forEach(r => {
+    const arr = r.movement_type === 'Arrival';
+    out.push({
+      src: 'sheet', id: r.id, date: r.movement_date, time: (r.movement_time || '').slice(0, 5),
+      type: r.movement_type, vessel: r.vessel_name, key: r.vessel_key || vtKey(r.vessel_name),
+      port: r.port || '', from: arr ? (r.last_port || '') : (r.port || ''), to: arr ? (r.port || '') : (r.next_port || ''),
+      notes: r.reason || '', crew: r.crew_count, guests: r.guest_count, captain: r.captain_name || '',
+      intendedDeparture: r.intended_departure || '', ref: r.reference || '', portal: r.source_portal || '', raw: r
+    });
+  });
+  allEntries.filter(e => e.category === 'Vessel Movement' && e.serviceDate).forEach(e => {
+    out.push({
+      src: 'manual', entryId: e.entryId, date: e.serviceDate, time: (e.specialNotes || '').slice(0, 5),
+      type: e.serviceType || '', vessel: e.vessel || '', key: vtKey(e.vessel),
+      port: e.clearedIn || e.clearedOut || '', from: e.clearedOut || '', to: e.clearedIn || '',
+      notes: e.description || '', crew: null, guests: null, captain: '', intendedDeparture: '', ref: e.entryId, portal: 'App', raw: e
+    });
+  });
+  out.sort((a, b) => a.date !== b.date ? (a.date < b.date ? -1 : 1) : (a.time || '99:99').localeCompare(b.time || '99:99'));
+  vtCache.unified = out;
+  return out;
+}
+function movementsOn(dayStr) { return unifiedMovements().filter(m => m.date === dayStr); }
+
+// Pair each arrival with the next departure of the same vessel.
+function vtVisits() {
+  if (vtCache.visits) return vtCache.visits;
+  const byKey = {};
+  unifiedMovements().filter(m => (m.type === 'Arrival' || m.type === 'Departure') && m.key).forEach(m => {
+    (byKey[m.key] = byKey[m.key] || []).push(m);
+  });
+  const visits = [];
+  Object.values(byKey).forEach(all => {
+    // If the sheet and a manual entry record the same event, the sheet wins.
+    const inSheet = new Set(all.filter(m => m.src === 'sheet').map(m => m.date + '|' + m.type));
+    const list = all.filter(m => m.src === 'sheet' || !inSheet.has(m.date + '|' + m.type));
+    const dates = [...new Set(list.map(m => m.date))].sort();
+    const firstDate = dates[0];
+    let open = null;
+    dates.forEach(d => {
+      const day = list.filter(m => m.date === d);
+      let ordered;
+      if (day.every(m => m.time)) {
+        ordered = day.slice().sort((a, b) => a.time.localeCompare(b.time));
+      } else {
+        const deps = day.filter(m => m.type === 'Departure'), arrs = day.filter(m => m.type === 'Arrival');
+        ordered = open ? deps.concat(arrs) : arrs.concat(deps);
+      }
+      ordered.forEach(m => {
+        if (m.type === 'Arrival') {
+          if (open) { open.superseded = true; visits.push(open); }
+          open = { vessel: m.vessel, key: m.key, arrival: m, departure: null, start: m.date, end: null, returning: m.date > firstDate };
+        } else if (open) {
+          open.departure = m; open.end = m.date; visits.push(open); open = null;
+        } else {
+          visits.push({ vessel: m.vessel, key: m.key, arrival: null, departure: m, start: null, end: m.date, returning: m.date > firstDate });
+        }
+      });
+    });
+    if (open) visits.push(open);
+  });
+  vtCache.visits = visits;
+  return visits;
+}
+
+// current   in Antigua on that day
+// departed  left on or before that day
+// expected  arrival dated after that day
+// unknown   an old arrival with no departure on file (not counted as in port)
+function visitStatus(v, dayStr) {
+  if (v.start && v.start > dayStr) return 'expected';
+  if (v.end && v.end <= dayStr) return 'departed';
+  if (v.superseded) return 'unknown';
+  if (!v.start) return 'current';
+  return v.start >= seasonStartFor(dayStr) ? 'current' : 'unknown';
+}
+function visitDays(v, dayStr) {
+  if (!v.start) return null;
+  const end = v.end && v.end <= dayStr ? v.end : dayStr;
+  return Math.max(0, daysBetween(v.start, end));
+}
+function byVesselName(a, b) { return String(a.vessel).localeCompare(String(b.vessel), undefined, { sensitivity: 'base' }); }
+
+function vtInPort(dayStr) {
+  return vtVisits().filter(v => visitStatus(v, dayStr) === 'current').sort(byVesselName).map(v => ({
+    vessel: v.vessel, key: v.key, visit: v,
+    location: (v.arrival && (v.arrival.to || v.arrival.port)) || 'Antigua',
+    since: v.start, days: visitDays(v, dayStr), returning: v.returning,
+    crewIn: v.arrival ? v.arrival.crew : null, guestsIn: v.arrival ? v.arrival.guests : null,
+    intendedDeparture: v.arrival ? v.arrival.intendedDeparture : ''
+  }));
+}
+
+// Season figures, same definitions as the sheet's Dashboard tab.
+function vtSeasonStats(dayStr) {
+  const start = seasonStartFor(dayStr);
+  const inSeason = unifiedMovements().filter(m => m.date >= start && m.date <= dayStr);
+  const arrivals = inSeason.filter(m => m.type === 'Arrival');
+  const departures = inSeason.filter(m => m.type === 'Departure');
+  const sum = (list, f) => list.reduce((s, m) => s + (Number(m[f]) || 0), 0);
+  const top = (list, f) => list.reduce((best, m) => (Number(m[f]) || 0) > (best ? Number(best[f]) || 0 : 0) ? m : best, null);
+  const visits = vtVisits();
+  const current = visits.filter(v => visitStatus(v, dayStr) === 'current');
+  const longest = list => list.reduce((best, v) => {
+    const d = visitDays(v, dayStr);
+    return d != null && (!best || d > best.days) ? { vessel: v.vessel, days: d } : best;
+  }, null);
+  const crewKeys = new Set(vtSightings.filter(s => s.sighting_date >= start && s.sighting_date <= dayStr).map(s => s.person_key));
+  const bigCrew = top(inSeason, 'crew'), bigGuests = top(inSeason, 'guests');
+  return {
+    inPort: current.length,
+    uniqueVessels: new Set(arrivals.concat(departures).map(m => m.key)).size,
+    inbounds: arrivals.length, outbounds: departures.length,
+    crewIn: sum(arrivals, 'crew'), crewOut: sum(departures, 'crew'),
+    guestsIn: sum(arrivals, 'guests'), guestsOut: sum(departures, 'guests'),
+    individualCrew: crewKeys.size,
+    largestCrew: bigCrew ? bigCrew.vessel + ' (' + bigCrew.crew + ')' : 'None',
+    largestGuests: bigGuests ? bigGuests.vessel + ' (' + bigGuests.guests + ')' : 'None',
+    longestCurrent: longest(current),
+    longestSeason: longest(visits.filter(v => v.start && v.start >= start && v.start <= dayStr))
+  };
+}
+
+// ---------- Dashboard: vessel activity panel ----------
+function vtRenderActivity(dayStr) {
+  const el = document.getElementById('vt-activity');
+  if (!el) return;
+  const s = vtSeasonStats(dayStr);
+  const stay = x => x ? esc(x.vessel) + ' <span class="vt-tile-unit">' + x.days + ' d</span>' : 'None';
+  const tile = (label, value, cls) => `<div class="vt-tile ${cls || ''}"><div class="vt-tile-label">${label}</div><div class="vt-tile-value">${value}</div></div>`;
+  const tiles = [
+    tile('In Antigua now', s.inPort, 'vt-tile-key'),
+    tile('Vessels this season', s.uniqueVessels),
+    tile('Inbounds', s.inbounds),
+    tile('Outbounds', s.outbounds),
+    tile('Crew inbound', s.crewIn),
+    tile('Crew outbound', s.crewOut),
+    tile('Guests inbound', s.guestsIn),
+    tile('Guests outbound', s.guestsOut),
+    tile('Individual crew', s.individualCrew),
+    tile('Largest crew', esc(s.largestCrew), 'vt-tile-text'),
+    tile('Largest guest party', esc(s.largestGuests), 'vt-tile-text'),
+    tile('Longest current stay', stay(s.longestCurrent), 'vt-tile-text')
+  ].join('');
+
+  const sub = document.getElementById('vt-activity-sub');
+  if (sub) {
+    const when = vtLastSync && vtLastSync.ran_at
+      ? new Date(vtLastSync.ran_at).toLocaleString('en-GB', { timeZone: APP_TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : null;
+    sub.textContent = 'Season ' + seasonLabelFor(dayStr) + (when ? ' · sheet synced ' + when + (vtLastSync.ok ? '' : ' (last sync failed)') : ' · no sync yet');
+  }
+  el.innerHTML = `<div class="vt-tiles">${tiles}</div>` + vtTimelineHtml(dayStr);
+}
+
+function vtTlShift(n) { vtTlOffset = n === 0 ? 0 : vtTlOffset + n; renderDashboard(); }
+
+function vtTimelineHtml(dayStr) {
+  const DAYS = 30;
+  const first = addDays(dayStr, -7 + vtTlOffset);
+  const last = addDays(first, DAYS - 1);
+  const days = [];
+  for (let i = 0; i < DAYS; i++) days.push(addDays(first, i));
+  const realToday = antiguaToday();
+
+  const rowsFor = status => vtVisits()
+    .filter(v => visitStatus(v, realToday) === status)
+    .filter(v => {
+      const a = v.start || v.end, b = status === 'current' ? (v.arrival && v.arrival.intendedDeparture > realToday ? v.arrival.intendedDeparture : realToday) : (v.end || v.start);
+      return a <= last && b >= first;
+    })
+    .sort(byVesselName);
+  const groups = [
+    ['Currently in Antigua', rowsFor('current')],
+    ['Expected', rowsFor('expected')],
+    ['Departed', rowsFor('departed')]
+  ].filter(g => g[1].length);
+
+  let head = '<tr><th class="vt-tl-name">Vessel</th><th class="vt-tl-num">Days</th>';
+  days.forEach(d => {
+    const dt = parseYMD(d);
+    const cls = (d === realToday ? ' vt-today' : '') + (dt.getDay() === 0 || dt.getDay() === 6 ? ' vt-we' : '');
+    head += `<th class="vt-tl-day${cls}" title="${esc(fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}"><span>${'SMTWTFS'[dt.getDay()]}</span>${dt.getDate()}</th>`;
+  });
+  head += '</tr>';
+
+  let body = '';
+  if (!groups.length) body = `<tr><td colspan="${DAYS + 2}" class="db-empty">No vessel activity in this window</td></tr>`;
+  groups.forEach(([label, list]) => {
+    body += `<tr class="vt-tl-group"><td colspan="${DAYS + 2}">${label} (${list.length})</td></tr>`;
+    list.forEach(v => {
+      const status = visitStatus(v, realToday);
+      const stayEnd = status === 'current' ? realToday : (v.end || v.start);
+      const planned = status === 'current' && v.arrival && v.arrival.intendedDeparture > realToday ? v.arrival.intendedDeparture : '';
+      const d = visitDays(v, realToday);
+      let cells = '';
+      days.forEach(day => {
+        let cls = '', mark = '';
+        if (v.start && day === v.start) { cls = 'vt-arr'; mark = '▸'; }
+        else if (v.end && day === v.end && status !== 'expected') { cls = 'vt-dep'; mark = '◂'; }
+        else if (v.start && day > v.start && day <= stayEnd) cls = 'vt-stay';
+        else if (planned && day > realToday && day <= planned) cls = day === planned ? 'vt-plan vt-plan-end' : 'vt-plan';
+        if (day === realToday) cls += ' vt-today';
+        cells += `<td class="${cls}">${mark}</td>`;
+      });
+      body += `<tr class="vt-tl-row" onclick="showVesselDetail('${esc(v.key)}')"><td class="vt-tl-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">★</span>' : ''}</td><td class="vt-tl-num">${d == null ? '—' : d}</td>${cells}</tr>`;
+    });
+  });
+
+  return `
+    <div class="vt-tl-bar">
+      <div class="vt-tl-range">${esc(fmtShort(first))} to ${esc(fmtDate(last))}</div>
+      <div class="vt-tl-keys"><span><i class="vt-k vt-arr"></i>Arrival</span><span><i class="vt-k vt-stay"></i>In port</span><span><i class="vt-k vt-dep"></i>Departure</span><span><i class="vt-k vt-plan"></i>Intended stay</span><span><i class="vt-k vt-today"></i>Today</span><span><span class="vt-star">★</span> Seen in Antigua before</span></div>
+      <div class="vt-tl-nav">
+        <button type="button" onclick="vtTlShift(-14)" title="Earlier">&#8249;</button>
+        <button type="button" onclick="vtTlShift(0)">Today</button>
+        <button type="button" onclick="vtTlShift(14)" title="Later">&#8250;</button>
       </div>
     </div>
-  `;
-  document.body.appendChild(overlay);
+    <div class="vt-tl-wrap"><table class="vt-tl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
 }
 
-async function executeDeleteEntry(entryId) {
-  const confirmEl = document.getElementById('deleteConfirmOverlay');
-  if (confirmEl) confirmEl.remove();
+// ---------- Dashboard: crew alerts ----------
+function vtRenderAlerts() {
+  const el = document.getElementById('vt-alerts');
+  const countEl = document.getElementById('vt-alerts-count');
+  if (!el) return;
+  if (countEl) countEl.textContent = vtAlerts.length;
+  if (!vtAlerts.length) { el.innerHTML = '<div class="db-empty">No passport or birthday alerts</div>'; return; }
+  const admin = isAdminUser();
+  el.innerHTML = vtAlerts.map(a => {
+    const bday = a.alert_type === 'birthday';
+    let detail;
+    if (bday) {
+      detail = admin && a.on_date
+        ? (a.days_away === 0 ? 'Birthday today' : 'Birthday ' + fmtShort(a.on_date) + ' · in ' + a.days_away + ' d') + (a.turning ? ' · turns ' + a.turning : '')
+        : 'Birthday within 14 days';
+    } else {
+      detail = 'Passport: ' + a.status + (admin && a.on_date ? ' · expires ' + fmtDate(a.on_date) : '');
+    }
+    const tone = bday ? 'vt-al-bday' : (a.status === 'Warn' ? 'vt-al-warn' : 'vt-al-pass');
+    return `<div class="vt-alert ${tone}">
+      <div class="vt-alert-icon">${bday ? '🎂' : '🛂'}</div>
+      <div style="min-width:0;">
+        <div class="vt-alert-name">${esc(a.full_name)}${a.role === 'Captain' ? ' <span class="vt-chip">Captain</span>' : ''}</div>
+        <div class="vt-alert-detail">${esc(a.vessel_name || '')}${a.vessel_name ? ' · ' : ''}${esc(detail)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  try {
-    updateSyncBadge(true, 'Syncing');
-    const { error } = await sb.from('entries').update({
-      is_deleted: true,
-      deleted_at: new Date().toISOString(),
-      deleted_by: currentUser.id
-    }).eq('entry_id', entryId);
+// ---------- Vessel detail modal ----------
+function showVesselDetail(key) {
+  const today = antiguaToday();
+  const visits = vtVisits().filter(v => v.key === key).sort((a, b) => (b.start || b.end || '').localeCompare(a.start || a.end || ''));
+  const moves = unifiedMovements().filter(m => m.key === key);
+  const rec = allVessels.find(v => (v.name_key || vtKey(v.name)) === key) || {};
+  const name = (visits[0] && visits[0].vessel) || rec.name || (moves[0] && moves[0].vessel) || 'Vessel';
+  const current = visits.find(v => visitStatus(v, today) === 'current');
 
-    if (error) throw error;
+  const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
+  const facts = [
+    fact('Flag', rec.flag), fact('Type', rec.vessel_type),
+    fact('LOA', rec.loa_m != null ? rec.loa_m + ' m' : rec.loa), fact('Beam', rec.beam_m != null ? rec.beam_m + ' m' : ''),
+    fact('Draft', rec.draft_m != null ? rec.draft_m + ' m' : ''), fact('Year built', rec.year_built),
+    fact('Gross tonnage', rec.gross_tonnage), fact('Registration no.', rec.registration_no),
+    fact('Call sign', rec.call_sign), fact('MMSI', rec.mmsi), fact('Home port', rec.home_port),
+    fact('Owner', rec.owner), fact('Latest captain', rec.captain)
+  ].join('');
 
-    await sb.from('audit_log').insert({
-      entry_id: entryId,
-      action: 'delete',
-      performed_by: currentUser.id,
-      performed_by_name: currentUser.full_name || currentUser.email
+  const visitRows = visits.map(v => {
+    const st = visitStatus(v, today);
+    const label = { current: 'In port', departed: 'Departed', expected: 'Expected', unknown: 'No departure on file' }[st];
+    const d = visitDays(v, today);
+    return `<tr>
+      <td>${v.start ? esc(fmtDate(v.start)) : '—'}</td>
+      <td>${v.end ? esc(fmtDate(v.end)) : '—'}</td>
+      <td>${d == null ? '—' : d}</td>
+      <td>${esc((v.arrival && (v.arrival.to || v.arrival.port)) || '')}</td>
+      <td>${v.arrival && v.arrival.crew != null ? v.arrival.crew : '—'} / ${v.arrival && v.arrival.guests != null ? v.arrival.guests : '—'}</td>
+      <td>${v.departure && v.departure.crew != null ? v.departure.crew : '—'} / ${v.departure && v.departure.guests != null ? v.departure.guests : '—'}</td>
+      <td><span class="vt-chip vt-chip-${st}">${label}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Current crew list (People tab of the sheet)
+  const crewNow = vtCrew.filter(c => c.vessel_key === key)
+    .sort((a, b) => (a.role === 'Captain' ? 0 : 1) - (b.role === 'Captain' ? 0 : 1) || a.full_name.localeCompare(b.full_name));
+  const admin = isAdminUser();
+  const crewNowRows = crewNow.map(c => {
+    const p = vtCrewPrivate[c.id] || {};
+    return `<tr><td>${esc(c.full_name)}</td><td>${esc(c.rank || c.role || '')}</td><td>${esc(c.nationality || '')}</td>` +
+      (admin ? `<td>${p.date_of_birth ? esc(fmtDate(p.date_of_birth)) : '—'}</td><td>${p.passport_expiry ? esc(fmtDate(p.passport_expiry)) : '—'}</td>` : '') + '</tr>';
+  }).join('');
+
+  // Everyone seen on this vessel (Crew log tab)
+  const seen = {};
+  vtSightings.filter(s => s.vessel_key === key).forEach(s => {
+    const p = seen[s.person_key] = seen[s.person_key] || { name: s.full_name, first: s.sighting_date, last: s.sighting_date, n: 0, rank: '' };
+    p.n++;
+    if (s.sighting_date >= p.last) { p.last = s.sighting_date; p.name = s.full_name; if (s.rank || s.role) p.rank = s.rank || s.role; }
+    if (s.sighting_date < p.first) p.first = s.sighting_date;
+  });
+  const seenRows = Object.values(seen).sort((a, b) => b.last.localeCompare(a.last) || a.name.localeCompare(b.name)).map(p =>
+    `<tr><td>${esc(p.name)}</td><td>${esc(p.rank)}</td><td>${p.n}</td><td>${esc(fmtDate(p.first))}</td><td>${esc(fmtDate(p.last))}</td></tr>`).join('');
+
+  document.getElementById('vesselDetailTitle').innerHTML = esc(name) +
+    (visits.some(v => v.returning) ? ' <span class="vt-star" title="Seen in Antigua before">★</span>' : '') +
+    (current ? ' <span class="vt-chip vt-chip-current">In port</span>' : '');
+  document.getElementById('vesselDetailBody').innerHTML = `
+    ${facts ? `<div class="vt-facts">${facts}</div>` : '<div class="db-empty">No vessel particulars on file</div>'}
+    <h3 class="vt-h3">Visits (${visits.length})</h3>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Arrival</th><th>Departure</th><th>Days</th><th>Port</th><th>Crew / guests in</th><th>Crew / guests out</th><th>Status</th></tr></thead><tbody>${visitRows || '<tr><td colspan="7" class="db-empty">No visits on file</td></tr>'}</tbody></table></div>
+    ${crewNow.length ? `<h3 class="vt-h3">Crew on current list (${crewNow.length})</h3>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Name</th><th>Rank</th><th>Nationality</th>${admin ? '<th>Date of birth</th><th>Passport expiry</th>' : ''}</tr></thead><tbody>${crewNowRows}</tbody></table></div>` : ''}
+    <h3 class="vt-h3">Crew seen on this vessel (${Object.keys(seen).length})</h3>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Name</th><th>Latest rank</th><th>Sightings</th><th>First seen</th><th>Last seen</th></tr></thead><tbody>${seenRows || '<tr><td colspan="5" class="db-empty">No crew on file</td></tr>'}</tbody></table></div>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+
+// ---------- Vessels view (almanac) ----------
+function vtSetTab(tab) {
+  vtTab = tab;
+  document.querySelectorAll('#view-vessels .vt-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  ['vessels', 'crew', 'stats'].forEach(t => {
+    const el = document.getElementById('vt-pane-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  renderVesselsView();
+}
+function renderVesselsView() {
+  vtInvalidate();
+  if (vtTab === 'vessels') vtRenderVesselAlmanac();
+  else if (vtTab === 'crew') vtRenderCrewAlmanac();
+  else vtRenderStats();
+}
+
+function vtVesselAlmanac() {
+  if (vtCache.vesselAlmanac) return vtCache.vesselAlmanac;
+  const today = antiguaToday();
+  const start = seasonStartFor(today);
+  const map = {};
+  unifiedMovements().filter(m => m.key && (m.type === 'Arrival' || m.type === 'Departure')).forEach(m => {
+    const r = map[m.key] = map[m.key] || { key: m.key, vessel: m.vessel, arrivals: 0, departures: 0, first: m.date, last: m.date, captain: '', flag: '', type: '', loa: '' };
+    if (m.type === 'Arrival') r.arrivals++; else r.departures++;
+    if (m.date < r.first) r.first = m.date;
+    if (m.date >= r.last) { r.last = m.date; r.vessel = m.vessel; if (m.captain) r.captain = m.captain; }
+    if (m.src === 'sheet') { r.flag = m.raw.flag || r.flag; r.type = m.raw.vessel_type || r.type; r.loa = m.raw.loa || r.loa; }
+  });
+  const inPort = new Set(vtInPort(today).map(v => v.key));
+  const list = Object.values(map).map(r => {
+    const rec = allVessels.find(v => (v.name_key || vtKey(v.name)) === r.key) || {};
+    return Object.assign(r, {
+      flag: rec.flag || r.flag, type: rec.vessel_type || r.type,
+      loa: rec.loa_m != null ? rec.loa_m + ' m' : (rec.loa || r.loa),
+      captain: r.captain || rec.captain || '',
+      inPort: inPort.has(r.key), seenBefore: r.first < start, thisSeason: r.last >= start
     });
+  }).sort(byVesselName);
+  vtCache.vesselAlmanac = list;
+  return list;
+}
 
-    allEntries = allEntries.filter(e => e.entryId !== entryId);
-    closeModal('editEntryModal');
-    closeDayDetail();
-    renderLog();
-    renderCalendar();
-    showToast('Entry deleted');
-    updateSyncBadge(true);
-  } catch (err) {
-    console.error('Delete error:', err);
-    showToast('Failed to delete: ' + err.message);
-    updateSyncBadge(false);
+function vtRenderVesselAlmanac() {
+  const el = document.getElementById('vt-vessel-rows');
+  if (!el) return;
+  const q = (document.getElementById('vt-vessel-search').value || '').toLowerCase().trim();
+  const list = vtVesselAlmanac().filter(r => !q || [r.vessel, r.flag, r.type, r.captain].join(' ').toLowerCase().includes(q));
+  document.getElementById('vt-vessel-count').textContent = list.length + ' vessel' + (list.length === 1 ? '' : 's');
+  el.innerHTML = list.map(r => `<tr class="vt-click" onclick="showVesselDetail('${esc(r.key)}')">
+    <td style="font-weight:600;">${esc(r.vessel)}${r.seenBefore && r.thisSeason ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
+    <td>${esc(r.flag || '')}</td><td>${esc(r.type || '')}</td><td>${esc(r.loa || '')}</td>
+    <td>${r.arrivals}</td><td>${r.departures}</td>
+    <td>${esc(fmtDate(r.first))}</td><td>${esc(fmtDate(r.last))}</td>
+    <td>${esc(r.captain || '')}</td>
+    <td>${r.inPort ? '<span class="vt-chip vt-chip-current">In port</span>' : ''}</td>
+  </tr>`).join('') || '<tr><td colspan="10" class="db-empty">No vessels match</td></tr>';
+}
+
+function vtCrewAlmanac() {
+  if (vtCache.crewAlmanac) return vtCache.crewAlmanac;
+  const start = seasonStartFor(antiguaToday());
+  const map = {};
+  vtSightings.forEach(s => {
+    const p = map[s.person_key] = map[s.person_key] || { key: s.person_key, name: s.full_name, n: 0, vessels: [], ranks: [], first: s.sighting_date, last: s.sighting_date, latestVessel: s.vessel_name, latestRank: '' };
+    p.n++;
+    if (!p.vessels.includes(s.vessel_name)) p.vessels.push(s.vessel_name);
+    const rank = s.rank || (s.role === 'Captain' ? 'Master' : '');
+    if (rank && !p.ranks.includes(rank)) p.ranks.push(rank);
+    if (s.sighting_date < p.first) p.first = s.sighting_date;
+    if (s.sighting_date >= p.last) { p.last = s.sighting_date; p.name = s.full_name; p.latestVessel = s.vessel_name; if (rank) p.latestRank = rank; }
+  });
+  const list = Object.values(map).map(p => Object.assign(p, {
+    seenBefore: p.first < start, thisSeason: p.last >= start,
+    changedVessel: p.vessels.length > 1, changedRank: p.ranks.length > 1
+  })).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  vtCache.crewAlmanac = list;
+  return list;
+}
+
+function vtRenderCrewAlmanac() {
+  const el = document.getElementById('vt-crew-rows');
+  if (!el) return;
+  const q = (document.getElementById('vt-crew-search').value || '').toLowerCase().trim();
+  const only = document.getElementById('vt-crew-filter').value;
+  let list = vtCrewAlmanac().filter(p => !q || (p.name + ' ' + p.vessels.join(' ') + ' ' + p.ranks.join(' ')).toLowerCase().includes(q));
+  if (only === 'season') list = list.filter(p => p.thisSeason);
+  if (only === 'returning') list = list.filter(p => p.thisSeason && p.seenBefore);
+  if (only === 'moved') list = list.filter(p => p.changedVessel);
+  document.getElementById('vt-crew-count').textContent = list.length + ' crew';
+  el.innerHTML = list.map(p => `<tr>
+    <td style="font-weight:600;">${esc(p.name)}${p.thisSeason && p.seenBefore ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
+    <td>${p.n}</td>
+    <td>${esc(p.vessels.join(', '))}</td>
+    <td>${esc(p.latestVessel || '')}</td>
+    <td>${esc(p.latestRank || '')}</td>
+    <td>${esc(fmtDate(p.first))}</td><td>${esc(fmtDate(p.last))}</td>
+    <td>${p.changedVessel ? '<span class="vt-chip">Changed vessel</span>' : ''}${p.changedRank ? ' <span class="vt-chip">Changed rank</span>' : ''}</td>
+  </tr>`).join('') || '<tr><td colspan="8" class="db-empty">No crew match</td></tr>';
+}
+
+function vtRenderStats() {
+  const el = document.getElementById('vt-stats');
+  if (!el) return;
+  const today = antiguaToday();
+  const moves = unifiedMovements().filter(m => m.type === 'Arrival' || m.type === 'Departure');
+  if (!moves.length) { el.innerHTML = '<div class="db-empty">No movements on file</div>'; return; }
+
+  const seasons = [...new Set(moves.map(m => seasonLabelFor(m.date)))].sort();
+  const monthOrder = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const cell = {};
+  moves.forEach(m => {
+    const k = seasonLabelFor(m.date) + '|' + (+m.date.slice(5, 7)) + '|' + m.type;
+    cell[k] = (cell[k] || 0) + 1;
+  });
+  let monthTable = '<table class="log-table vt-table"><thead><tr><th rowspan="2">Month</th>' +
+    seasons.map(s => `<th colspan="2" style="text-align:center;">${esc(s)}</th>`).join('') + '</tr><tr>' +
+    seasons.map(() => '<th>Arr</th><th>Dep</th>').join('') + '</tr></thead><tbody>';
+  monthOrder.forEach(mo => {
+    monthTable += `<tr><td style="font-weight:600;">${monthNames[mo]}</td>` + seasons.map(s =>
+      `<td>${cell[s + '|' + mo + '|Arrival'] || 0}</td><td>${cell[s + '|' + mo + '|Departure'] || 0}</td>`).join('') + '</tr>';
+  });
+  monthTable += '<tr style="font-weight:700;"><td>Total</td>' + seasons.map(s => {
+    const inS = moves.filter(m => seasonLabelFor(m.date) === s);
+    return `<td>${inS.filter(m => m.type === 'Arrival').length}</td><td>${inS.filter(m => m.type === 'Departure').length}</td>`;
+  }).join('') + '</tr></tbody></table>';
+
+  const countBy = f => {
+    const c = {};
+    moves.forEach(m => { const k = f(m); if (k) c[k] = (c[k] || 0) + 1; });
+    return Object.entries(c).sort((a, b) => b[1] - a[1]);
+  };
+  const smallTable = (title, head, rows) => `<div class="vt-stat-card"><h3 class="vt-h3">${title}</h3><table class="log-table vt-table"><thead><tr><th>${head}</th><th>Movements</th></tr></thead><tbody>${
+    rows.map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('') || '<tr><td colspan="2" class="db-empty">None</td></tr>'}</tbody></table></div>`;
+
+  // What past seasons did in the same 28 calendar days that are coming up.
+  const upcoming = [];
+  const thisSeason = seasonLabelFor(today);
+  for (let i = 0; i < 28; i++) {
+    const md = addDays(today, i).slice(5);
+    moves.filter(m => m.date.slice(5) === md && seasonLabelFor(m.date) !== thisSeason && m.date < today).forEach(m => upcoming.push({ i, m }));
   }
+  upcoming.sort((a, b) => a.i - b.i || b.m.date.localeCompare(a.m.date));
+  const upcomingRows = upcoming.map(({ m }) => `<tr><td>${esc(fmtDate(m.date))}</td><td>${esc(m.vessel)}</td><td>${esc(m.type)}</td><td>${esc(m.port || '')}</td></tr>`).join('');
+
+  const sourceNote = vtMovements.some(m => m.source_portal === 'eSeaClear' && m.movement_date < seasonStartFor(today))
+    ? '' : '<p class="vt-note">Past seasons hold SailClear records only, so earlier seasons are partial.</p>';
+
+  el.innerHTML = `
+    ${sourceNote}
+    <div class="vt-stat-card"><h3 class="vt-h3">Arrivals and departures by month</h3><div class="log-table-wrap">${monthTable}</div></div>
+    <div class="vt-stat-grid">
+      ${smallTable('Movements by flag', 'Flag', countBy(m => m.src === 'sheet' ? m.raw.flag : ''))}
+      ${smallTable('Movements by vessel type', 'Type', countBy(m => m.src === 'sheet' ? m.raw.vessel_type : ''))}
+      ${smallTable('Most frequent vessels', 'Vessel', countBy(m => m.vessel).slice(0, 12))}
+    </div>
+    <div class="vt-stat-card"><h3 class="vt-h3">Past seasons: movements in the next 28 days of the calendar</h3>
+      <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Date</th><th>Vessel</th><th>Movement</th><th>Port</th></tr></thead><tbody>${upcomingRows || '<tr><td colspan="4" class="db-empty">Nothing on file for these dates</td></tr>'}</tbody></table></div>
+    </div>`;
+}
+
+// ---------- Movements view: clearance log from the sheet ----------
+function vtRenderClearanceLog() {
+  const el = document.getElementById('vt-clearance-rows');
+  if (!el) return;
+  const q = (document.getElementById('vt-clearance-search').value || '').toLowerCase().trim();
+  const scope = document.getElementById('vt-clearance-scope').value;
+  const start = seasonStartFor(antiguaToday());
+  let list = vtMovements.slice().sort((a, b) => b.movement_date.localeCompare(a.movement_date));
+  if (scope === 'season') list = list.filter(m => m.movement_date >= start);
+  if (q) list = list.filter(m => [m.vessel_name, m.port, m.last_port, m.next_port, m.captain_name, m.reference, m.flag].join(' ').toLowerCase().includes(q));
+  document.getElementById('vt-clearance-count').textContent = list.length + ' record' + (list.length === 1 ? '' : 's');
+  el.innerHTML = list.map(m => {
+    const arr = m.movement_type === 'Arrival';
+    return `<tr class="vt-click" onclick="showVesselDetail('${esc(m.vessel_key)}')">
+      <td>${esc(fmtDate(m.movement_date))}</td>
+      <td>${esc((m.movement_time || '').slice(0, 5))}</td>
+      <td style="font-weight:600;">${esc(m.vessel_name)}</td>
+      <td><span class="db-movement-badge ${arr ? 'badge-arriving' : 'badge-departing'}">${esc(m.movement_type)}</span></td>
+      <td>${esc(m.port || '')}</td>
+      <td>${esc(arr ? (m.last_port || '') : (m.next_port || ''))}</td>
+      <td>${m.crew_count == null ? '—' : m.crew_count}</td>
+      <td>${m.guest_count == null ? '—' : m.guest_count}</td>
+      <td>${esc(m.captain_name || '')}</td>
+      <td style="font-size:11px;color:var(--gray-600);">${esc(m.source_portal || '')} ${esc(m.reference || '')}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" class="db-empty">No clearance records match</td></tr>';
 }
 
 // ============================================
@@ -4519,6 +5210,8 @@ const DB_MARINAS = {
   'North Sound Marina':        { lat: 17.0956, lng: -61.7837, abbr: 'NSM' }, // superyachtservicesguide / getamap
   'North Sound':               { lat: 17.0956, lng: -61.7837, abbr: 'NSM' },
   'NSM':                       { lat: 17.0956, lng: -61.7837, abbr: 'NSM' },
+  'Crabbs Peninsula':          { lat: 17.0956, lng: -61.7837, abbr: 'NSM' }, // clearance port name used by the portals
+  'Crabbs':                    { lat: 17.0956, lng: -61.7837, abbr: 'NSM' },
   // Capital / cruise
   'Heritage Quay':             { lat: 17.1212, lng: -61.8458, abbr: 'HQ' }, // Antigua Cruise Port
   "St. John's":                { lat: 17.1212, lng: -61.8458, abbr: 'HQ' },
@@ -4576,7 +5269,7 @@ function dbStaticMarinaList() {
 
 // ─── Dashboard summary calendar (Month / Week / Day) ──────────
 let dbCalView = 'month';
-let dbCalCursor = new Date();
+let dbCalCursor = parseYMD(antiguaToday());
 function dbCalEsc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function dbCalDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function dbCalKind(e){
@@ -4588,7 +5281,11 @@ function dbCalUrgent(e){
   try { if (typeof computeStatus === 'function' && computeStatus(e) === 'overdue') return true; } catch(_){}
   return e.priority === 'high' || e.priority === 'critical';
 }
-function dbCalFor(ds){ return (allEntries || []).filter(e => e.serviceDate === ds); }
+function dbCalFor(ds){
+  // Movements come from the sheet and from the app; services and transfers from the app.
+  const moves = movementsOn(ds).map(m => ({ category: 'Vessel Movement', serviceType: m.type, vessel: m.vessel, serviceDate: ds, priority: 'normal', status: 'completed', workCompleted: 'Yes' }));
+  return moves.concat((allEntries || []).filter(e => e.serviceDate === ds && e.category !== 'Vessel Movement'));
+}
 function dbCalPip(e){
   const kind = dbCalKind(e);
   let label;
@@ -4604,7 +5301,7 @@ function dbCalSetView(v){
   document.querySelectorAll('.db-cal-views button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
   dbCalRender();
 }
-function dbCalToday(){ dbCalCursor = new Date(); dbCalRender(); }
+function dbCalToday(){ dbCalCursor = parseYMD(antiguaToday()); dbCalRender(); }
 function dbCalPrev(){ dbCalShift(-1); }
 function dbCalNext(){ dbCalShift(1); }
 function dbCalShift(dir){
@@ -4616,7 +5313,7 @@ function dbCalShift(dir){
   dbCalRender();
 }
 function dbCalOpenDay(ds){
-  dbCalCursor = new Date(ds + 'T00:00:00');
+  dbCalCursor = parseYMD(ds);
   dbCalSetView('day');
 }
 const DB_CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -4632,7 +5329,7 @@ function dbCalSetTitle(t){ const el = document.getElementById('db-cal-title'); i
 function dbCalRenderMonth(body){
   const y = dbCalCursor.getFullYear(), m = dbCalCursor.getMonth();
   dbCalSetTitle(`${DB_CAL_MONTHS[m]} ${y}`);
-  const todayStr = dbCalDateStr(new Date());
+  const todayStr = antiguaToday();
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   let html = '<div class="db-cal-grid">';
@@ -4655,7 +5352,7 @@ function dbCalRenderWeek(body){
   const start = new Date(cur); start.setDate(cur.getDate() - cur.getDay());
   const end = new Date(start); end.setDate(start.getDate() + 6);
   dbCalSetTitle(`${DB_CAL_MONTHS[start.getMonth()]} ${start.getDate()} – ${DB_CAL_MONTHS[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`);
-  const todayStr = dbCalDateStr(new Date());
+  const todayStr = antiguaToday();
   let html = '<div class="db-cal-week">';
   for (let i = 0; i < 7; i++){
     const d = new Date(start); d.setDate(start.getDate() + i);
@@ -4775,7 +5472,7 @@ function mleRenderMap(){
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }).addTo(mleMap);
   const pts=[];
   mleRows.forEach(r => {
-    const m=L.marker([r.latitude,r.longitude],{ draggable:true }).addTo(mleMap).bindTooltip(r.name,{ direction:'top' });
+    const m=L.marker([r.latitude,r.longitude],{ draggable:true }).addTo(mleMap).bindTooltip(esc(r.name),{ direction:'top' });
     m.on('dragend', () => {
       const ll=m.getLatLng(); const lat=+ll.lat.toFixed(5), lng=+ll.lng.toFixed(5);
       const r2=mleRow(r.id); if(r2){ r2.latitude=lat; r2.longitude=lng; }
@@ -4875,7 +5572,7 @@ function dbInitMap() {
       radius: 6, color: '#0b1d3a', fillColor: '#0b1d3a',
       fillOpacity: 0.25, weight: 1.5
     }).addTo(dbMap)
-      .bindTooltip(name, { permanent: false, direction: 'top', className: 'db-map-tooltip' });
+      .bindTooltip(esc(name), { permanent: false, direction: 'top', className: 'db-map-tooltip' });
   });
 
   dbMapMarkers = [];
@@ -4899,7 +5596,7 @@ function dbRenderMapVessels(inPort) {
 
   // Place a marker for each marina that has vessels
   Object.values(grouped).forEach(({ coords, vessels }) => {
-    const names = vessels.map(v => `<b>${v.vessel}</b> — ${v.location}`).join('<br>');
+    const names = vessels.map(v => `<b>${esc(v.vessel)}</b> — ${esc(v.location)}`).join('<br>');
     const count = vessels.length;
 
     const icon = L.divIcon({
@@ -4931,9 +5628,9 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'calendar', 'map', 'movements', 'urgent', 'transfers',
+  'kpi', 'vessel-activity', 'calendar', 'map', 'movements', 'urgent', 'transfers',
   'services', 'quick-actions', 'week',
-  'in-antigua', 'active-vessels', 'team', 'charges', 'whats-next'
+  'in-antigua', 'crew-alerts', 'active-vessels', 'team', 'charges', 'whats-next'
 ];
 
 function getDashboardConfig(role) {
@@ -4983,47 +5680,63 @@ function navToLogOverdue() {
 }
 
 // ─── Dashboard render functions ───────────────────────────────
+const TRANSFER_TYPES = ['Crew Transfer', 'Guest Transfer', 'Taxi Transfer'];
+function isTransferEntry(e) { return TRANSFER_TYPES.includes(e.serviceType); }
+function usdValue(e) {
+  const amt = parseFloat(e.totalCharge) || 0;
+  return (e.currency || 'USD') === 'XCD' ? amt / XCD_RATE : amt;
+}
+function mvFromTo(m) { return [m.from, m.to].filter(Boolean).join(' → '); }
+// Opens the right thing for a movement: the vessel record for sheet data,
+// the movement form for one typed into the app.
+function openMovement(src, ref) {
+  if (src === 'sheet') return showVesselDetail(ref);
+  showView('movements');
+  setTimeout(() => editMovement(ref), 60);
+}
+function mvClick(m) {
+  return `openMovement('${m.src}','${esc(m.src === 'sheet' ? m.key : m.entryId)}')`;
+}
+
 function renderDashboard() {
+  vtInvalidate();
   // Apply role-based panel visibility (non-disruptive — admin/staff see all)
   applyDashboardConfig(getDashboardConfig(currentUser?.role));
 
-  const base = new Date();
-  base.setDate(base.getDate() + (dashboardDayOffset || 0));
-  const todayStr = base.toISOString().split('T')[0];
+  // The dashboard day is the calendar day in Antigua, not in UTC.
+  const todayStr = antiguaToday(dashboardDayOffset || 0);
+  const base = parseYMD(todayStr);
 
-  // Date display
   const dateEl = document.getElementById('db-today-date');
   if (dateEl) dateEl.textContent = base.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
-  const dayEntries = allEntries.filter(e => e.serviceDate === todayStr);
-  const dayMovements = dayEntries.filter(e => e.category === 'Vessel Movement')
-    .sort((a, b) => (a.eta || a.etd || '99:99').localeCompare(b.eta || b.etd || '99:99'));
-  const dayTransfers = dayEntries.filter(e => e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer')
+  const dayEntries = allEntries.filter(e => e.serviceDate === todayStr && e.category !== 'Vessel Movement');
+  const dayMovements = movementsOn(todayStr);
+  const dayTransfers = dayEntries.filter(isTransferEntry)
     .sort((a, b) => (a.transferPickupTime || '99:99').localeCompare(b.transferPickupTime || '99:99'));
-  const dayServices = dayEntries.filter(e =>
-    e.category !== 'Vessel Movement' &&
-    e.serviceType !== 'Crew Transfer' && e.serviceType !== 'Guest Transfer' && e.serviceType !== 'Taxi Transfer'
-  ).sort((a, b) => (a.eta || a.transferPickupTime || '99:99').localeCompare(b.eta || b.transferPickupTime || '99:99'));
+  const dayServices = dayEntries.filter(e => !isTransferEntry(e))
+    .sort((a, b) => (a.serviceTime || '99:99').localeCompare(b.serviceTime || '99:99'));
 
   dbRenderUrgent(dayTransfers, dayEntries);
   dbRenderMovements(dayMovements);
   dbRenderTransfers(dayTransfers);
   dbRenderServices(dayServices);
-  const inPort = dbRenderInAntigua();
+  const inPort = dbRenderInAntigua(todayStr);
   dbRenderKPI(dayMovements, dayEntries, inPort);
+  vtRenderActivity(todayStr);
+  vtRenderAlerts();
   // Init map first render; update vessel pins every render
   if (!dbMap) dbInitMap();
   dbRenderMapVessels(inPort || []);
-  dbRenderVessels(todayStr);
+  dbRenderVessels(todayStr, dayMovements, dayEntries);
   dbRenderTeam(dayEntries);
   dbRenderCharges(dayEntries);
-  dbRenderWhatsNext(dayEntries, base);
+  dbRenderWhatsNext(dayEntries, dayMovements);
   dbRenderWeek(todayStr);
   if (document.getElementById('db-cal-body')) dbCalRender();
 }
 
 function dbRenderKPI(movements, dayEntries, inPort) {
-  // Vessels in port
   const portCount = (inPort || []).length;
   const portEl = document.getElementById('kpi-in-port');
   const portSub = document.getElementById('kpi-in-port-sub');
@@ -5038,29 +5751,25 @@ function dbRenderKPI(movements, dayEntries, inPort) {
     portSub.title = allNames;
   }
 
-  // Movements today
   const mvEl = document.getElementById('kpi-movements');
   const mvSub = document.getElementById('kpi-movements-sub');
   if (mvEl) mvEl.textContent = movements.length;
   if (mvSub) {
-    const arr = movements.filter(m => m.serviceType === 'Arrival').length;
-    const dep = movements.filter(m => m.serviceType === 'Departure').length;
+    const arr = movements.filter(m => m.type === 'Arrival').length;
+    const dep = movements.filter(m => m.type === 'Departure').length;
     mvSub.textContent = `${arr} arriv · ${dep} depart`;
   }
 
-  // Urgent / overdue KPI — counts overdue + critical-active (deduplicated) + unassigned transfers
+  // Urgent / overdue: overdue + critical-active (deduplicated) + unassigned transfers
   const urgentSet = new Set();
   dayEntries.forEach(e => {
-    if (e.category === 'Vessel Movement') return;
     const st = computeStatus(e);
     const pr = e.priority || 'normal';
     if (st === 'overdue') urgentSet.add(e.entryId);
     if (pr === 'critical' && st !== 'completed' && st !== 'cancelled') urgentSet.add(e.entryId);
   });
-  const unassignedTransfers = dayEntries.filter(e =>
-    (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer') && !e.transferDriverId
-  ).length;
-  const urgCount = urgentSet.size + unassignedTransfers;
+  dayEntries.filter(e => isTransferEntry(e) && !e.transferDriverId).forEach(e => urgentSet.add(e.entryId));
+  const urgCount = urgentSet.size;
   const urgEl = document.getElementById('kpi-urgent');
   const urgSub = document.getElementById('kpi-urgent-sub');
   const urgCard = document.getElementById('kpi-urgent-card');
@@ -5068,12 +5777,12 @@ function dbRenderKPI(movements, dayEntries, inPort) {
   if (urgSub) urgSub.textContent = urgCount === 0 ? 'all clear ✓' : 'action required';
   if (urgCard) urgCard.style.background = urgCount === 0 ? '#15803d' : '#dc2626';
 
-  // Charges
-  const total = dayEntries.reduce((s, e) => s + (parseFloat(e.totalCharge) || 0), 0);
+  // Charges: XCD entries are converted so the total is one currency.
+  const total = dayEntries.reduce((s, e) => s + usdValue(e), 0);
   const chEl = document.getElementById('kpi-charges');
   const chSub = document.getElementById('kpi-charges-sub');
-  if (chEl) chEl.textContent = total > 0 ? '$' + total.toLocaleString('en-US', { maximumFractionDigits: 0 }) : '$0';
-  if (chSub) chSub.textContent = 'EC$ logged today';
+  if (chEl) chEl.textContent = '$' + total.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (chSub) chSub.textContent = 'USD · EC$' + (total * XCD_RATE).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 function dbRenderUrgent(transfers, dayEntries) {
@@ -5091,7 +5800,7 @@ function dbRenderUrgent(transfers, dayEntries) {
 
   // 2. Overdue entries — escalate visually if critical or high
   dayEntries.forEach(e => {
-    if (e.category === 'Vessel Movement') return;
+    if (addedIds.has(e.entryId)) return;
     if (computeStatus(e) !== 'overdue') return;
     const pr = e.priority || 'normal';
     const icon = pr === 'critical' ? '🔴' : (pr === 'high' ? '⚠️' : '⏰');
@@ -5102,7 +5811,6 @@ function dbRenderUrgent(transfers, dayEntries) {
 
   // 3. Critical entries not yet listed (not overdue but still needs action)
   dayEntries.forEach(e => {
-    if (e.category === 'Vessel Movement') return;
     if ((e.priority || 'normal') !== 'critical') return;
     if (addedIds.has(e.entryId)) return;
     const st = computeStatus(e);
@@ -5111,7 +5819,7 @@ function dbRenderUrgent(transfers, dayEntries) {
     addedIds.add(e.entryId);
   });
 
-  // 4. Legacy: "urgent" keyword in specialNotes (only if not already listed)
+  // 4. "urgent" keyword in specialNotes (only if not already listed)
   dayEntries.forEach(e => {
     if (addedIds.has(e.entryId)) return;
     if (e.specialNotes && e.specialNotes.toLowerCase().includes('urgent')) {
@@ -5137,12 +5845,12 @@ function dbRenderUrgent(transfers, dayEntries) {
   panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
   countEl.style.background = '#dc2626';
   itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item" ${u.entryId ? `onclick="openEditEntry('${u.entryId}')"` : ''}>
+    <div class="db-urgent-item" ${u.entryId ? `onclick="openEditEntry('${esc(u.entryId)}')"` : ''}>
       <div class="db-urgent-icon">${u.icon}</div>
       <div>
-        <div class="db-urgent-vessel">${u.vessel}</div>
-        <div class="db-urgent-desc">${u.desc}</div>
-        <div class="db-urgent-deadline">${u.deadline}</div>
+        <div class="db-urgent-vessel">${esc(u.vessel)}</div>
+        <div class="db-urgent-desc">${esc(u.desc)}</div>
+        <div class="db-urgent-deadline">${esc(u.deadline)}</div>
       </div>
     </div>`).join('');
 }
@@ -5150,27 +5858,23 @@ function dbRenderUrgent(transfers, dayEntries) {
 function dbRenderMovements(movements) {
   const el = document.getElementById('db-movements');
   if (!el) return;
-  if (!movements.length) { el.innerHTML = '<div class="db-empty">No movements scheduled for this day</div>'; return; }
+  if (!movements.length) { el.innerHTML = '<div class="db-empty">No movements for this day</div>'; return; }
   el.innerHTML = movements.map(m => {
-    const type = m.serviceType || '';
-    const rawTime = m.eta || m.etd || '';
-    const time = rawTime.substring(0, 5) || '—';
-    const timeLabel = type === 'Arrival' ? 'ETA' : (type === 'Departure' ? 'ETD' : '');
+    const type = m.type || '';
+    const time = m.time || '—';
     let badge = '', icon = '⚓';
-    if (type === 'Arrival') { badge = '<span class="db-movement-badge badge-arriving">ARRIVING</span>'; icon = '🚢'; }
-    else if (type === 'Departure') { badge = '<span class="db-movement-badge badge-departing">DEPARTING</span>'; icon = '⛵'; }
+    if (type === 'Arrival') { badge = '<span class="db-movement-badge badge-arriving">ARRIVAL</span>'; icon = '🚢'; }
+    else if (type === 'Departure') { badge = '<span class="db-movement-badge badge-departing">DEPARTURE</span>'; icon = '⛵'; }
     else if (type === 'Relocation') { badge = '<span class="db-movement-badge badge-relocation">RELOCATION</span>'; icon = '⚓'; }
-    const fromTo = [m.transferFrom, m.transferTo].filter(Boolean).join(' → ') || m.description || '';
+    const people = m.crew != null ? ' · ' + m.crew + ' crew' + (m.guests ? ', ' + m.guests + ' guests' : '') : '';
+    const detail = [mvFromTo(m) || m.notes, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · ');
     return `
-      <div class="db-movement-item" onclick="openEditEntry('${m.entryId}')">
-        <div style="min-width:50px;">
-          <div class="db-movement-time">${time}</div>
-          ${timeLabel ? `<div class="db-movement-time-sub">${timeLabel} ${time}</div>` : ''}
-        </div>
+      <div class="db-movement-item" onclick="${mvClick(m)}">
+        <div style="min-width:50px;"><div class="db-movement-time">${esc(time)}</div></div>
         <div class="db-movement-icon">${icon}</div>
-        <div style="flex:1;">
-          <div class="db-movement-vessel">${m.vessel}</div>
-          <div class="db-movement-detail">${type}${fromTo ? ' · ' + fromTo : ''}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="db-movement-vessel">${esc(m.vessel)}</div>
+          <div class="db-movement-detail">${esc(detail)}${esc(people)}</div>
         </div>
         ${badge}
       </div>`;
@@ -5195,18 +5899,18 @@ function dbRenderTransfers(transfers) {
     else if (st === 'completed') { stCls = 'db-status-confirmed'; stLabel = 'COMPLETED'; }
     else if (st === 'cancelled') { stCls = 'db-status-pending'; stLabel = 'CANCELLED'; }
     const meta = [
-      driverName ? 'Driver: ' + driverName : null,
+      'Driver: ' + driverName,
       t.transferPaxCount ? 'Pax: ' + t.transferPaxCount : null,
-      t.transferFrom ? t.transferFrom : null
+      [t.transferFrom, t.transferTo].filter(Boolean).join(' → ') || null
     ].filter(Boolean).join(' · ');
     return `
-      <div class="db-transfer-item" onclick="openEditEntry('${t.entryId}')">
+      <div class="db-transfer-item" onclick="openEditEntry('${esc(t.entryId)}')">
         <div class="db-transfer-dot"></div>
-        <div class="db-transfer-time">${time}</div>
+        <div class="db-transfer-time">${esc(time)}</div>
         <div style="flex:1;">
-          <div class="db-transfer-type">${t.serviceType}</div>
-          <div class="db-transfer-vessel">${t.vessel}</div>
-          <div class="db-transfer-meta">${meta}</div>
+          <div class="db-transfer-type">${esc(t.serviceType)}</div>
+          <div class="db-transfer-vessel">${esc(t.vessel)}</div>
+          <div class="db-transfer-meta">${esc(meta)}</div>
         </div>
         <span class="db-transfer-status ${stCls}">${stLabel}</span>
       </div>`;
@@ -5223,7 +5927,7 @@ function dbRenderServices(services) {
     'Logistics & Shipping': 'cat-logistics'
   };
   const rows = services.map(s => {
-    const time = (s.eta || s.transferPickupTime || '').substring(0, 5) || '—';
+    const time = (s.serviceTime || '').substring(0, 5) || '—';
     const st = computeStatus(s);
     let dotCls = 'db-dot-scheduled', stLabel = 'Scheduled';
     if (st === 'completed') { dotCls = 'db-dot-completed'; stLabel = 'Completed'; }
@@ -5235,11 +5939,11 @@ function dbRenderServices(services) {
     else if (st === 'cancelled') { dotCls = 'db-dot-cancelled'; stLabel = 'Cancelled'; }
     const catCls = catMap[s.category] || '';
     return `
-      <tr>
-        <td>${time}</td>
-        <td><span class="db-svc-badge ${catCls}">${s.category || 'General'}</span></td>
-        <td>${s.vessel}</td>
-        <td>${s.staffMember || '—'}</td>
+      <tr style="cursor:pointer;" onclick="openEditEntry('${esc(s.entryId)}')">
+        <td>${esc(time)}</td>
+        <td><span class="db-svc-badge ${catCls}">${esc(s.category || 'General')}</span></td>
+        <td>${esc(s.vessel)}</td>
+        <td>${esc(s.staffMember || '—')}</td>
         <td><span class="db-dot-status"><span class="db-dot ${dotCls}"></span>${stLabel}</span></td>
       </tr>`;
   }).join('');
@@ -5250,48 +5954,13 @@ function dbRenderServices(services) {
     </table>`;
 }
 
-// NOTE: In-port status is derived from the latest Vessel Movement entry per vessel,
-// not from a dedicated vessel status field. If movement records are missing or outdated,
-// the count and panel will not reflect reality. Keep movement data current.
-function dbRenderInAntigua() {
+// In port = an arrival on or before the chosen day with no departure on or before it.
+// Same rule as the timeline and the vessel records (vtVisits / visitStatus).
+function dbRenderInAntigua(dayStr) {
   const el = document.getElementById('db-in-antigua');
   const countEl = document.getElementById('db-antigua-count');
-  if (!el) return;
-
-  // Mirror the timeline's presence logic:
-  // A vessel is "in port" when its most recent Vessel Movement is an Arrival or Relocation
-  // with no subsequent Departure dated after it.
-  const vesselNames = [...new Set(
-    allEntries.filter(e => e.category === 'Vessel Movement').map(e => e.vessel)
-  )].filter(Boolean);
-
-  const inPort = [];
-
-  vesselNames.forEach(v => {
-    const mvs = allEntries
-      .filter(e => e.category === 'Vessel Movement' && e.vessel === v && e.serviceDate)
-      .sort((a, b) => {
-        // Sort by date then time
-        const da = a.serviceDate + ' ' + (a.eta || a.etd || '00:00');
-        const db = b.serviceDate + ' ' + (b.eta || b.etd || '00:00');
-        return db.localeCompare(da); // newest first
-      });
-
-    if (!mvs.length) return;
-    const latest = mvs[0];
-
-    // Vessel is in port if the latest movement is not a Departure
-    if (latest.serviceType === 'Arrival' || latest.serviceType === 'Relocation') {
-      const location = latest.transferTo || latest.marina || latest.transferFrom || 'Antigua';
-      inPort.push({
-        vessel: v,
-        location,
-        since: latest.serviceDate,
-        type: latest.serviceType
-      });
-    }
-  });
-
+  const inPort = vtInPort(dayStr);
+  if (!el) return inPort;
   if (countEl) countEl.textContent = inPort.length;
 
   if (!inPort.length) {
@@ -5300,52 +5969,50 @@ function dbRenderInAntigua() {
   }
 
   el.innerHTML = inPort.map(v => {
-    const sinceDate = v.since
-      ? new Date(v.since).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-      : '—';
+    const people = v.crewIn != null ? v.crewIn + ' crew' + (v.guestsIn ? ' · ' + v.guestsIn + ' guests' : '') : '';
+    const since = v.since ? 'Since ' + fmtShort(v.since) + (v.days != null ? ' · ' + v.days + ' d' : '') : 'Arrival not on file';
+    const leaving = v.intendedDeparture ? ' · intends to leave ' + fmtShort(v.intendedDeparture) : '';
     return `
-      <div class="db-vessel-card" onclick="showView('timeline')">
+      <div class="db-vessel-card" onclick="showVesselDetail('${esc(v.key)}')">
         <div class="db-vessel-thumb">🚢</div>
         <div style="flex:1;min-width:0;">
-          <div class="db-vessel-name">${v.vessel}</div>
+          <div class="db-vessel-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before">★</span>' : ''}</div>
           <div class="db-vessel-location">
-            <span class="db-vessel-status-dot" style="background:#15803d;"></span>${v.location}
+            <span class="db-vessel-status-dot" style="background:#15803d;"></span>${esc(v.location)}${people ? ' · ' + esc(people) : ''}
           </div>
-          <div class="db-vessel-jobs" style="color:var(--gray-500);">Since ${sinceDate}</div>
+          <div class="db-vessel-jobs" style="color:var(--gray-500);">${esc(since + leaving)}</div>
         </div>
-        <span class="db-movement-badge badge-arriving" style="align-self:center;">IN PORT</span>
       </div>`;
   }).join('');
 
   return inPort;
 }
 
-function dbRenderVessels(todayStr) {
+function dbRenderVessels(todayStr, dayMovements, dayEntries) {
   const el = document.getElementById('db-vessels');
   if (!el) return;
-  const names = [...new Set(allEntries.filter(e => e.serviceDate === todayStr).map(e => e.vessel))].filter(Boolean);
-  if (!names.length) { el.innerHTML = '<div class="db-empty">No active vessels today</div>'; return; }
-  el.innerHTML = names.map(v => {
-    const mvs = allEntries.filter(e => e.vessel === v && e.category === 'Vessel Movement' && e.serviceDate === todayStr)
-      .sort((a, b) => (a.eta || a.etd || '').localeCompare(b.eta || b.etd || ''));
-    const mv = mvs[0];
-    const type = mv ? mv.serviceType : 'In Port';
+  const byKey = {};
+  dayMovements.forEach(m => { (byKey[m.key] = byKey[m.key] || { name: m.vessel, mv: null, jobs: 0 }).mv = byKey[m.key].mv || m; });
+  dayEntries.forEach(e => { const k = vtKey(e.vessel); if (!k) return; (byKey[k] = byKey[k] || { name: e.vessel, mv: null, jobs: 0 }).jobs++; });
+  const list = Object.entries(byKey).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  if (!list.length) { el.innerHTML = '<div class="db-empty">No active vessels today</div>'; return; }
+  el.innerHTML = list.map(([key, v]) => {
+    const type = v.mv ? v.mv.type : '';
     let dotColor = '#6b7280', statusLabel = 'In Port';
     if (type === 'Arrival') { dotColor = '#15803d'; statusLabel = 'Arriving'; }
     else if (type === 'Departure') { dotColor = '#dc2626'; statusLabel = 'Departing'; }
-    const location = mv ? (mv.transferTo || mv.transferFrom || mv.marina || '') : '';
-    const etime = mv ? (mv.eta || mv.etd || '') : '';
-    const etimeLabel = type === 'Arrival' ? 'ETA' : (type === 'Departure' ? 'ETD' : '');
-    const jobCount = allEntries.filter(e => e.vessel === v && e.serviceDate === todayStr && e.category !== 'Vessel Movement').length;
+    else if (type === 'Relocation') { dotColor = '#a16207'; statusLabel = 'Relocating'; }
+    const location = v.mv ? (v.mv.to || v.mv.from || '') : '';
+    const etime = v.mv ? v.mv.time : '';
     return `
-      <div class="db-vessel-card" onclick="showView('timeline')">
+      <div class="db-vessel-card" onclick="showVesselDetail('${esc(key)}')">
         <div class="db-vessel-thumb">🚢</div>
         <div style="flex:1;min-width:0;">
-          <div class="db-vessel-name">${v}</div>
-          <div class="db-vessel-location"><span class="db-vessel-status-dot" style="background:${dotColor};"></span>${location || statusLabel}</div>
-          ${jobCount > 0 ? `<div class="db-vessel-jobs">${jobCount} open job${jobCount !== 1 ? 's' : ''}</div>` : ''}
+          <div class="db-vessel-name">${esc(v.name)}</div>
+          <div class="db-vessel-location"><span class="db-vessel-status-dot" style="background:${dotColor};"></span>${esc(statusLabel)}${location ? ' · ' + esc(location) : ''}</div>
+          ${v.jobs > 0 ? `<div class="db-vessel-jobs">${v.jobs} job${v.jobs !== 1 ? 's' : ''} today</div>` : ''}
         </div>
-        ${etime ? `<div><div class="db-vessel-etime">${etime.substring(0,5)}</div><div class="db-vessel-etime-label">${etimeLabel}</div></div>` : ''}
+        ${etime ? `<div><div class="db-vessel-etime">${esc(etime)}</div></div>` : ''}
       </div>`;
   }).join('');
 }
@@ -5364,7 +6031,7 @@ function dbRenderTeam(dayEntries) {
     const label = count === 1 ? '1 job' : count + ' jobs';
     return `
       <div class="db-team-row">
-        <div class="db-team-name">${name}</div>
+        <div class="db-team-name">${esc(name)}</div>
         <div class="db-team-count">${label}</div>
         <div class="db-team-bar-track"><div class="db-team-bar-fill" style="width:${pct}%;background:${col};"></div></div>
       </div>`;
@@ -5376,88 +6043,78 @@ function dbRenderCharges(dayEntries) {
   if (!el) return;
   const vCharges = {};
   dayEntries.forEach(e => {
-    if (e.vessel && parseFloat(e.totalCharge) > 0) {
-      vCharges[e.vessel] = (vCharges[e.vessel] || 0) + parseFloat(e.totalCharge);
-    }
+    const amt = usdValue(e);
+    if (e.vessel && amt > 0) vCharges[e.vessel] = (vCharges[e.vessel] || 0) + amt;
   });
   if (!Object.keys(vCharges).length) { el.innerHTML = '<div class="db-charge-row"><span class="db-charge-vessel" style="color:var(--gray-500);">No charges logged today</span></div>'; return; }
   const total = Object.values(vCharges).reduce((a, b) => a + b, 0);
   const fmt = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   el.innerHTML = Object.entries(vCharges).map(([v, amt]) => `
     <div class="db-charge-row">
-      <span class="db-charge-vessel">${v}</span>
+      <span class="db-charge-vessel">${esc(v)}</span>
       <span class="db-charge-amt">${fmt(amt)}</span>
     </div>`).join('') + `
-    <div class="db-charge-total-row"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
+    <div class="db-charge-total-row"><span>TOTAL (USD)</span><span>${fmt(total)}</span></div>`;
 }
 
-function dbRenderWhatsNext(dayEntries, baseDate) {
+function dbRenderWhatsNext(dayEntries, dayMovements) {
   const el = document.getElementById('db-whats-next');
   if (!el) return;
-  const now = new Date();
-  const isToday = baseDate.toDateString() === now.toDateString();
-  const nowTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-  const upcoming = dayEntries
-    .map(e => ({ e, t: e.transferPickupTime || e.eta || e.etd || '' }))
-    .filter(({ t }) => t && (!isToday || t > nowTime))
-    .sort((a, b) => a.t.localeCompare(b.t))
-    .slice(0, 5);
+  const isToday = (dashboardDayOffset || 0) === 0;
+  const nowTime = antiguaNowTime();
+  const items = [];
+  dayEntries.forEach(e => {
+    const t = (e.transferPickupTime || e.serviceTime || '').substring(0, 5);
+    if (t) items.push({ t, desc: `${e.category || e.serviceType || 'Service'} — ${e.vessel}${e.staffMember ? ' (' + e.staffMember + ')' : ''}` });
+  });
+  dayMovements.forEach(m => { if (m.time) items.push({ t: m.time, desc: `${m.type} — ${m.vessel}` }); });
+  const upcoming = items.filter(x => !isToday || x.t > nowTime).sort((a, b) => a.t.localeCompare(b.t)).slice(0, 5);
   if (!upcoming.length) { el.innerHTML = '<div class="db-empty">Nothing more scheduled</div>'; return; }
-  el.innerHTML = upcoming.map(({ e, t }) => {
-    const time = t.substring(0, 5);
-    const desc = e.category === 'Vessel Movement'
-      ? `${e.serviceType} — ${e.vessel}`
-      : `${e.category || e.serviceType || 'Service'} — ${e.vessel}${e.staffMember ? ' (' + e.staffMember + ')' : ''}`;
-    return `<div class="db-next-row"><span class="db-next-time">${time}</span><span class="db-next-desc">${desc}</span></div>`;
-  }).join('');
+  el.innerHTML = upcoming.map(x => `<div class="db-next-row"><span class="db-next-time">${esc(x.t)}</span><span class="db-next-desc">${esc(x.desc)}</span></div>`).join('');
 }
 
 function dbRenderWeek(todayStr) {
   const el = document.getElementById('db-week');
   if (!el) return;
-  const base = new Date(todayStr);
-  const weekMvs = [];
+  const rows = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i);
-    const dStr = d.toISOString().split('T')[0];
-    allEntries.filter(e => e.serviceDate === dStr && e.category === 'Vessel Movement')
-      .forEach(m => weekMvs.push({ m, d, dStr }));
+    const dStr = addDays(todayStr, i);
+    movementsOn(dStr).forEach(m => rows.push({ dStr, type: m.type, vessel: m.vessel, detail: mvFromTo(m) || m.notes, time: m.time, click: mvClick(m) }));
   }
-  if (!weekMvs.length) { el.innerHTML = '<div class="db-empty">No movements in the next 7 days</div>'; return; }
-  weekMvs.sort((a, b) => a.dStr.localeCompare(b.dStr));
-  el.innerHTML = weekMvs.map(({ m, d, dStr }) => {
-    const dateLabel = dStr === todayStr ? 'Today' : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    const fromTo = [m.transferFrom, m.transferTo].filter(Boolean).join(' → ') || m.description || '';
+  // Departure dates given on arrival notices, for vessels still in port
+  vtInPort(todayStr).forEach(v => {
+    if (v.intendedDeparture && v.intendedDeparture >= todayStr && v.intendedDeparture <= addDays(todayStr, 6)) {
+      rows.push({ dStr: v.intendedDeparture, type: 'Intended departure', vessel: v.vessel, detail: 'per arrival notice', time: '', click: `showVesselDetail('${esc(v.key)}')` });
+    }
+  });
+  if (!rows.length) { el.innerHTML = '<div class="db-empty">No movements in the next 7 days</div>'; return; }
+  rows.sort((a, b) => a.dStr.localeCompare(b.dStr) || (a.time || '99:99').localeCompare(b.time || '99:99'));
+  el.innerHTML = rows.map(r => {
+    const dateLabel = r.dStr === todayStr ? (dashboardDayOffset ? fmtDate(r.dStr, { weekday: 'short', day: 'numeric', month: 'short' }) : 'Today') : fmtDate(r.dStr, { weekday: 'short', day: 'numeric', month: 'short' });
     let badgeCls = 'badge-inport';
-    if (m.serviceType === 'Arrival') badgeCls = 'badge-arriving';
-    else if (m.serviceType === 'Departure') badgeCls = 'badge-departing';
-    else if (m.serviceType === 'Relocation') badgeCls = 'badge-relocation';
-    const time = (m.eta || m.etd || '').substring(0, 5);
+    if (r.type === 'Arrival') badgeCls = 'badge-arriving';
+    else if (r.type === 'Departure') badgeCls = 'badge-departing';
+    else if (r.type === 'Relocation') badgeCls = 'badge-relocation';
     return `
-      <div class="db-week-row" onclick="showDayDetail('${dStr}')">
-        <div class="db-week-date">${dateLabel}</div>
-        <div style="min-width:80px;"><span class="db-movement-badge ${badgeCls}" style="font-size:10px;padding:2px 8px;">${m.serviceType}</span></div>
-        <div class="db-week-detail">${m.vessel}${fromTo ? ' · ' + fromTo : ''}${time ? ' · ' + time : ''}</div>
+      <div class="db-week-row" onclick="${r.click}">
+        <div class="db-week-date">${esc(dateLabel)}</div>
+        <div style="min-width:80px;"><span class="db-movement-badge ${badgeCls}" style="font-size:10px;padding:2px 8px;">${esc(r.type)}</span></div>
+        <div class="db-week-detail">${esc(r.vessel)}${r.detail ? ' · ' + esc(r.detail) : ''}${r.time ? ' · ' + esc(r.time) : ''}</div>
       </div>`;
   }).join('');
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
-  const { data, error } = await sb.auth.getSession();
-  if (data.session) {
+  // A password reset link lands here with a recovery token in the address.
+  const arrivingFromResetLink = /type=recovery/.test(window.location.hash || '');
+  const { data } = await sb.auth.getSession();
+  if (data && data.session && (arrivingFromResetLink || passwordRecoveryMode)) {
+    document.getElementById('authGate').classList.remove('hidden');
+    toggleAuthPanel('setPassword');
+  } else if (data && data.session) {
     currentUser = data.session.user;
-    await loadUserProfile();
-    document.getElementById('authGate').classList.add('hidden');
-    await loadEntries();
-    await loadVessels();
-    await loadDrivers();
-    await loadMapLocations();
-    await loadStaff();
-    updateSubmissionDateTime();
-    subscribeToChanges();
-    showView('dashboard');
+    await enterApp();
   }
 
   document.getElementById('authEmail').addEventListener('keypress', (e) => {
@@ -5469,10 +6126,15 @@ document.addEventListener('DOMContentLoaded', async function() {
   document.getElementById('signupPassword').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSignup();
   });
+  document.getElementById('resetEmail').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleForgotPassword();
+  });
+  document.getElementById('newPasswordConfirm').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSetNewPassword();
+  });
 
   resetForm();
   calculateTotal();
-  updateStatusPills();
   updateBillingTypeBtns();
 });
 </script>
