@@ -882,6 +882,7 @@
   #db-services { overflow-x: auto; }
   .tab-bar { overflow-x: auto; }
   .tab-btn { white-space: nowrap; }
+  .db-kpi-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .user-row select { padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 12px; }
 
 </style>
@@ -1794,11 +1795,6 @@
         <div class="db-kpi-value" id="kpi-urgent">—</div>
         <div class="db-kpi-sub" id="kpi-urgent-sub">action required</div>
       </div>
-      <div class="db-kpi-card kpi-gold">
-        <div class="db-kpi-label">Today's Charges</div>
-        <div class="db-kpi-value" id="kpi-charges">—</div>
-        <div class="db-kpi-sub" id="kpi-charges-sub">EC$ logged today</div>
-      </div>
     </div>
 
     <!-- Antigua vessel activity (from the sheet) -->
@@ -1978,16 +1974,6 @@
             <span class="db-panel-title">Team Workload</span>
           </div>
           <div id="db-team"></div>
-        </div>
-
-        <!-- Today's Charges -->
-        <div class="db-panel" data-db-panel="charges">
-          <div class="db-panel-header">
-            <span style="font-size:15px;">💰</span>
-            <span class="db-panel-title">Today's Charges</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">View →</a>
-          </div>
-          <div id="db-charges"></div>
         </div>
 
         <!-- What's Next -->
@@ -5630,7 +5616,7 @@ function dbRenderMapVessels(inPort) {
 const DB_ALL_PANELS = [
   'kpi', 'vessel-activity', 'calendar', 'map', 'movements', 'urgent', 'transfers',
   'services', 'quick-actions', 'week',
-  'in-antigua', 'crew-alerts', 'active-vessels', 'team', 'charges', 'whats-next'
+  'in-antigua', 'crew-alerts', 'active-vessels', 'team', 'whats-next'
 ];
 
 function getDashboardConfig(role) {
@@ -5682,10 +5668,6 @@ function navToLogOverdue() {
 // ─── Dashboard render functions ───────────────────────────────
 const TRANSFER_TYPES = ['Crew Transfer', 'Guest Transfer', 'Taxi Transfer'];
 function isTransferEntry(e) { return TRANSFER_TYPES.includes(e.serviceType); }
-function usdValue(e) {
-  const amt = parseFloat(e.totalCharge) || 0;
-  return (e.currency || 'USD') === 'XCD' ? amt / XCD_RATE : amt;
-}
 function mvFromTo(m) { return [m.from, m.to].filter(Boolean).join(' → '); }
 // Opens the right thing for a movement: the vessel record for sheet data,
 // the movement form for one typed into the app.
@@ -5730,7 +5712,6 @@ function renderDashboard() {
   dbRenderMapVessels(inPort || []);
   dbRenderVessels(todayStr, dayMovements, dayEntries);
   dbRenderTeam(dayEntries);
-  dbRenderCharges(dayEntries);
   dbRenderWhatsNext(dayEntries, dayMovements);
   dbRenderWeek(todayStr);
   if (document.getElementById('db-cal-body')) dbCalRender();
@@ -5776,13 +5757,6 @@ function dbRenderKPI(movements, dayEntries, inPort) {
   if (urgEl) urgEl.textContent = urgCount;
   if (urgSub) urgSub.textContent = urgCount === 0 ? 'all clear ✓' : 'action required';
   if (urgCard) urgCard.style.background = urgCount === 0 ? '#15803d' : '#dc2626';
-
-  // Charges: XCD entries are converted so the total is one currency.
-  const total = dayEntries.reduce((s, e) => s + usdValue(e), 0);
-  const chEl = document.getElementById('kpi-charges');
-  const chSub = document.getElementById('kpi-charges-sub');
-  if (chEl) chEl.textContent = '$' + total.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (chSub) chSub.textContent = 'USD · EC$' + (total * XCD_RATE).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 function dbRenderUrgent(transfers, dayEntries) {
@@ -6036,25 +6010,6 @@ function dbRenderTeam(dayEntries) {
         <div class="db-team-bar-track"><div class="db-team-bar-fill" style="width:${pct}%;background:${col};"></div></div>
       </div>`;
   }).join('');
-}
-
-function dbRenderCharges(dayEntries) {
-  const el = document.getElementById('db-charges');
-  if (!el) return;
-  const vCharges = {};
-  dayEntries.forEach(e => {
-    const amt = usdValue(e);
-    if (e.vessel && amt > 0) vCharges[e.vessel] = (vCharges[e.vessel] || 0) + amt;
-  });
-  if (!Object.keys(vCharges).length) { el.innerHTML = '<div class="db-charge-row"><span class="db-charge-vessel" style="color:var(--gray-500);">No charges logged today</span></div>'; return; }
-  const total = Object.values(vCharges).reduce((a, b) => a + b, 0);
-  const fmt = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  el.innerHTML = Object.entries(vCharges).map(([v, amt]) => `
-    <div class="db-charge-row">
-      <span class="db-charge-vessel">${esc(v)}</span>
-      <span class="db-charge-amt">${fmt(amt)}</span>
-    </div>`).join('') + `
-    <div class="db-charge-total-row"><span>TOTAL (USD)</span><span>${fmt(total)}</span></div>`;
 }
 
 function dbRenderWhatsNext(dayEntries, dayMovements) {
