@@ -1143,6 +1143,11 @@
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
+  .db-panel-links { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; }
+  .sync-link { display: inline-flex; align-items: center; gap: 5px; background: var(--white); border: 1px solid var(--gray-300); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--teal); cursor: pointer; white-space: nowrap; }
+  .sync-link:hover { border-color: var(--teal); }
+  .sync-link .ico { font-size: 13px; }
+
 </style>
 </head>
 
@@ -1260,7 +1265,7 @@
     <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
       <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
-      <button class="hdr-btn" id="refreshBtn" onclick="refreshAll()" title="Load the latest data"><i data-ic="refresh"></i><span class="hdr-txt">Refresh</span></button>
+      <button class="hdr-btn" id="refreshBtn" onclick="syncNow()" title="Pull the latest from the Google Sheet and reload everything"><i data-ic="refresh"></i><span class="hdr-txt" id="refreshLbl">Sync</span></button>
       <button class="hdr-btn" id="settingsBtn" onclick="openSettingsModal()" title="Your profile, vessels, drivers and admin tools"><i data-ic="settings"></i><span class="hdr-txt">Settings</span></button>
       <button class="hdr-btn" onclick="handleLogout()" title="Sign out"><i data-ic="logout"></i><span class="hdr-txt">Sign out</span></button>
     </div>
@@ -2055,7 +2060,8 @@
           <div class="db-panel-title">Vessels in Antigua this season</div>
           <div class="db-panel-sub" id="vt-activity-sub"></div>
         </div>
-        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">All vessels &rarr;</a>
+        <span class="db-panel-links"><button type="button" class="sync-link" id="syncLink" onclick="syncNow()" title="Pull the latest from the Google Sheet now"><i data-ic="refresh"></i><span id="syncLinkLbl">Sync now</span></button>
+        <a href="javascript:void(0)" class="db-panel-link" style="margin-left:0;" onclick="showView('vessels')">All vessels &rarr;</a></span>
       </div>
       <div id="vt-activity"></div>
     </div>
@@ -2565,6 +2571,39 @@ function refreshViews() {
   if (viewVisible('movements')) renderMovementsList();
   if (viewVisible('timeline')) renderTimeline();
   if (viewVisible('vessels')) renderVesselsView();
+}
+// "Sync": asks the Google Sheet to push a fresh copy now (through the sheet-pull server
+// function), then reloads everything. If the sheet cannot be reached, the app still
+// reloads what the database already holds and says so.
+let syncRunning = false;
+async function syncNow() {
+  if (syncRunning) return;
+  syncRunning = true;
+  const btns = [document.getElementById('refreshBtn'), document.getElementById('syncLink')].filter(Boolean);
+  const labels = [['refreshLbl', 'Sync'], ['syncLinkLbl', 'Sync now']];
+  btns.forEach(b => { b.disabled = true; const s = b.querySelector('.ico'); if (s) s.classList.add('spin'); });
+  labels.forEach(([id]) => { const el = document.getElementById(id); if (el) el.textContent = 'Syncing…'; });
+  let msg;
+  try {
+    const { data, error } = await sb.functions.invoke('sheet-pull', { body: {} });
+    if (error) {
+      let detail = '';
+      try { const j = await error.context.json(); detail = j && j.error; } catch (e) {}
+      throw new Error(detail || error.message || 'no answer');
+    }
+    if (!data || !data.ok) throw new Error((data && data.error) || 'no answer');
+    msg = data.skipped ? 'Already up to date. The sheet synced a moment ago.' : 'Synced from the Google Sheet';
+  } catch (err) {
+    msg = 'Could not sync from the Google Sheet (' + (err.message || err) + '). Showing the last saved copy.';
+  }
+  try {
+    await Promise.all([loadEntries(), loadVessels(), loadVesselTracking()]);
+    refreshViews();
+  } catch (e) { console.error('Reload after sync failed:', e); }
+  btns.forEach(b => { b.disabled = false; const s = b.querySelector('.ico'); if (s) s.classList.remove('spin'); });
+  labels.forEach(([id, text]) => { const el = document.getElementById(id); if (el) el.textContent = text; });
+  syncRunning = false;
+  showToast(msg);
 }
 async function refreshAll() {
   const btn = document.getElementById('refreshBtn');
@@ -4051,7 +4090,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   const text = String(msg == null ? '' : msg);
   const bad = /fail|could not|did not|cannot|error|not found|read-only|only an admin|blocked|invalid/i.test(text);
-  const ok = !bad && /saved|added|updated|removed|deleted|completed|reopened|cancelled|renamed|up to date|imported|copied/i.test(text);
+  const ok = !bad && /saved|added|updated|removed|deleted|completed|reopened|cancelled|renamed|up to date|imported|copied|synced from/i.test(text);
   t.className = bad ? 'toast-bad' : ok ? 'toast-ok' : '';
   t.innerHTML = ic(bad ? 'alert' : ok ? 'check' : 'info') + '<span>' + esc(text) + '</span>';
   clearTimeout(t._timer);
@@ -5334,7 +5373,7 @@ function vtRenderActivity(dayStr) {
     const when = vtLastSync && vtLastSync.ran_at
       ? new Date(vtLastSync.ran_at).toLocaleString('en-GB', { timeZone: APP_TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
       : null;
-    sub.textContent = 'Season ' + seasonLabelFor(dayStr) + (when ? ' · Google Sheet last synced ' + when + (vtLastSync.ok ? '' : ' (the last sync failed)') : ' · the Google Sheet has not synced yet');
+    sub.textContent = 'Season ' + seasonLabelFor(dayStr) + (when ? ' · Google Sheet last synced ' + when + (vtLastSync.ok ? '' : ' (the last sync failed)') : ' · the Google Sheet has not synced yet. Press Sync now.');
   }
   const open = uiGet('tiles', '0') === '1';
   el.innerHTML = `<div class="vt-tiles${open ? ' open' : ''}" id="vtTiles">${tiles}</div>
