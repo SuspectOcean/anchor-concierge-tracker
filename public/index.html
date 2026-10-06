@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Anchor Concierge &amp; Super Yacht Services — Service Tracker</title>
+<title>Anchor Concierge Service Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <style>
   :root {
@@ -940,6 +940,134 @@
   .vt-table a { color: var(--teal); font-weight: 600; text-decoration: none; }
   .user-row select { padding: 5px 8px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 12px; }
 
+  /* ===== Clean-up pass (Oct 2026): shared look, phone layout ===== */
+  .hdr-btn { background: none; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+  .hdr-btn:hover { background: rgba(255,255,255,0.12); }
+  .view-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 2px 14px; }
+  .view-head h2 { font-size: 20px; font-weight: 700; color: var(--navy); margin: 0; }
+  .view-head p { font-size: 13px; color: var(--gray-600); margin: 3px 0 0; max-width: 720px; line-height: 1.45; }
+  .view-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-primary-sm { background: var(--teal); color: #fff; border: 1px solid var(--teal); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-primary-sm:hover { filter: brightness(1.08); }
+  .btn-ghost-sm { background: #fff; border: 1px solid var(--gray-300); color: var(--navy); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-ghost-sm:hover { border-color: var(--teal); color: var(--teal); }
+  .empty-state { padding: 26px 16px; text-align: center; color: var(--gray-600); font-size: 13px; line-height: 1.5; }
+  .empty-state b { display: block; color: var(--navy); font-size: 14px; margin-bottom: 4px; }
+  .empty-state button { margin-top: 10px; }
+  .db-empty { line-height: 1.5; }
+  .section-header .badge.badge-soft { background: var(--gray-100); color: var(--gray-600); font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .form-hint { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+  input.plain-readonly { border: none; background: none; padding: 0; width: 132px; font-size: 12px; color: var(--gray-600); font-weight: 600; display: inline; min-height: 0; }
+  /* one status badge everywhere */
+  .status-badge, .log-table .status-badge, .ag-row .status-badge, #vesselDetailTitle .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; text-transform: none; letter-spacing: 0; }
+  #vesselDetailTitle .status-badge { vertical-align: middle; margin-left: 6px; }
+  .day-job-status { text-transform: none; }
+  /* tabs */
+  .tab-btn { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tab-ico { font-size: 14px; line-height: 1; }
+  .tab-lbl-s { display: none; }
+  .tab-btn.tab-new { color: var(--teal); font-weight: 700; }
+  .tab-btn.tab-new.active { background: var(--teal); color: #fff; }
+  /* toolbars */
+  .vt-toolbar select { width: auto; max-width: 100%; }
+  .sort-phone { display: none; }
+  .row-link { background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--teal); padding: 2px 4px; }
+  .row-link-danger { color: var(--red); }
+  .log-table tr.vt-click td { cursor: pointer; }
+  .vt-tile-click { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .vt-tile-click:hover { border-color: var(--teal); background: #f0faf8; }
+  .vt-alert-click { cursor: pointer; }
+  .vt-alert-click:hover { background: var(--gray-50); }
+  .vt-stat-card .log-table { min-width: 0; }
+  .vt-act-danger { color: var(--red); margin-left: auto; }
+  .vt-act-danger:hover { border-color: var(--red); color: var(--red); }
+  .rec-back { background: var(--gray-100); border: 1px solid var(--gray-300); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--navy); cursor: pointer; margin-right: 10px; white-space: nowrap; }
+  .modal-header h2 { flex: 1; min-width: 0; }
+  .set-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-500); margin: 14px 0 2px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+  .set-sec-head { text-align: left; }
+  .set-sec-head small { display: block; font-size: 11px; font-weight: 400; color: var(--gray-500); margin-top: 1px; }
+  .cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .cal-cell { min-width: 0; overflow: hidden; }
+  .cal-legend { flex-wrap: wrap; }
+  .day-add-btn { width: 100%; margin-top: 10px; }
+
+  @media (max-width: 700px) {
+    /* header: one compact row */
+    .app-header .subtitle, #currentUserName, .hdr-txt { display: none; }
+    .header-inner { flex-wrap: nowrap; }
+    .hdr-btn { padding: 7px 10px; font-size: 13px; }
+    /* navigation moves to the bottom, within thumb reach */
+    .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; margin: 0; border-radius: 0; gap: 0; overflow: visible;
+      padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px)); height: calc(58px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; box-shadow: 0 -2px 12px rgba(0,0,0,0.12); border-top: 1px solid var(--gray-200); }
+    .tab-btn { flex: 1 1 0; flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 10px; font-weight: 600; min-width: 0; border-radius: 8px; }
+    .tab-ico { font-size: 18px; }
+    .tab-lbl { display: none; }
+    .tab-lbl-s { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .app-main { padding-bottom: 86px; }
+    body.on-form .app-main { padding-bottom: 170px; }
+    .submit-bar { bottom: calc(58px + env(safe-area-inset-bottom, 0px)); padding-bottom: 10px; }
+    #toast { bottom: 150px; }
+    .db-layout { grid-template-columns: minmax(0, 1fr); }
+    .view-head { align-items: flex-start; }
+    .view-head h2 { font-size: 18px; }
+    .view-head-actions { width: 100%; }
+    .view-head-actions button { flex: 1; padding: 12px 10px; }
+    .db-kpi-card { padding: 12px 10px; }
+    .db-kpi-label { font-size: 9px; }
+    .ag-actions { width: 100%; margin-left: 0; }
+    .ag-actions button { flex: 1; padding: 10px; }
+    .db-panel-header { flex-wrap: wrap; }
+    .ag-detail { white-space: normal; }
+    .vt-toolbar select, .vt-toolbar input[type="search"] { flex: 1 1 100%; width: 100%; font-size: 16px; }
+    .sort-phone { display: block; }
+    .vt-toolbar .vt-count { margin-left: 0; }
+    .vt-tabs button { flex: 1; padding: 10px 6px; }
+    /* tables become a stack of cards: no sideways scrolling */
+    .log-table-wrap { overflow-x: visible; }
+    table.cardable { min-width: 0; display: block; }
+    table.cardable thead { display: none; }
+    table.cardable tbody { display: block; }
+    table.cardable tr { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+    table.cardable td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 3px 0; border: none; text-align: right; font-size: 13px; white-space: normal; overflow-wrap: anywhere; }
+    table.cardable td::before { content: attr(data-label); color: var(--gray-500); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; text-align: left; flex-shrink: 0; }
+    table.cardable td.td-title { order: -1; font-size: 15px; font-weight: 700; color: var(--navy); justify-content: flex-start; text-align: left; padding-bottom: 5px; }
+    table.cardable td.td-title::before, table.cardable td[colspan]::before { display: none; }
+    table.cardable td.td-empty { display: none; }
+    table.cardable td[colspan] { display: block; text-align: center; }
+    table.cardable tr:hover td { background: none; }
+    .log-table-wrap.keep-scroll { overflow-x: auto; }
+    /* calendar fits the screen */
+    .cal-dow { font-size: 9px; padding: 6px 0; letter-spacing: 0; }
+    .cal-cell { padding: 3px; min-height: 62px; }
+    .cal-presence-bar, .cal-entry-pip { font-size: 8px !important; padding: 1px 2px !important; }
+    .cal-header h2 { font-size: 16px; }
+    /* records */
+    .modal-content { width: 100%; max-width: none !important; height: 100%; max-height: none !important; border-radius: 0; padding: 14px; }
+    #addModal .modal-content { height: auto; width: 92%; border-radius: var(--radius-lg); }
+    .vt-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vt-actions .vt-act { flex: 1 1 45%; padding: 12px 10px; }
+    .vt-act-danger { margin-left: 0; }
+    .vt-h3-btn { float: none; display: inline-block; margin: 0 0 0 8px; }
+    .edit-banner { flex-wrap: wrap; }
+    .prio-btn { padding: 10px 12px; }
+  }
+
+  .tab-plus { font-weight: 800; font-size: 17px; }
+  .hdr-ico { display: none; }
+  .vt-tiles-more { display: none; }
+  @media (max-width: 700px) {
+    .hdr-ico { display: inline; }
+    .header-brand h1 { font-size: 15px; white-space: nowrap; }
+    .header-brand .anchor-icon { font-size: 20px; }
+    .header-brand { gap: 8px; min-width: 0; }
+    .header-actions { flex-wrap: nowrap !important; gap: 6px !important; }
+    #syncBadge { padding: 3px 7px !important; font-size: 10px !important; }
+    .tab-plus { font-size: 20px; line-height: 18px; }
+    .vt-tiles:not(.open) .vt-tile:nth-child(n+5) { display: none; }
+    .vt-tiles-more { display: block; width: calc(100% - 28px); margin: 6px 14px 4px; background: none; border: 1px dashed var(--gray-300); border-radius: 8px; padding: 8px; font-size: 12px; font-weight: 600; color: var(--teal); cursor: pointer; }
+    .section-header { flex-wrap: wrap; row-gap: 4px; }
+  }
+
 </style>
 </head>
 
@@ -965,10 +1093,10 @@
         </div>
       </div>
       <div class="auth-buttons">
-        <button class="btn-auth btn-auth-primary" onclick="handleLogin()">Sign In</button>
+        <button class="btn-auth btn-auth-primary" onclick="handleLogin()">Sign in</button>
       </div>
       <div class="auth-toggle">
-        Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthPanel('signup')">Sign Up</a>
+        New to the team? <a href="javascript:void(0)" onclick="toggleAuthPanel('signup')">Create an account</a> (you need the invite code)
       </div>
       <div class="auth-toggle" style="margin-top:8px;">
         <a href="javascript:void(0)" onclick="toggleAuthPanel('reset')">Forgot password?</a>
@@ -986,8 +1114,8 @@
         <input type="text" id="signupName" placeholder="Your Name">
       </div>
       <div class="auth-group">
-        <label>Invite Code</label>
-        <input type="text" id="signupInviteCode" placeholder="Enter invite code">
+        <label>Invite code</label>
+        <input type="text" id="signupInviteCode" placeholder="Ask an admin for the code">
       </div>
       <div class="auth-group">
         <label>Password</label>
@@ -997,8 +1125,8 @@
         </div>
       </div>
       <div class="auth-buttons">
-        <button class="btn-auth btn-auth-primary" onclick="handleSignup()">Create Account</button>
-        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">Back</button>
+        <button class="btn-auth btn-auth-primary" onclick="handleSignup()">Create account</button>
+        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">&larr; Back to sign in</button>
       </div>
     </div>
 
@@ -1011,8 +1139,8 @@
         <div class="auth-info" id="resetInfo"></div>
       </div>
       <div class="auth-buttons">
-        <button class="btn-auth btn-auth-primary" onclick="handleForgotPassword()">Send Reset Link</button>
-        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">Back</button>
+        <button class="btn-auth btn-auth-primary" onclick="handleForgotPassword()">Send reset link</button>
+        <button class="btn-auth btn-auth-secondary" onclick="toggleAuthPanel('login')">&larr; Back to sign in</button>
       </div>
     </div>
 
@@ -1033,9 +1161,10 @@
     </div>
 
     <div id="pendingPanel" class="hidden">
-      <p class="auth-note"><strong>Account awaiting approval.</strong><br>Your account exists but has not been approved yet. Ask an Anchor Concierge admin to approve it in Settings, then sign in again.</p>
+      <p class="auth-note"><strong>Account waiting for approval.</strong><br>Your account has been created. An Anchor Concierge admin needs to approve it (Settings, then Users and roles). Once that is done, press Try again.</p>
       <div class="auth-buttons">
-        <button class="btn-auth btn-auth-secondary" onclick="handleLogout()">Sign Out</button>
+        <button class="btn-auth btn-auth-primary" onclick="enterApp()">Try again</button>
+        <button class="btn-auth btn-auth-secondary" onclick="handleLogout()">Sign out</button>
       </div>
     </div>
   </div>
@@ -1054,9 +1183,9 @@
     <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
       <span id="syncBadge" style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;background:var(--gray-500);color:#fff;">Offline</span>
       <span id="currentUserName" style="font-size:12px;color:var(--gold-light);"></span>
-      <button onclick="refreshAll()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Refresh data">&#8635; Sync</button>
-      <button id="settingsBtn" onclick="openSettingsModal()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:14px;" title="Settings">&#9881;</button>
-      <button onclick="handleLogout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;" title="Sign out">Sign Out</button>
+      <button class="hdr-btn" onclick="refreshAll()" title="Load the latest data">&#8635;<span class="hdr-txt"> Refresh</span></button>
+      <button class="hdr-btn" id="settingsBtn" onclick="openSettingsModal()" title="Your profile, vessels, drivers and admin tools">&#9881;<span class="hdr-txt"> Settings</span></button>
+      <button class="hdr-btn" onclick="handleLogout()" title="Sign out"><span class="hdr-ico">&#x23FB;</span><span class="hdr-txt">Sign out</span></button>
     </div>
   </div>
 </header>
@@ -1064,21 +1193,29 @@
 <div class="app-main">
   <!-- TAB BAR -->
   <div class="tab-bar" id="mobileTabBar">
-    <button class="tab-btn active" data-view="dashboard" onclick="showView('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
-    <button class="tab-btn" data-view="log" onclick="showView('log')">Service Log</button>
-    <button class="tab-btn" data-view="movements" onclick="showView('movements')">Movements</button>
-    <button class="tab-btn" data-view="timeline" onclick="showView('timeline')">Timeline</button>
-    <button class="tab-btn" data-view="vessels" onclick="showView('vessels')">Vessels</button>
+    <button class="tab-btn active" data-view="dashboard" onclick="showView('dashboard')"><span class="tab-ico">&#x1F3E0;</span><span class="tab-lbl">Dashboard</span><span class="tab-lbl-s">Home</span></button>
+    <button class="tab-btn" data-view="log" onclick="showView('log')"><span class="tab-ico">&#x1F4CB;</span><span class="tab-lbl">Service Log</span><span class="tab-lbl-s">Log</span></button>
+    <button class="tab-btn" data-view="timeline" onclick="showView('timeline')"><span class="tab-ico">&#x1F4C5;</span><span class="tab-lbl">Calendar</span><span class="tab-lbl-s">Calendar</span></button>
+    <button class="tab-btn" data-view="movements" onclick="showView('movements')"><span class="tab-ico">&#x2693;</span><span class="tab-lbl">Movements</span><span class="tab-lbl-s">Moves</span></button>
+    <button class="tab-btn" data-view="vessels" onclick="showView('vessels')"><span class="tab-ico">&#x1F6A2;</span><span class="tab-lbl">Vessels &amp; Crew</span><span class="tab-lbl-s">Vessels</span></button>
+    <button class="tab-btn tab-new" data-view="form" onclick="if(editingEntryId)exitEditMode();showView('form')"><span class="tab-ico tab-plus">+</span><span class="tab-lbl">New Entry</span><span class="tab-lbl-s">New</span></button>
   </div>
 
   <!-- VIEW: NEW ENTRY FORM -->
   <div id="view-form">
+    <div class="view-head">
+      <div>
+        <h2 id="formTitle">New Entry</h2>
+        <p id="formHelp">Log a service or a transfer. Only the fields marked <span class="required">*</span> are needed. Vessel arrivals and departures go under Movements.</p>
+      </div>
+      <div class="view-head-actions"><button type="button" class="btn-ghost-sm" onclick="formBack()">&larr; Back</button></div>
+    </div>
     <div id="editBanner" class="edit-banner" style="display:none;"><span id="editBannerText"></span><button type="button" onclick="cancelEdit()">Stop editing</button></div>
-    <!-- VESSEL & STAFF -->
+
+    <!-- 1. THE JOB -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F6A2; Vessel &amp; Staff</h2>
+        <h2>1. The job</h2>
         <span class="badge">Required</span>
         <span class="chevron">&#9660;</span>
       </div>
@@ -1093,54 +1230,14 @@
               <button class="add-btn" onclick="showAddModal('vessel')">+ Add</button>
             </div>
           </div>
-          <div class="form-group" id="staffGroup">
-            <label>Staff Member <span class="hint-inline">(optional)</span></label>
-            <select id="staffSelect">
-              <option value="">Select staff...</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
-            <label>Priority</label>
-            <div class="priority-selector" id="prioritySelector">
-              <button type="button" class="prio-btn prio-btn-low" onclick="setPriority('low')">Low</button>
-              <button type="button" class="prio-btn prio-btn-normal active" onclick="setPriority('normal')">Normal</button>
-              <button type="button" class="prio-btn prio-btn-high" onclick="setPriority('high')">High</button>
-              <button type="button" class="prio-btn prio-btn-critical" onclick="setPriority('critical')">Critical</button>
-            </div>
-            <input type="hidden" id="priorityInput" value="normal">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Service Date <span class="required">*</span></label>
+            <label>Date of service <span class="required">*</span></label>
             <input type="date" id="serviceDate" onchange="updateAutoStatus()">
           </div>
-          <div class="form-group">
-            <label>Service Time <span class="hint-inline">(optional)</span></label>
-            <input type="time" id="serviceTime">
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Submission Date/Time</label>
-            <input type="text" id="submissionDateTime" readonly style="background: var(--gray-50); color: var(--gray-500);">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SERVICE DETAILS -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F527; Service Details</h2>
-        <span class="chevron">&#9660;</span>
-      </div>
-      <div class="section-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Service Category <span class="required">*</span></label>
+            <label>What kind of service <span class="required">*</span></label>
             <div class="inline-add">
               <select id="serviceCategory" onchange="updateServiceTypes()">
                 <option value="">Select category...</option>
@@ -1157,7 +1254,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Service Type <span class="required">*</span></label>
+            <label>Service <span class="required">*</span></label>
             <div class="inline-add">
               <select id="serviceType" onchange="onServiceTypeChange()">
                 <option value="">Select type...</option>
@@ -1168,7 +1265,7 @@
         <!-- Customs & Immigration Multi-Select Dropdown -->
         <div id="customsServicesPanel" class="hidden" style="margin-top:8px;">
           <div class="form-group">
-            <label>Service Types <span class="required">*</span></label>
+            <label>Customs services needed <span class="required">*</span></label>
             <div class="customs-dropdown" id="customsDropdown">
               <div class="customs-dropdown-trigger" onclick="toggleCustomsDropdown(event)">
                 <span id="customsDropdownLabel" style="color:var(--gray-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">Select services...</span>
@@ -1385,26 +1482,9 @@
             </div>
           </div>
         </div>
-
-        <div class="form-row single">
+        <div class="form-row" id="clearanceRow" style="display:none;">
           <div class="form-group">
-            <label>Description / Notes</label>
-            <textarea id="serviceDescription" placeholder="Describe the service performed or required..."></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOCATION -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4CD; Location</h2>
-        <span class="chevron">&#9660;</span>
-      </div>
-      <div class="section-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Cleared In At</label>
+            <label>Cleared in at</label>
             <select id="clearedIn" onchange="if(isCustomsCategory)recalcCustoms()">
               <option value="">Select...</option>
               <option>North Sound, Crabbs</option>
@@ -1415,7 +1495,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Cleared Out At</label>
+            <label>Cleared out at</label>
             <select id="clearedOut" onchange="if(isCustomsCategory)recalcCustoms()">
               <option value="">Select...</option>
               <option>North Sound, Crabbs</option>
@@ -1426,51 +1506,20 @@
             </select>
           </div>
         </div>
-        <div class="form-row single">
+        <div class="form-row">
           <div class="form-group">
-            <label>Marina / Berth / Port</label>
+            <label>Time <span class="hint-inline">(optional)</span></label>
+            <input type="time" id="serviceTime">
+          </div>
+          <div class="form-group">
+            <label>Marina or berth <span class="hint-inline">(optional)</span></label>
             <input type="text" id="marina" placeholder="e.g. Nelson's Dockyard">
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- STATUS & SCHEDULING -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4C5; Status &amp; Scheduling</h2>
-        <span class="chevron">&#9660;</span>
-      </div>
-      <div class="section-body">
         <div class="form-row single">
           <div class="form-group">
-            <label>Status</label>
-            <div id="statusAutoMsg" style="font-size:13px;color:var(--gray-600);padding:8px 0;">
-              Status is set automatically based on service date.
-            </div>
-            <select id="statusInput" class="hidden" onchange="">
-              <option value="pending">Pending</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="in-progress">In Progress</option>
-              <option value="awaiting-confirm">Awaiting Confirmation</option>
-              <option value="completed">Completed</option>
-              <option value="delayed">Delayed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="upcoming" style="display:none;">Upcoming (Legacy)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Work Completed</label>
-            <select id="workCompleted">
-              <option value="">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Future Task for Vessel</label>
-            <input type="text" id="futureTask" placeholder="e.g. Follow-up inspection">
+            <label>What needs doing <span class="hint-inline">(optional)</span></label>
+            <textarea id="serviceDescription" placeholder="Describe the job in a sentence or two..."></textarea>
           </div>
         </div>
       </div>
@@ -1479,7 +1528,8 @@
     <!-- CHARGES -->
     <div class="section-card">
       <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4B0; Charges</h2>
+        <h2>2. Charges</h2>
+        <span class="badge badge-soft">Leave blank if there is no charge</span>
         <span class="chevron">&#9660;</span>
       </div>
       <div class="section-body">
@@ -1503,7 +1553,7 @@
           <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-bottom:10px;">
             <div class="form-row" style="margin-bottom:6px;">
               <div class="form-group" style="margin-bottom:0;">
-                <label>Rate per Hour</label>
+                <label>Rate per hour</label>
                 <input type="number" id="hourlyRate" min="0" step="0.01" value="80" placeholder="80.00" oninput="calculateTotal()">
               </div>
               <div class="form-group" style="margin-bottom:0;">
@@ -1520,7 +1570,7 @@
           <!-- Additional charge blocks -->
           <div id="additionalChargesContainer"></div>
 
-          <button type="button" onclick="addChargeBlock()" style="margin-top:4px;margin-bottom:12px;background:none;border:1px dashed var(--gray-300);color:var(--teal);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;">+ Add Charge</button>
+          <button type="button" onclick="addChargeBlock()" style="margin-top:4px;margin-bottom:12px;background:none;border:1px dashed var(--gray-300);color:var(--teal);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;width:100%;">+ Add another charge</button>
 
           <div class="calc-summary">
             <div id="calcChargeRows"></div>
@@ -1537,28 +1587,90 @@
       </div>
     </div>
 
-    <!-- NOTES -->
+    <!-- 3. STATUS, PRIORITY, STAFF -->
     <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4DD; Notes</h2>
+      <div class="section-header collapsed" id="formMoreHead" onclick="toggleSection(this)">
+        <h2>3. Status, priority and staff</h2>
+        <span class="badge badge-soft">Optional</span>
         <span class="chevron">&#9660;</span>
       </div>
-      <div class="section-body">
+      <div class="section-body collapsed">
         <div class="form-row single">
           <div class="form-group">
-            <label>Special Notes (visible to client)</label>
-            <textarea id="specialNotes" placeholder="Notes visible to the client..."></textarea>
+            <label>Status</label>
+            <div id="statusAutoMsg" style="font-size:13px;color:var(--gray-600);padding:8px 0;">
+              Set automatically from the date: Pending until the day, Overdue after it. Change it by opening the entry from the Service Log.
+            </div>
+            <select id="statusInput" class="hidden" onchange="">
+              <option value="pending">Pending</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="in-progress">In Progress</option>
+              <option value="awaiting-confirm">Awaiting Confirmation</option>
+              <option value="completed">Completed</option>
+              <option value="delayed">Delayed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="upcoming" style="display:none;">Upcoming (Legacy)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Priority</label>
+            <div class="priority-selector" id="prioritySelector">
+              <button type="button" class="prio-btn prio-btn-low" onclick="setPriority('low')">Low</button>
+              <button type="button" class="prio-btn prio-btn-normal active" onclick="setPriority('normal')">Normal</button>
+              <button type="button" class="prio-btn prio-btn-high" onclick="setPriority('high')">High</button>
+              <button type="button" class="prio-btn prio-btn-critical" onclick="setPriority('critical')">Critical</button>
+            </div>
+            <input type="hidden" id="priorityInput" value="normal">
+          </div>
+          <div class="form-group" id="staffGroup">
+            <label>Staff member</label>
+            <select id="staffSelect">
+              <option value="">Select staff...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Work completed</label>
+            <select id="workCompleted">
+              <option value="">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Follow-up task for this vessel</label>
+            <input type="text" id="futureTask" placeholder="e.g. Follow-up inspection">
+          </div>
+        </div>
+        <div class="form-hint" id="formLoggedHint">Logged at <input type="text" id="submissionDateTime" readonly class="plain-readonly"> Antigua time. Recorded automatically.</div>
+      </div>
+    </div>
+
+    <!-- 4. NOTES -->
+    <div class="section-card">
+      <div class="section-header collapsed" id="formNotesHead" onclick="toggleSection(this)">
+        <h2>4. Notes</h2>
+        <span class="badge badge-soft">Optional</span>
+        <span class="chevron">&#9660;</span>
+      </div>
+      <div class="section-body collapsed">
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Notes the client can see</label>
+            <textarea id="specialNotes" placeholder="Shown to the client..."></textarea>
           </div>
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Internal Notes (private)</label>
+            <label>Internal notes (team only)</label>
             <textarea id="internalNotes" placeholder="Internal team notes..."></textarea>
           </div>
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Client Notes</label>
+            <label>Notes from or about the client</label>
             <textarea id="clientNotes" placeholder="Notes from or about the client..."></textarea>
           </div>
         </div>
@@ -1569,10 +1681,14 @@
 
   <!-- SERVICE LOG VIEW -->
   <div id="view-log" style="display:none;">
+    <div class="view-head">
+      <div><h2>Service Log</h2><p>Every service and transfer. Click a row to open it, mark it done or edit it.</p></div>
+      <div class="view-head-actions"><button type="button" class="btn-primary-sm" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button></div>
+    </div>
     <div class="section-card">
       <div class="section-body">
         <div class="vt-toolbar">
-          <input type="search" id="logSearch" placeholder="Search vessel, staff, category, entry ID…" oninput="renderLog()">
+          <input type="search" id="logSearch" placeholder="Search vessel, staff, service or entry number" oninput="renderLog()">
           <select id="logStatusFilter" onchange="renderLog()">
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
@@ -1585,8 +1701,9 @@
             <option value="cancelled">Cancelled</option>
           </select>
           <span class="vt-count" id="logCount"></span>
-          <button type="button" class="vt-btn" onclick="exportCSV()">Export CSV</button>
-          <button type="button" class="vt-btn" onclick="exportXLSX()">Export Excel</button>
+          <select class="sort-phone" data-sort-for="log" aria-label="Sort by"></select>
+          <button type="button" class="vt-btn" onclick="exportCSV()" title="Download the list as a CSV file">Export CSV</button>
+          <button type="button" class="vt-btn" onclick="exportXLSX()" title="Download the list as an Excel file">Export Excel</button>
         </div>
         <div class="log-table-wrap">
           <table class="log-table" id="logTable">
@@ -1601,27 +1718,29 @@
 
   <!-- TIMELINE VIEW -->
   <div id="view-timeline" style="display:none;">
+    <div class="view-head">
+      <div><h2>Calendar</h2><p>Vessels in port and jobs, day by day. Click a day to see everything on it.</p></div>
+    </div>
     <div class="section-card">
-      <div class="section-header">
-        <h2>Calendar View</h2>
-      </div>
       <div class="section-body">
         <div class="cal-header">
           <h2 id="calendarMonth">January 2024</h2>
           <div class="cal-nav">
-            <button onclick="previousMonth()">← Prev</button>
-            <button onclick="nextMonth()">Next →</button>
+            <button onclick="previousMonth()" title="Previous month">&#8249;</button>
+            <button onclick="calendarToday()">Today</button>
+            <button onclick="nextMonth()" title="Next month">&#8250;</button>
           </div>
         </div>
         <div class="cal-grid" id="calendarGrid">
           <!-- Generated by JS -->
         </div>
         <div class="cal-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot upcoming"></div> Upcoming</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#00695c;"></div> Vessel in port</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot upcoming"></div> Job to do</div>
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
           <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
           <div class="cal-legend-item"><div class="cal-legend-dot cancelled"></div> Cancelled</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#00695c;"></div> Movement</div>
+          <div class="cal-legend-item">&#9875; Arrival or departure that day</div>
         </div>
       </div>
     </div>
@@ -1629,12 +1748,20 @@
 
   <!-- VESSEL MOVEMENTS VIEW -->
   <div id="view-movements" style="display:none;">
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F6A2; Add Movement</h2>
-        <span class="chevron">&#9660;</span>
+    <div class="view-head">
+      <div><h2>Movements</h2><p>Arrivals, departures and moves between anchorages.</p></div>
+      <div class="view-head-actions">
+        <button type="button" class="btn-primary-sm" id="mvAddBtn" onclick="mvShowForm('add')">+ Add movement</button>
+        <button type="button" class="btn-ghost-sm" id="mvImportBtn" onclick="mvShowForm('import')">Paste a schedule</button>
+      </div>
+    </div>
+    <div class="section-card" id="mvAddCard" style="display:none;">
+      <div class="section-header">
+        <h2 id="mvAddTitle">Add a movement</h2>
+        <button type="button" class="vt-btn" style="margin-left:auto;" onclick="mvHideForms()">Close</button>
       </div>
       <div class="section-body">
+        <div class="vt-sync-note">Use this for a movement that is not in the Google Sheet yet, for example a planned arrival or a move between anchorages. Cleared arrivals and departures come in from the sheet automatically.</div>
         <!-- Single movement form -->
         <div class="form-row">
           <div class="form-group">
@@ -1644,7 +1771,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Movement Type <span class="required">*</span></label>
+            <label>Type <span class="required">*</span></label>
             <select id="mvType">
               <option value="">Select...</option>
               <option value="Arrival">Arrival</option>
@@ -1679,16 +1806,15 @@
             <textarea id="mvNotes" rows="2" placeholder="Additional details..."></textarea>
           </div>
         </div>
-        <button class="btn-submit" id="mvSubmitBtn" onclick="submitMovement()" style="width:100%;margin-top:8px;">Add Movement</button>
-        <button class="btn-secondary" id="mvCancelEditBtn" onclick="cancelMovementEdit()" style="width:100%;margin-top:6px;display:none;">Cancel Edit</button>
+        <button class="btn-submit" id="mvSubmitBtn" onclick="submitMovement()" style="width:100%;margin-top:8px;">Save movement</button>
+        <button class="btn-secondary" id="mvCancelEditBtn" onclick="cancelMovementEdit()" style="width:100%;margin-top:6px;display:none;">Cancel edit</button>
       </div>
     </div>
 
-    <!-- Paste & Parse -->
-    <div class="section-card">
-      <div class="section-header" onclick="toggleSection(this)">
-        <h2>&#x1F4CB; Import from Text</h2>
-        <span class="chevron">&#9660;</span>
+    <div class="section-card" id="mvImportCard" style="display:none;">
+      <div class="section-header">
+        <h2>Paste a schedule</h2>
+        <button type="button" class="vt-btn" style="margin-left:auto;" onclick="mvHideForms()">Close</button>
       </div>
       <div class="section-body">
         <div class="form-row single">
@@ -1701,19 +1827,46 @@
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Paste movement schedule</label>
+            <label>Paste the schedule the yacht sent, one line per movement</label>
             <textarea id="mvImportText" rows="8" placeholder="Paste text like:&#10;17th April 08:00 - Arrive Falmouth Hbr Marina&#10;28th April - Owner arrives by private jet&#10;29th April 08:00 - Depart Falmouth Hbr - move to Five Islands"></textarea>
           </div>
         </div>
-        <button class="btn-submit" onclick="parseAndPreviewMovements()" style="width:100%;margin-top:8px;">Parse Movements</button>
+        <button class="btn-submit" onclick="parseAndPreviewMovements()" style="width:100%;margin-top:8px;">Read the schedule</button>
         <div id="mvImportPreview" style="margin-top:12px;"></div>
       </div>
     </div>
 
-    <!-- Movements List -->
+    <!-- Clearance log: read-only copy of the sheet -->
     <div class="section-card">
       <div class="section-header">
-        <h2>&#x1F4C5; Planned Movements (entered in the app)</h2>
+        <h2>Clearance Log</h2>
+        <span class="badge badge-soft">From the Google Sheet</span>
+      </div>
+      <div class="section-body">
+        <div class="vt-sync-note">Arrivals and departures cleared through SailClear and eSeaClear. To change one, edit the Google Sheet "2026 - 2027 Season": it updates here within a few minutes. Click a row to open the vessel.</div>
+        <div class="vt-toolbar">
+          <input type="search" id="vt-clearance-search" placeholder="Search vessel, port, captain or reference" oninput="vtRenderClearanceLog()">
+          <select id="vt-clearance-scope" onchange="vtRenderClearanceLog()">
+            <option value="season">This season</option>
+            <option value="all">All seasons</option>
+          </select>
+          <select class="sort-phone" data-sort-for="clearance" aria-label="Sort by"></select>
+          <span class="vt-count" id="vt-clearance-count"></span>
+        </div>
+        <div class="log-table-wrap">
+          <table class="log-table vt-table">
+            <thead id="vt-clearance-head"></thead>
+            <tbody id="vt-clearance-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movements typed into the app -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Added in the app</h2>
+        <span class="badge badge-soft">Typed in by the team</span>
       </div>
       <div class="section-body">
         <div class="log-table-wrap">
@@ -1734,44 +1887,29 @@
         </div>
       </div>
     </div>
-
-    <!-- Clearance log: read-only copy of the sheet -->
-    <div class="section-card">
-      <div class="section-header">
-        <h2>&#x1F4D2; Clearance Log (from the sheet)</h2>
-      </div>
-      <div class="section-body">
-        <div class="vt-sync-note">Arrivals and departures cleared through SailClear and eSeaClear. Read-only here: the Google Sheet "2026 - 2027 Season" is the master copy.</div>
-        <div class="vt-toolbar">
-          <input type="search" id="vt-clearance-search" placeholder="Search vessel, port, captain, reference…" oninput="vtRenderClearanceLog()">
-          <select id="vt-clearance-scope" onchange="vtRenderClearanceLog()">
-            <option value="season">This season</option>
-            <option value="all">All seasons</option>
-          </select>
-          <span class="vt-count" id="vt-clearance-count"></span>
-        </div>
-        <div class="log-table-wrap">
-          <table class="log-table vt-table">
-            <thead id="vt-clearance-head"></thead>
-            <tbody id="vt-clearance-rows"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- VESSELS VIEW (almanac from the sheet) -->
   <div id="view-vessels" style="display:none;">
+    <div class="view-head">
+      <div><h2>Vessels &amp; Crew</h2><p>Every vessel and crew member cleared through Anchor. Click a row to open the record. Click a column heading to sort.</p></div>
+    </div>
     <div class="vt-tabs">
       <button type="button" data-tab="vessels" class="active" onclick="vtSetTab('vessels')">Vessel almanac</button>
       <button type="button" data-tab="crew" onclick="vtSetTab('crew')">Crew almanac</button>
-      <button type="button" data-tab="stats" onclick="vtSetTab('stats')">Statistics</button>
+      <button type="button" data-tab="stats" onclick="vtSetTab('stats')">Season statistics</button>
     </div>
 
     <div id="vt-pane-vessels" class="section-card">
       <div class="section-body">
         <div class="vt-toolbar">
-          <input type="search" id="vt-vessel-search" placeholder="Search vessel, flag, type, captain…" oninput="vtRenderVesselAlmanac()">
+          <input type="search" id="vt-vessel-search" placeholder="Search vessel, flag, type or captain" oninput="vtRenderVesselAlmanac()">
+          <select id="vt-vessel-scope" onchange="vtRenderVesselAlmanac()">
+            <option value="">All vessels</option>
+            <option value="port">In port now</option>
+            <option value="season">Seen this season</option>
+          </select>
+          <select class="sort-phone" data-sort-for="vessels" aria-label="Sort by"></select>
           <span class="vt-count" id="vt-vessel-count"></span>
         </div>
         <div class="log-table-wrap">
@@ -1786,13 +1924,14 @@
     <div id="vt-pane-crew" class="section-card" style="display:none;">
       <div class="section-body">
         <div class="vt-toolbar">
-          <input type="search" id="vt-crew-search" placeholder="Search name, vessel, rank…" oninput="vtRenderCrewAlmanac()">
+          <input type="search" id="vt-crew-search" placeholder="Search name, vessel or rank" oninput="vtRenderCrewAlmanac()">
           <select id="vt-crew-filter" onchange="vtRenderCrewAlmanac()">
             <option value="">All crew</option>
             <option value="season">Seen this season</option>
             <option value="returning">Returning this season</option>
             <option value="moved">Changed vessel</option>
           </select>
+          <select class="sort-phone" data-sort-for="crew" aria-label="Sort by"></select>
           <span class="vt-count" id="vt-crew-count"></span>
         </div>
         <div class="log-table-wrap">
@@ -1814,19 +1953,19 @@
 
     <!-- KPI Strip -->
     <div class="db-kpi-strip" data-db-panel="kpi">
-      <div class="db-kpi-card kpi-clickable" onclick="showView('vessels')">
-        <div class="db-kpi-label">Vessels in Port</div>
-        <div class="db-kpi-value" id="kpi-in-port">—</div>
+      <div class="db-kpi-card kpi-clickable" title="Show the vessels in port" onclick="dbScrollTo('in-antigua')">
+        <div class="db-kpi-label">Vessels in port</div>
+        <div class="db-kpi-value" id="kpi-in-port">0</div>
         <div class="db-kpi-sub" id="kpi-in-port-sub">loading…</div>
       </div>
-      <div class="db-kpi-card kpi-teal kpi-clickable" onclick="setAgendaRange('today')">
-        <div class="db-kpi-label">Movements Today</div>
-        <div class="db-kpi-value" id="kpi-movements">—</div>
+      <div class="db-kpi-card kpi-teal kpi-clickable" title="Show today in the agenda" onclick="setAgendaRange('today');dbScrollTo('agenda')">
+        <div class="db-kpi-label">Arrivals and departures today</div>
+        <div class="db-kpi-value" id="kpi-movements">0</div>
         <div class="db-kpi-sub" id="kpi-movements-sub">arrivals &amp; departures</div>
       </div>
-      <div class="db-kpi-card kpi-red kpi-clickable" id="kpi-urgent-card" onclick="document.getElementById('db-urgent-panel').scrollIntoView({behavior:'smooth',block:'center'})">
-        <div class="db-kpi-label">Urgent / Overdue</div>
-        <div class="db-kpi-value" id="kpi-urgent">—</div>
+      <div class="db-kpi-card kpi-red kpi-clickable" id="kpi-urgent-card" title="Show the jobs that need action" onclick="dbScrollTo('urgent')">
+        <div class="db-kpi-label">Needs action</div>
+        <div class="db-kpi-value" id="kpi-urgent">0</div>
         <div class="db-kpi-sub" id="kpi-urgent-sub">action required</div>
       </div>
     </div>
@@ -1836,10 +1975,10 @@
       <div class="db-panel-header">
         <span style="font-size:15px;">⚓</span>
         <div>
-          <div class="db-panel-title">Antigua Vessel Activity</div>
+          <div class="db-panel-title">Vessels in Antigua this season</div>
           <div class="db-panel-sub" id="vt-activity-sub"></div>
         </div>
-        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">Almanac →</a>
+        <a href="javascript:void(0)" class="db-panel-link" onclick="showView('vessels')">All vessels &rarr;</a>
       </div>
       <div id="vt-activity"></div>
     </div>
@@ -1852,13 +1991,12 @@
           <div class="db-panel-header">
             <span style="font-size:15px;">🗓</span>
             <div>
-              <div class="db-panel-title">Agenda</div>
+              <div class="db-panel-title">What is on</div>
               <div class="db-panel-sub" id="db-today-date"></div>
             </div>
             <div class="ag-actions">
-              <button type="button" onclick="showView('form')">+ Service / Transfer</button>
-              <button type="button" onclick="showView('movements')">+ Movement</button>
-              <button type="button" onclick="refreshAll()" title="Refresh data">&#8635;</button>
+              <button type="button" onclick="if(editingEntryId)exitEditMode();showView('form')">+ New Entry</button>
+              <button type="button" onclick="showView('movements');mvShowForm('add')">+ Movement</button>
             </div>
           </div>
           <div class="ag-tabs" id="ag-tabs"></div>
@@ -1869,8 +2007,8 @@
           <div class="db-panel-header">
             <span style="font-size:15px;">🇦🇬</span>
             <div>
-              <div class="db-panel-title">Vessels in Antigua</div>
-              <div class="db-panel-sub">Currently in port</div>
+              <div class="db-panel-title">In port now</div>
+              <div class="db-panel-sub">Click a vessel for its record, crew and jobs</div>
             </div>
             <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
           </div>
@@ -1883,12 +2021,12 @@
         <div class="db-panel db-urgent-panel" id="db-urgent-panel" data-db-panel="urgent">
           <div class="db-panel-header">
             <span style="font-size:15px;">⚠️</span>
-            <span class="db-urgent-title">Urgent / Overdue</span>
+            <span class="db-urgent-title">Needs action</span>
             <span class="db-urgent-count" id="db-urgent-count" style="margin-left:6px;">0</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">Log →</a>
+            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">Service Log &rarr;</a>
           </div>
           <div class="db-urgent-items" id="db-urgent-items">
-            <div class="db-empty">No urgent actions</div>
+            <div class="db-empty">Nothing needs action</div>
           </div>
         </div>
 
@@ -1896,8 +2034,8 @@
           <div class="db-panel-header">
             <span style="font-size:15px;">🛂</span>
             <div>
-              <div class="db-panel-title">Crew Alerts</div>
-              <div class="db-panel-sub">Passports &amp; birthdays</div>
+              <div class="db-panel-title">Crew alerts</div>
+              <div class="db-panel-sub">Passports running out and birthdays coming up</div>
             </div>
             <span class="db-urgent-count" id="vt-alerts-count" style="background:var(--orange);margin-left:auto;">0</span>
           </div>
@@ -1907,7 +2045,7 @@
         <div class="db-panel" data-db-panel="team">
           <div class="db-panel-header">
             <span style="font-size:15px;">👥</span>
-            <span class="db-panel-title">Team Workload Today</span>
+            <span class="db-panel-title">Who has what today</span>
           </div>
           <div id="db-team"></div>
         </div>
@@ -1919,7 +2057,8 @@
     <div class="db-panel" data-db-panel="calendar">
       <div class="db-panel-header sec-head" onclick="toggleSection2('cal')">
         <span style="font-size:15px;">📅</span>
-        <div class="db-panel-title">Month Calendar</div>
+        <div class="db-panel-title">Month calendar</div>
+        <div class="db-panel-sub" style="margin-left:8px;">Jobs and movements by month, week or day</div>
         <span class="sec-chev" id="sec-cal-chev">▸</span>
       </div>
       <div class="sec-body" id="sec-cal" style="display:none;">
@@ -1952,7 +2091,8 @@
     <div class="db-panel" data-db-panel="map">
       <div class="db-panel-header sec-head" onclick="toggleSection2('map')">
         <span style="font-size:15px;">🗺</span>
-        <div class="db-panel-title">Map: vessels in port</div>
+        <div class="db-panel-title">Map</div>
+        <div class="db-panel-sub" style="margin-left:8px;">Where the vessels in port are berthed</div>
         <span class="sec-chev" id="sec-map-chev">▸</span>
       </div>
       <div class="sec-body" id="sec-map" style="display:none;">
@@ -1984,8 +2124,9 @@
   <div class="modal-overlay hidden" id="vesselDetailModal" onclick="if(event.target === this) closeModal('vesselDetailModal')">
     <div class="modal-content" style="max-width:820px;max-height:88vh;overflow-y:auto;">
       <div class="modal-header">
+        <button type="button" class="rec-back" id="recBackBtn" style="display:none;" onclick="recBack()">&larr; Back</button>
         <h2 id="vesselDetailTitle">Vessel</h2>
-        <button class="modal-close" onclick="closeModal('vesselDetailModal')">✕</button>
+        <button class="modal-close" title="Close" onclick="closeModal('vesselDetailModal')">✕</button>
       </div>
       <div id="vesselDetailBody"></div>
       <div class="modal-footer">
@@ -2003,7 +2144,7 @@
       </div>
       <!-- Profile (always visible) -->
       <div style="margin-bottom:8px;">
-        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">User Profile</h3>
+        <h3 style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;">Your profile</h3>
         <div class="form-row">
           <div class="form-group">
             <label>Email</label>
@@ -2032,9 +2173,10 @@
         </div>
       </div>
 
+      <div class="set-group-label" id="adminToolsLabel">Admin tools</div>
       <!-- Vessel Management (collapsible) -->
       <div id="vesselManagementSection" class="set-sec">
-        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Vessel Management</span><span class="set-chev">▸</span></button>
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Vessel list<small>Add, rename or retire vessels in the New Entry dropdown</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
           <div class="form-row single">
             <div class="form-group">
@@ -2052,7 +2194,7 @@
 
       <!-- Driver Management (collapsible) -->
       <div id="driverManagementSection" class="set-sec">
-        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Driver Management</span><span class="set-chev">▸</span></button>
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Drivers<small>Names and phone numbers for transfers</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
           <div class="form-row">
             <div class="form-group">
@@ -2073,7 +2215,7 @@
 
       <!-- Invite Code (collapsible, admin) -->
       <div id="inviteCodeSection" class="set-sec hidden">
-        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Invite Code (Admin)</span><span class="set-chev">▸</span></button>
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Invite code<small>The code new staff need to create an account</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
           <div class="form-row single">
             <div class="form-group">
@@ -2090,9 +2232,9 @@
 
       <!-- Map Marker Editor (collapsible, admin) -->
       <div id="mapEditorSection" class="set-sec hidden">
-        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this); mleEnsureLoaded()"><span>Map Marker Editor (Admin)</span><span class="set-chev">▸</span></button>
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this); mleEnsureLoaded()"><span>Map locations<small>Marinas and anchorages shown on the dashboard map</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
-          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">Drag a marker, edit latitude/longitude, or add a new location, then Save. Stored in Supabase and used by the dashboard map.</p>
+          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">Drag a marker, edit its latitude and longitude, or add a new location, then press Save.</p>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
             <button class="add-btn" onclick="mleAddMarker()">+ Add Location</button>
             <span style="font-size:11px;color:var(--gray-500);">then drag it, or click the map to place</span>
@@ -2101,7 +2243,7 @@
           <div id="mle-list" style="max-height:320px;overflow:auto;"></div>
           <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
             <button class="add-btn" onclick="mleSave()">Save</button>
-            <button class="btn-secondary" onclick="mleReset()" style="padding:6px 14px;">Reset / Cancel</button>
+            <button class="btn-secondary" onclick="mleReset()" style="padding:6px 14px;">Undo changes</button>
             <span id="mle-status" style="font-size:12px;color:var(--gray-500);"></span>
           </div>
         </div>
@@ -2109,9 +2251,9 @@
 
       <!-- Users (collapsible, admin) -->
       <div id="userManagementSection" class="set-sec hidden">
-        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Users (Admin)</span><span class="set-chev">▸</span></button>
+        <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Users and roles<small>Approve new accounts and set what each person can do</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
-          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">Pending accounts cannot see any data until given a role. Viewer is read-only.</p>
+          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">New accounts start as Pending and see nothing until you give them a role. Viewer can look but not change. Staff and Manager can add and edit. Admin can also delete, manage users and see crew passport and birthday dates.</p>
           <div id="userList" style="max-height:260px;overflow:auto;"></div>
         </div>
       </div>
@@ -2145,10 +2287,10 @@
   <div class="submit-inner">
     <div class="submit-total">
       <div class="amount" id="displayTotal">$0.00</div>
-      <div class="label">Total Charge</div>
+      <div class="label">Total charge</div>
     </div>
-    <button class="btn-secondary" id="formResetBtn" onclick="cancelEdit()">Reset</button>
-    <button class="btn-submit" id="formSubmitBtn" onclick="submitEntry()">Submit Entry</button>
+    <button class="btn-secondary" id="formResetBtn" onclick="cancelEdit()">Clear form</button>
+    <button class="btn-submit" id="formSubmitBtn" onclick="submitEntry()">Save entry</button>
   </div>
 </div>
 
@@ -2199,6 +2341,19 @@ function fmtDate(s, opts) {
 function fmtShort(s) { return fmtDate(s, { day: 'numeric', month: 'short' }); }
 
 // Read every row of a table, 1000 at a time (the API returns at most 1000 per request).
+// ---------- one wording for statuses and services everywhere ----------
+const STATUS_LABELS = { pending: 'Pending', upcoming: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting confirmation', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' };
+function statusLabel(st) { return STATUS_LABELS[st] || st || ''; }
+function statusBadge(st) { return `<span class="status-badge status-${esc(st)}">${esc(statusLabel(st))}</span>`; }
+function svcLabel(e) {
+  const c = e.category || '', t = e.serviceType || '';
+  if (!t || t === c || (c === 'Customs & Immigration' && t === 'Customs')) return c || t;
+  return c ? c + ': ' + t : t;
+}
+function emptyState(title, text, btnLabel, btnClick) {
+  return `<div class="empty-state"><b>${esc(title)}</b>${esc(text || '')}${btnLabel ? `<br><button type="button" class="btn-ghost-sm" onclick="${btnClick}">${esc(btnLabel)}</button>` : ''}</div>`;
+}
+
 async function fetchAll(table, build) {
   const size = 1000;
   let from = 0;
@@ -2799,6 +2954,7 @@ async function submitEntry() {
   const validation = validateEntry(entry);
   if (!validation.valid) {
     showToast(validation.message);
+    focusFormField(validation.field);
     return;
   }
 
@@ -2842,7 +2998,7 @@ async function submitEntry() {
       exitEditMode();
       refreshViews();
       showView(back);
-      showToast('Entry updated successfully');
+      showToast('Changes saved');
     } else {
       // CREATE new entry
       const { data: idData, error: idError } = await sb.rpc('next_entry_id');
@@ -2867,9 +3023,10 @@ async function submitEntry() {
 
       allEntries.unshift(entry);
       resetForm();
+      formSections(null);
       refreshViews();
       showView('log');
-      showToast('Entry created successfully');
+      showToast(entry.entryId + ' saved. It is at the top of the Service Log.');
     }
     updateSyncBadge(true);
   } catch (err) {
@@ -2893,9 +3050,10 @@ function exitEditMode() {
   setEditBanner(null);
   editReturnView = 'log';
   resetForm();
+  formSections(null);
   // Restore submit bar to create mode
-  document.getElementById('formSubmitBtn').textContent = 'Submit Entry';
-  document.getElementById('formResetBtn').textContent = 'Reset';
+  document.getElementById('formSubmitBtn').textContent = 'Save entry';
+  document.getElementById('formResetBtn').textContent = 'Clear form';
   // Hide status dropdown, show auto message
   document.getElementById('statusAutoMsg').classList.remove('hidden');
   document.getElementById('statusInput').classList.add('hidden');
@@ -2904,7 +3062,7 @@ function exitEditMode() {
 
 async function deleteEntry(entryId) {
   if (!isAdminUser()) { showToast('Only an admin can delete entries'); return; }
-  if (!confirm('Are you sure you want to delete this entry?')) return;
+  if (!confirm('Delete ' + entryId + '? It is removed from the log. This cannot be undone here.')) return;
 
   try {
     updateSyncBadge(true, 'Syncing');
@@ -3069,10 +3227,10 @@ function gatherFormData() {
 }
 
 function validateEntry(entry) {
-  if (!entry.vessel) return { valid: false, message: 'Please select a vessel' };
-  if (!entry.serviceDate) return { valid: false, message: 'Please select a service date' };
-  if (!entry.category) return { valid: false, message: 'Please select a service category' };
-  if (!entry.serviceType) return { valid: false, message: 'Please select a service type' };
+  if (!entry.vessel) return { valid: false, message: 'Choose a vessel first', field: 'vesselSelect' };
+  if (!entry.serviceDate) return { valid: false, message: 'Choose the date of the service', field: 'serviceDate' };
+  if (!entry.category) return { valid: false, message: 'Choose what kind of service this is', field: 'serviceCategory' };
+  if (!entry.serviceType) return { valid: false, message: 'Choose the service', field: 'serviceType' };
 
   // Customs & Immigration validation
   if (entry.category === 'Customs & Immigration') {
@@ -3086,25 +3244,25 @@ function validateEntry(entry) {
     if (services.inbound) {
       const crew = parseInt(document.getElementById('customsInboundCrew').value) || 0;
       const guests = parseInt(document.getElementById('customsInboundGuests').value) || 0;
-      if (crew + guests <= 0) return { valid: false, message: 'Inbound requires crew and/or guest count' };
-      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Inbound requires a "Cleared in at" location' };
+      if (crew + guests <= 0) return { valid: false, message: 'Inbound clearance needs a crew or guest count', field: 'customsInboundCrew' };
+      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Inbound clearance needs "Cleared in at"', field: 'clearedIn' };
     }
 
     if (services.outbound) {
       const crew = parseInt(document.getElementById('customsOutboundCrew').value) || 0;
       const guests = parseInt(document.getElementById('customsOutboundGuests').value) || 0;
-      if (crew + guests <= 0) return { valid: false, message: 'Outbound requires crew and/or guest count' };
-      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Outbound requires a "Cleared in at" location' };
-      if (!document.getElementById('clearedOut').value) return { valid: false, message: 'Outbound requires a "Cleared out at" location' };
+      if (crew + guests <= 0) return { valid: false, message: 'Outbound clearance needs a crew or guest count', field: 'customsOutboundCrew' };
+      if (!document.getElementById('clearedIn').value) return { valid: false, message: 'Outbound clearance needs "Cleared in at"', field: 'clearedIn' };
+      if (!document.getElementById('clearedOut').value) return { valid: false, message: 'Outbound clearance needs "Cleared out at"', field: 'clearedOut' };
     }
   }
 
   // Transfer validation
   if (entry.serviceType === 'Crew Transfer' || entry.serviceType === 'Guest Transfer') {
-    if (!entry.transferDriverId) return { valid: false, message: 'Please select a driver' };
-    if (!entry.transferFrom) return { valid: false, message: 'Please enter pickup location' };
-    if (!entry.transferTo) return { valid: false, message: 'Please enter destination' };
-    if (!entry.transferPickupTime) return { valid: false, message: 'Please enter pickup time' };
+    if (!entry.transferDriverId) return { valid: false, message: 'Choose a driver for the transfer', field: 'transferDriver' };
+    if (!entry.transferFrom) return { valid: false, message: 'Enter where the pickup is', field: 'transferFrom' };
+    if (!entry.transferTo) return { valid: false, message: 'Enter the destination', field: 'transferTo' };
+    if (!entry.transferPickupTime) return { valid: false, message: 'Enter the pickup time', field: 'transferPickupTime' };
   }
 
   return { valid: true };
@@ -3174,6 +3332,38 @@ function resetForm() {
   if (document.getElementById('transferReturnTimeRow')) document.getElementById('transferReturnTimeRow').classList.add('hidden');
   setPriority('normal');
   calculateTotal();
+  showClearanceRow();
+}
+
+// "Cleared in at" and "Cleared out at" only matter for Customs & Immigration.
+// They stay visible on an older entry that already has them filled in.
+function showClearanceRow() {
+  const row = document.getElementById('clearanceRow');
+  if (!row) return;
+  const has = document.getElementById('clearedIn').value || document.getElementById('clearedOut').value;
+  row.style.display = (window.isCustomsCategory || has) ? '' : 'none';
+}
+// Optional sections stay closed on a new entry and open when an existing entry uses them.
+function formSections(entry) {
+  const set = (id, open) => { const hd = document.getElementById(id); if (!hd) return; hd.classList.toggle('collapsed', !open); hd.nextElementSibling.classList.toggle('collapsed', !open); };
+  set('formMoreHead', !!entry);
+  set('formNotesHead', !!(entry && (entry.specialNotes || entry.internalNotes || entry.clientNotes)));
+}
+// Takes the user to the field a validation message is about.
+function focusFormField(id) {
+  const el = id && document.getElementById(id);
+  if (!el) return;
+  let sec = el.closest('.section-body');
+  if (sec && sec.classList.contains('collapsed')) { sec.classList.remove('collapsed'); if (sec.previousElementSibling) sec.previousElementSibling.classList.remove('collapsed'); }
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  try { el.focus({ preventScroll: true }); } catch (e) {}
+  el.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.35)';
+  setTimeout(() => { el.style.boxShadow = ''; }, 2500);
+}
+let formReturnView = 'dashboard';
+function formBack() {
+  if (editingEntryId) return cancelEdit();
+  showView(formReturnView || 'dashboard');
 }
 
 function setPriority(val) {
@@ -3250,6 +3440,7 @@ function updateServiceTypes() {
   transferPanel.classList.add('hidden');
   typeGroup.style.display = isCustoms ? 'none' : '';
   window.isCustomsCategory = isCustoms;
+  showClearanceRow();
 
   if (isCustoms) {
     // Set serviceType to 'Customs' so validation passes
@@ -3543,7 +3734,7 @@ function toggleSection(header) {
 function getAntiguaDateTime() {
   return new Date().toLocaleString('en-GB', {
     timeZone: 'America/Antigua',
-    day: '2-digit', month: '2-digit', year: 'numeric',
+    day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit', hour12: false
   });
 }
@@ -3553,6 +3744,10 @@ function updateSubmissionDateTime() {
 }
 
 function showView(view) {
+  const prevView = document.querySelector('.tab-btn.active')?.dataset?.view;
+  if (view === 'form' && prevView && prevView !== 'form') formReturnView = prevView;
+  document.body.classList.toggle('on-form', view === 'form');
+  if (prevView !== view) window.scrollTo(0, 0);
   document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
   document.getElementById(`view-${view}`).style.display = 'block';
 
@@ -3629,74 +3824,48 @@ function logFilteredEntries() {
 
 function renderLog() {
   const tbody = document.getElementById('logTableBody');
-  tbody.innerHTML = '';
   const headEl = document.getElementById('logHead');
-  if (headEl) headEl.innerHTML = sortHead('log', [['id', 'Entry ID'], ['vessel', 'Vessel'], ['staff', 'Staff'], ['category', 'Category'], ['date', 'Date'], ['status', 'Status'], ['total', 'Total'], [null, 'Action']], 'renderLog');
+  if (headEl) headEl.innerHTML = sortHead('log', [['date', 'Date'], ['vessel', 'Vessel'], ['category', 'Service'], ['staff', 'Staff'], ['status', 'Status'], ['total', 'Total'], ['id', 'Entry']], 'renderLog');
+  if (!sortState.log) sortState.log = { key: 'date', dir: -1 };   // newest first unless the user picks a column
   const list = sortList('log', logFilteredEntries(), {
-    id: e => e.entryId, vessel: e => e.vessel, staff: e => e.staffMember, category: e => (e.category || '') + ' ' + (e.serviceType || ''),
-    date: e => (e.serviceDate || '') + ' ' + (e.serviceTime || ''), status: e => computeStatus(e), total: e => entryChargeBlocks(e).total
+    id: e => e.entryId, vessel: e => e.vessel, staff: e => e.staffMember, category: e => svcLabel(e),
+    date: e => (e.serviceDate || '') + ' ' + (e.serviceTime || ''), status: e => statusLabel(computeStatus(e)), total: e => entryChargeBlocks(e).total
   });
   const countEl = document.getElementById('logCount');
   if (countEl) countEl.textContent = list.length + ' entr' + (list.length === 1 ? 'y' : 'ies');
-  const admin = isAdminUser();
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--gray-500);">No entries match.</td></tr>';
+    const any = allEntries.some(e => e.category !== 'Vessel Movement');
+    tbody.innerHTML = '<tr><td colspan="7">' + (any
+      ? emptyState('Nothing matches', 'No entry fits the search or the status chosen above.', 'Show all entries', 'logClearFilters()')
+      : emptyState('No entries yet', 'Services and transfers appear here once they are logged.', '+ New Entry', "showView('form')")) + '</td></tr>';
     return;
   }
 
-  list.forEach(entry => {
-    const displayStatus = computeStatus(entry);
-    const currency = entry.currency || 'USD';
-    const symbol = currency === 'XCD' ? 'EC$' : '$';
-    const { blocks, total } = entryChargeBlocks(entry);
-
+  tbody.innerHTML = list.map(entry => {
+    const st = computeStatus(entry);
+    const symbol = (entry.currency || 'USD') === 'XCD' ? 'EC$' : '$';
+    const { total } = entryChargeBlocks(entry);
     const priority = entry.priority || 'normal';
     const priorityBadge = priority === 'critical'
       ? '<span class="prio-badge prio-badge-critical">critical</span>'
       : priority === 'high' ? '<span class="prio-badge prio-badge-high">high</span>' : '';
-    const priorityBorder = priority === 'critical'
-      ? 'border-left:3px solid #dc2626;'
-      : priority === 'high' ? 'border-left:3px solid #fd7e14;' : '';
-
-    const row = document.createElement('tr');
-    row.style.cssText = `cursor:pointer;${priorityBorder}`;
-    row.innerHTML = `
-      <td>${esc(entry.entryId)}</td>
-      <td>${esc(entry.vessel)}</td>
-      <td style="font-size:12px;color:var(--gray-600);">${esc(entry.staffMember || '—')}</td>
-      <td>${esc(entry.category)}${entry.serviceType ? ' — ' + esc(entry.serviceType) : ''}</td>
+    const priorityBorder = priority === 'critical' ? 'border-left:3px solid #dc2626;' : priority === 'high' ? 'border-left:3px solid #fd7e14;' : '';
+    return `<tr class="vt-click" style="${priorityBorder}" title="Open ${esc(entry.entryId)}" onclick="showEntryDetail('${esc(entry.entryId)}')">
       <td>${esc(fmtDate(entry.serviceDate))}${entry.serviceTime ? ' ' + esc(entry.serviceTime) : ''}</td>
-      <td><span class="status-badge status-${esc(displayStatus)}">${esc(displayStatus)}</span>${priorityBadge}</td>
-      <td style="font-weight:600;">${symbol}${total.toFixed(2)}</td>
-      <td><button onclick="event.stopPropagation();openEditEntry('${esc(entry.entryId)}')" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;font-weight:600;">Edit</button>${admin ? ` <button onclick="event.stopPropagation();deleteEntry('${esc(entry.entryId)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>` : ''}</td>
-    `;
-    row.onclick = function() {
-      const next = this.nextElementSibling;
-      if (next && next.classList.contains('log-detail-row')) {
-        next.remove();
-      } else {
-        let chargesHtml = '';
-        blocks.forEach((b, i) => {
-          const label = b.notes || ('Charge ' + (i + 1));
-          const hrs = Number(b.hours) || 0;
-          const rate = Number(b.rate) || 0;
-          chargesHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span>' + esc(label) + (hrs > 0 && rate > 0 ? ' (' + hrs + ' hrs × ' + symbol + rate.toFixed(2) + ')' : '') + '</span><span>' + symbol + (Number(b.amount) || 0).toFixed(2) + '</span></div>';
-        });
-        const detail = document.createElement('tr');
-        detail.className = 'log-detail-row';
-        detail.innerHTML = '<td colspan="8" style="padding:12px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><div style="max-width:400px;font-size:13px;">' +
-          chargesHtml +
-          '<div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--gray-300);padding-top:6px;margin-top:6px;"><span>Total</span><span>' + symbol + total.toFixed(2) + '</span></div>' +
-          (currency === 'USD' ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in XCD</span><span>EC$' + (total * XCD_RATE).toFixed(2) + '</span></div>' : '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-top:2px;"><span>Equivalent in USD</span><span>$' + (total / XCD_RATE).toFixed(2) + '</span></div>') +
-          (entry.description ? '<div style="margin-top:8px;color:var(--gray-600);font-size:12px;"><strong>Notes:</strong> ' + esc(entry.description) + '</div>' : '') +
-          (entry.lastEditedBy ? '<div style="margin-top:6px;color:var(--gray-400);font-size:11px;font-style:italic;">Last edited by ' + esc(entry.lastEditedBy) + (entry.lastEditedAt ? ' on ' + esc(fmtDate(entry.lastEditedAt.split('T')[0])) : '') + '</div>' : '') +
-          '</div></td>';
-        this.after(detail);
-      }
-    };
-    tbody.appendChild(row);
-  });
+      <td class="td-title" style="font-weight:600;">${esc(entry.vessel)}</td>
+      <td>${esc(svcLabel(entry))}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${esc(entry.staffMember || '')}</td>
+      <td>${statusBadge(st)}${priorityBadge}</td>
+      <td style="font-weight:600;">${total > 0 ? symbol + total.toFixed(2) : ''}</td>
+      <td style="font-size:12px;color:var(--gray-600);">${esc(entry.entryId)}</td>
+    </tr>`;
+  }).join('');
+}
+function logClearFilters() {
+  document.getElementById('logSearch').value = '';
+  document.getElementById('logStatusFilter').value = '';
+  renderLog();
 }
 
 function renderTimeline() {
@@ -3730,6 +3899,8 @@ function openSettingsModal() {
     const el = document.getElementById(id);
     if (el) { el.classList.toggle('hidden', !isAdmin); el.style.display = isAdmin ? '' : 'none'; }
   });
+  const adminLabel = document.getElementById('adminToolsLabel');
+  if (adminLabel) adminLabel.style.display = isAdmin ? '' : 'none';
   // Name: read-only for non-admins
   const nameInput = document.getElementById('settingsName');
   const nameSaveBtn = nameInput ? nameInput.parentElement.querySelector('.add-btn') : null;
@@ -3798,7 +3969,87 @@ async function updateInviteCode() {
 
 function closeModal(id) {
   document.getElementById(id).classList.add('hidden');
+  if (id === 'vesselDetailModal') { recStack.length = 0; recUpdateBack(); }
 }
+
+// ---------- Records (vessel, crew, entry) share one window. Opening one from another
+// keeps a trail so "Back" returns to where the user came from. ----------
+const recStack = [];
+let recReplaying = false;
+function recUpdateBack() {
+  const b = document.getElementById('recBackBtn');
+  if (b) b.style.display = recStack.length > 1 ? '' : 'none';
+}
+function recBack(keepTop) {
+  if (!keepTop) recStack.pop();
+  const prev = recStack[recStack.length - 1];
+  if (!prev) return closeModal('vesselDetailModal');
+  recReplaying = true;
+  try { window[prev[0]](prev[1]); } finally { recReplaying = false; }
+  recUpdateBack();
+}
+function recInstall() {
+  ['showVesselDetail', 'showCrewDetail', 'showEntryDetail'].forEach(fn => {
+    const orig = window[fn];
+    if (typeof orig !== 'function' || orig.__rec) return;
+    const wrapped = function (arg) {
+      const r = orig.apply(this, arguments);
+      const modal = document.getElementById('vesselDetailModal');
+      if (modal && !modal.classList.contains('hidden') && !recReplaying) {
+        const top = recStack[recStack.length - 1];
+        if (!(top && top[0] === fn && top[1] === arg)) recStack.push([fn, arg]);
+        const box = modal.querySelector('.modal-content'); if (box) box.scrollTop = 0;
+      }
+      recUpdateBack();
+      return r;
+    };
+    wrapped.__rec = true;
+    window[fn] = wrapped;
+  });
+}
+function dbScrollTo(panel) {
+  const el = document.querySelector('#view-dashboard [data-db-panel="' + panel + '"]');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+// Opens Vessels & Crew on a given tab with a filter already chosen.
+function vtOpen(tab, scope) {
+  showView('vessels');
+  if (tab === 'vessels') { const s = document.getElementById('vt-vessel-scope'); if (s) s.value = scope || ''; }
+  if (tab === 'crew') { const s = document.getElementById('vt-crew-filter'); if (s) s.value = scope || ''; }
+  vtSetTab(tab);
+}
+// Escape closes whatever is open on top.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const day = document.getElementById('dayDetailOverlay');
+  if (day && !day.classList.contains('hidden')) return closeDayDetail();
+  for (const id of ['addModal', 'vesselDetailModal', 'settingsModal']) {
+    const m = document.getElementById(id);
+    if (m && !m.classList.contains('hidden')) return closeModal(id);
+  }
+});
+// Phone layout: every data table is shown as a stack of labelled cards.
+// This copies each column heading onto its cells so the cards can show it.
+function labelTables() {
+  document.querySelectorAll('table.log-table:not(.no-card)').forEach(t => {
+    t.classList.add('cardable');
+    const heads = [...t.querySelectorAll('thead tr:last-child th')].map(th => (th.childNodes[0] ? th.childNodes[0].textContent : th.textContent).trim());
+    t.querySelectorAll('tbody tr').forEach(tr => {
+      if (tr.dataset.lb === heads.join('|')) return;
+      const tds = [...tr.children];
+      if (tds.length === 1 && tds[0].hasAttribute('colspan')) return;
+      tds.forEach((td, i) => { td.dataset.label = heads[i] || ''; td.classList.toggle('td-empty', !td.textContent.trim() && !td.querySelector('button')); });
+      if (!tr.querySelector('.td-title') && tds[0]) tds[0].classList.add('td-title');
+      tr.dataset.lb = heads.join('|');
+    });
+  });
+}
+let labelTimer = null;
+document.addEventListener('DOMContentLoaded', () => {
+  recInstall();
+  new MutationObserver(() => { if (labelTimer) return; labelTimer = requestAnimationFrame(() => { labelTimer = null; labelTables(); }); })
+    .observe(document.body, { childList: true, subtree: true });
+});
 
 function showAddModal(type) {
   document.getElementById('addModalTitle').textContent = `Add ${type}`;
@@ -3944,6 +4195,19 @@ function previousMonth() {
   renderCalendar();
 }
 
+function calendarToday() {
+  const t = parseYMD(antiguaToday());
+  calendarMonth = t.getMonth(); calendarYear = t.getFullYear();
+  renderCalendar();
+}
+// Starts a new entry already dated for the day that was open in the calendar.
+function newEntryOn(dateStr) {
+  closeDayDetail();
+  if (editingEntryId) exitEditMode();
+  showView('form');
+  document.getElementById('serviceDate').value = dateStr;
+}
+
 function nextMonth() {
   calendarMonth++;
   if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
@@ -4052,29 +4316,29 @@ function showDayDetail(dateStr) {
   const active = (statMap['pending'] || 0) + (statMap['scheduled'] || 0);
   const statsEl = document.getElementById('dayDetailStats');
   statsEl.innerHTML = `
-    <div class="day-stat"><div class="num">${total}</div><div class="label">Services</div></div>
+    <div class="day-stat"><div class="num">${total}</div><div class="label">Jobs</div></div>
     ${dayMoves.length ? `<div class="day-stat"><div class="num" style="color:#00695c">${dayMoves.length}</div><div class="label">Movements</div></div>` : ''}
     ${active ? `<div class="day-stat"><div class="num" style="color:var(--blue)">${active}</div><div class="label">Pending</div></div>` : ''}
-    ${statMap['in-progress'] ? `<div class="day-stat"><div class="num" style="color:#856404">${statMap['in-progress']}</div><div class="label">In Progress</div></div>` : ''}
-    ${statMap['awaiting-confirm'] ? `<div class="day-stat"><div class="num" style="color:#7b1fa2">${statMap['awaiting-confirm']}</div><div class="label">Awaiting</div></div>` : ''}
+    ${statMap['in-progress'] ? `<div class="day-stat"><div class="num" style="color:#856404">${statMap['in-progress']}</div><div class="label">In progress</div></div>` : ''}
+    ${statMap['awaiting-confirm'] ? `<div class="day-stat"><div class="num" style="color:#7b1fa2">${statMap['awaiting-confirm']}</div><div class="label">Awaiting confirmation</div></div>` : ''}
     ${statMap['completed'] ? `<div class="day-stat"><div class="num" style="color:var(--green)">${statMap['completed']}</div><div class="label">Completed</div></div>` : ''}
     ${statMap['overdue'] ? `<div class="day-stat"><div class="num" style="color:#d32f2f">${statMap['overdue']}</div><div class="label">Overdue</div></div>` : ''}
     ${statMap['delayed'] ? `<div class="day-stat"><div class="num" style="color:#c05621">${statMap['delayed']}</div><div class="label">Delayed</div></div>` : ''}
     ${statMap['cancelled'] ? `<div class="day-stat"><div class="num" style="color:var(--gray-600)">${statMap['cancelled']}</div><div class="label">Cancelled</div></div>` : ''}
-    ${presentVessels.length > 0 ? `<div class="day-stat"><div class="num" style="color:#00695c">⚓ ${presentVessels.length}</div><div class="label">In Port</div></div>` : ''}
+    ${presentVessels.length > 0 ? `<div class="day-stat"><div class="num" style="color:#00695c">⚓ ${presentVessels.length}</div><div class="label">In port</div></div>` : ''}
   `;
 
   const listEl = document.getElementById('dayDetailList');
   let presenceHtml = '';
   if (presentVessels.length > 0) {
     presenceHtml = `<div style="background:var(--gray-50);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-      <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">⚓ Vessels in Port</div>
+      <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">⚓ Vessels in port</div>
       ${presentVessels.map(v => {
         const color = getVesselColor(v);
         const movementInfo = dayMoves.filter(m => m.vessel === v).map(m => {
           const people = m.crew != null ? ' · ' + m.crew + ' crew' + (m.guests ? ', ' + m.guests + ' guests' : '') : '';
           const loc = mvFromTo(m);
-          return `<div style="font-size:11px;color:var(--gray-600);margin-left:16px;padding:1px 0;">${mvEmoji(m.type)}${m.time ? esc(m.time) + ' — ' : ''}${esc(m.type)}${loc ? ' · ' + esc(loc) : ''}${esc(people)}</div>`;
+          return `<div style="font-size:11px;color:var(--gray-600);margin-left:16px;padding:1px 0;">${mvEmoji(m.type)}${m.time ? esc(m.time) + ' · ' : ''}${esc(m.type)}${loc ? ' · ' + esc(loc) : ''}${esc(people)}</div>`;
         }).join('');
         return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:13px;cursor:pointer;" onclick="closeDayDetail();showVesselDetail('${esc(vtKey(v))}')"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span><span style="font-weight:500;">${esc(v)}</span></div>${movementInfo}`;
       }).join('')}
@@ -4082,7 +4346,7 @@ function showDayDetail(dateStr) {
   }
 
   if (dayEntries.length === 0 && presentVessels.length === 0) {
-    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-500);">No services or vessels for this day.</div>';
+    listEl.innerHTML = emptyState('Nothing on this day', 'No vessels in port and no jobs logged.');
   } else {
     const statusColors = { upcoming: 'var(--blue)', pending: '#3b5bdb', scheduled: 'var(--blue)', 'in-progress': '#856404', 'awaiting-confirm': '#7b1fa2', completed: 'var(--green)', overdue: '#d32f2f', delayed: '#c05621', cancelled: 'var(--gray-600)' };
     const bgColors = { upcoming: '#e8f0ff', pending: '#f0f4ff', scheduled: '#e8f0ff', 'in-progress': '#fff3cd', 'awaiting-confirm': '#f3e5f5', completed: 'var(--green-light)', overdue: '#ffeaea', delayed: '#fff0e0', cancelled: 'var(--gray-100)' };
@@ -4107,17 +4371,18 @@ function showDayDetail(dateStr) {
       const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
       return `<div class="day-job" onclick="closeDayDetail();showEntryDetail('${esc(e.entryId)}')" style="cursor:pointer;${isTransfer ? 'border-left:3px solid #ffd54f;' : ''}" title="Click to open">
         <div class="day-job-header">
-          <span class="day-job-title">${esc(e.entryId)} — ${esc(e.vessel || 'Unknown Vessel')}</span>
-          <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${esc(isTransfer ? e.serviceType : cs)}</span>
+          <span class="day-job-title">${esc(e.vessel || 'No vessel')} · ${esc(e.entryId)}</span>
+          <span class="day-job-status" style="background:${badgeBg};color:${badgeColor}">${esc(statusLabel(cs))}</span>
         </div>
-        <div class="day-job-detail">${esc(e.category || 'General')}${e.serviceType ? ' / ' + esc(e.serviceType) : ''}${e.serviceTime ? ' · ' + esc(e.serviceTime) : ''}</div>
+        <div class="day-job-detail">${esc(svcLabel(e) || 'Service')}${e.serviceTime ? ' · ' + esc(e.serviceTime) : ''}</div>
         ${transferInfo}
         ${e.description ? `<div class="day-job-detail" style="margin-top:4px">${esc(e.description)}</div>` : ''}
         ${e.totalCharge > 0 ? `<div class="day-job-detail" style="margin-top:4px;font-weight:600">${sym}${Number(e.totalCharge).toFixed(2)}</div>` : ''}
-        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Tap to open</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">Click to open</div>
       </div>`;
     }).join('');
   }
+  if (canWriteUser()) listEl.innerHTML += `<button type="button" class="btn-ghost-sm day-add-btn" onclick="newEntryOn('${esc(dateStr)}')">+ New Entry on this day</button>`;
 
   document.getElementById('dayDetailOverlay').classList.remove('hidden');
 }
@@ -4146,6 +4411,7 @@ let editingMovementId = null;
 function editMovement(entryId) {
   const entry = allEntries.find(e => e.entryId === entryId);
   if (!entry) return showToast('Movement not found');
+  mvShowForm('add');
   editingMovementId = entryId;
   document.getElementById('mvVessel').value = entry.vessel || '';
   document.getElementById('mvType').value = entry.serviceType || '';
@@ -4154,7 +4420,8 @@ function editMovement(entryId) {
   document.getElementById('mvFrom').value = entry.clearedOut || '';
   document.getElementById('mvTo').value = entry.clearedIn || '';
   document.getElementById('mvNotes').value = entry.description || '';
-  document.getElementById('mvSubmitBtn').textContent = 'Save Changes';
+  document.getElementById('mvAddTitle').textContent = 'Edit movement · ' + (entry.vessel || '');
+  document.getElementById('mvSubmitBtn').textContent = 'Save changes';
   document.getElementById('mvCancelEditBtn').style.display = '';
   // Scroll to form
   document.getElementById('mvVessel').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4169,8 +4436,23 @@ function cancelMovementEdit() {
   document.getElementById('mvFrom').value = '';
   document.getElementById('mvTo').value = '';
   document.getElementById('mvNotes').value = '';
-  document.getElementById('mvSubmitBtn').textContent = 'Add Movement';
+  document.getElementById('mvSubmitBtn').textContent = 'Save movement';
   document.getElementById('mvCancelEditBtn').style.display = 'none';
+  document.getElementById('mvAddTitle').textContent = 'Add a movement';
+}
+// The two movement forms stay out of the way until asked for.
+function mvShowForm(which) {
+  const add = document.getElementById('mvAddCard'), imp = document.getElementById('mvImportCard');
+  if (!add || !imp) return;
+  if (!canWriteUser()) return showToast('Your role is read-only');
+  populateMovementVesselSelects();
+  add.style.display = which === 'add' ? '' : 'none';
+  imp.style.display = which === 'import' ? '' : 'none';
+  (which === 'add' ? add : imp).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function mvHideForms() {
+  if (editingMovementId) cancelMovementEdit();
+  ['mvAddCard', 'mvImportCard'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
 }
 
 async function submitMovement() {
@@ -4378,7 +4660,7 @@ function parseAndPreviewMovements() {
         <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--gray-200);font-size:13px;" id="mvPreview${i}">
           <input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--teal);" data-mv-idx="${i}">
           <span style="min-width:80px;font-weight:600;">${esc(m.date)}</span>
-          <span style="min-width:40px;color:var(--gray-500);">${esc(m.time || '—')}</span>
+          <span style="min-width:40px;color:var(--gray-500);">${esc(m.time || '')}</span>
           <span class="status-badge status-${m.type === 'Arrival' ? 'completed' : m.type === 'Departure' ? 'overdue' : 'upcoming'}" style="font-size:11px;">${esc(m.type)}</span>
           <span style="flex:1;">${esc(m.from ? m.from + ' → ' : '')}${esc(m.to || m.notes || '')}</span>
         </div>
@@ -4437,7 +4719,7 @@ function renderMovementsList() {
   const typeBg = { Arrival: 'var(--green-light)', Departure: '#ffeaea', Relocation: '#e8f0ff' };
 
   if (movements.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-500);">No planned movements recorded yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">' + emptyState('Nothing added in the app', 'Cleared arrivals and departures come from the Google Sheet and show in the Clearance Log above. Add a planned movement or a move between anchorages here.', '+ Add movement', "mvShowForm('add')") + '</td></tr>';
     return;
   }
 
@@ -4451,13 +4733,13 @@ function renderMovementsList() {
     return `<tr style="${isPast ? 'opacity:0.5;' : ''}">
       <td>${esc(fmtDate(e.serviceDate))}</td>
       <td>${esc(e.specialNotes || '')}</td>
-      <td style="font-weight:600;">${esc(e.vessel)}</td>
-      <td><span style="background:${typeBg[type] || '#e8f0ff'};color:${typeColors[type] || 'var(--blue)'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">${esc(type)}</span></td>
-      <td>${from || to ? esc(from) + (from && to ? ' → ' : '') + esc(to) : '—'}</td>
+      <td class="td-title" style="font-weight:600;">${esc(e.vessel)}</td>
+      <td><span class="db-movement-badge ${type === 'Arrival' ? 'badge-arriving' : type === 'Departure' ? 'badge-departing' : 'badge-relocation'}">${esc(type)}</span></td>
+      <td>${from || to ? esc(from) + (from && to ? ' → ' : '') + esc(to) : ''}</td>
       <td style="font-size:12px;color:var(--gray-600);">${esc(e.description || '')}</td>
       <td style="white-space:nowrap;">
-        <button onclick="editMovement('${esc(e.entryId)}')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;font-weight:600;margin-right:8px;">Edit</button>
-        ${admin ? `<button onclick="deleteEntry('${esc(e.entryId)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>` : ''}
+        ${canWriteUser() ? `<button class="row-link" onclick="editMovement('${esc(e.entryId)}')">Edit</button>` : ''}
+        ${admin ? `<button class="row-link row-link-danger" onclick="deleteEntry('${esc(e.entryId)}')">Delete</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -4578,8 +4860,10 @@ function openEditEntry(entryId) {
   calculateTotal();
 
   // Update submit bar for edit mode
-  document.getElementById('formSubmitBtn').textContent = 'Save Changes';
-  document.getElementById('formResetBtn').textContent = 'Cancel';
+  document.getElementById('formSubmitBtn').textContent = 'Save changes';
+  document.getElementById('formResetBtn').textContent = 'Cancel edit';
+  showClearanceRow();
+  formSections(entry);
 
   // Switch to form view
   showView('form');
@@ -4609,6 +4893,12 @@ function setSort(table, key, rerender) {
 // cols: [[key, label], ...]. A null key makes a plain, unsortable heading.
 function sortHead(table, cols, rerender) {
   const s = sortState[table] || {};
+  const sel = document.querySelector('select.sort-phone[data-sort-for="' + table + '"]');
+  if (sel) {
+    sel.innerHTML = '<option value="">Sort by…</option>' + cols.filter(c => c[0]).map(([key, label]) =>
+      `<option value="${key}|1"${s.key === key && s.dir > 0 ? ' selected' : ''}>${esc(label)} ↑</option><option value="${key}|-1"${s.key === key && s.dir < 0 ? ' selected' : ''}>${esc(label)} ↓</option>`).join('');
+    sel.onchange = () => { const [k, d] = sel.value.split('|'); if (k) sortState[table] = { key: k, dir: +d }; else delete sortState[table]; if (typeof window[rerender] === 'function') window[rerender](); };
+  }
   return '<tr>' + cols.map(([key, label]) => key
     ? `<th class="vt-sort${s.key === key ? ' vt-sorted' : ''}" onclick="setSort('${table}','${key}','${rerender}')" title="Sort by ${esc(label)}">${esc(label)}<span class="vt-sort-arrow">${s.key === key ? (s.dir > 0 ? '▲' : '▼') : '↕'}</span></th>`
     : `<th>${esc(label)}</th>`).join('') + '</tr>';
@@ -4806,20 +5096,20 @@ function vtRenderActivity(dayStr) {
   if (!el) return;
   const s = vtSeasonStats(dayStr);
   const stay = x => x ? esc(x.vessel) + ' <span class="vt-tile-unit">' + x.days + ' d</span>' : 'None';
-  const tile = (label, value, cls) => `<div class="vt-tile ${cls || ''}"><div class="vt-tile-label">${label}</div><div class="vt-tile-value">${value}</div></div>`;
+  const tile = (label, value, cls, click, tip) => `<div class="vt-tile ${cls || ''}${click ? ' vt-tile-click' : ''}"${click ? ` onclick="${click}"` : ''}${tip ? ` title="${tip}"` : ''}><div class="vt-tile-label">${label}</div><div class="vt-tile-value">${value}</div></div>`;
   const tiles = [
-    tile('In Antigua now', s.inPort, 'vt-tile-key'),
-    tile('Vessels this season', s.uniqueVessels),
-    tile('Inbounds', s.inbounds),
-    tile('Outbounds', s.outbounds),
-    tile('Crew inbound', s.crewIn),
-    tile('Crew outbound', s.crewOut),
-    tile('Guests inbound', s.guestsIn),
-    tile('Guests outbound', s.guestsOut),
-    tile('Individual crew', s.individualCrew),
+    tile('In port now', s.inPort, 'vt-tile-key', "dbScrollTo('in-antigua')", 'Show the vessels in port'),
+    tile('Vessels this season', s.uniqueVessels, '', "vtOpen('vessels','season')", 'Open the list of vessels seen this season'),
+    tile('Arrivals', s.inbounds, '', "showView('movements')", 'Open the Clearance Log'),
+    tile('Departures', s.outbounds, '', "showView('movements')", 'Open the Clearance Log'),
+    tile('Crew arrived', s.crewIn, '', '', 'Crew on arrival notices this season'),
+    tile('Crew departed', s.crewOut, '', '', 'Crew on departure notices this season'),
+    tile('Guests arrived', s.guestsIn, '', '', 'Guests on arrival notices this season'),
+    tile('Guests departed', s.guestsOut, '', '', 'Guests on departure notices this season'),
+    tile('Different crew seen', s.individualCrew, '', "vtOpen('crew','season')", 'Open the crew seen this season'),
     tile('Largest crew', esc(s.largestCrew), 'vt-tile-text'),
     tile('Largest guest party', esc(s.largestGuests), 'vt-tile-text'),
-    tile('Longest current stay', stay(s.longestCurrent), 'vt-tile-text')
+    tile('Longest stay so far', stay(s.longestCurrent), 'vt-tile-text')
   ].join('');
 
   const sub = document.getElementById('vt-activity-sub');
@@ -4827,9 +5117,11 @@ function vtRenderActivity(dayStr) {
     const when = vtLastSync && vtLastSync.ran_at
       ? new Date(vtLastSync.ran_at).toLocaleString('en-GB', { timeZone: APP_TZ, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
       : null;
-    sub.textContent = 'Season ' + seasonLabelFor(dayStr) + (when ? ' · sheet synced ' + when + (vtLastSync.ok ? '' : ' (last sync failed)') : ' · no sync yet');
+    sub.textContent = 'Season ' + seasonLabelFor(dayStr) + (when ? ' · Google Sheet last synced ' + when + (vtLastSync.ok ? '' : ' (the last sync failed)') : ' · the Google Sheet has not synced yet');
   }
-  el.innerHTML = `<div class="vt-tiles">${tiles}</div>` + vtTimelineHtml(dayStr);
+  const open = uiGet('tiles', '0') === '1';
+  el.innerHTML = `<div class="vt-tiles${open ? ' open' : ''}" id="vtTiles">${tiles}</div>
+    <button type="button" class="vt-tiles-more" onclick="const t=document.getElementById('vtTiles');const o=t.classList.toggle('open');uiSet('tiles',o?'1':'0');this.textContent=o?'Fewer season numbers':'More season numbers';">${open ? 'Fewer season numbers' : 'More season numbers'}</button>` + vtTimelineHtml(dayStr);
 }
 
 function vtTlShift(n) { vtTlOffset = n === 0 ? 0 : vtTlOffset + n; renderDashboard(); }
@@ -4883,7 +5175,7 @@ function vtTimelineHtml(dayStr) {
         if (day === realToday) cls += ' vt-today';
         cells += `<td class="${cls}">${mark}</td>`;
       });
-      body += `<tr class="vt-tl-row" onclick="showVesselDetail('${esc(v.key)}')"><td class="vt-tl-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">★</span>' : ''}</td><td class="vt-tl-num">${d == null ? '—' : d}</td>${cells}</tr>`;
+      body += `<tr class="vt-tl-row" onclick="showVesselDetail('${esc(v.key)}')"><td class="vt-tl-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">★</span>' : ''}</td><td class="vt-tl-num">${d == null ? '' : d}</td>${cells}</tr>`;
     });
   });
 
@@ -4906,7 +5198,7 @@ function vtRenderAlerts() {
   const countEl = document.getElementById('vt-alerts-count');
   if (!el) return;
   if (countEl) countEl.textContent = vtAlerts.length;
-  if (!vtAlerts.length) { el.innerHTML = '<div class="db-empty">No passport or birthday alerts</div>'; return; }
+  if (!vtAlerts.length) { el.innerHTML = '<div class="db-empty">No crew alerts. Passports close to expiry and upcoming birthdays show here.</div>'; return; }
   const admin = isAdminUser();
   el.innerHTML = vtAlerts.map(a => {
     const bday = a.alert_type === 'birthday';
@@ -4919,7 +5211,8 @@ function vtRenderAlerts() {
       detail = 'Passport: ' + a.status + (admin && a.on_date ? ' · expires ' + fmtDate(a.on_date) : '');
     }
     const tone = bday ? 'vt-al-bday' : (a.status === 'Warn' ? 'vt-al-warn' : 'vt-al-pass');
-    return `<div class="vt-alert ${tone}">
+    const person = vtCrewAlmanac().find(p => p.name === a.full_name);
+    return `<div class="vt-alert ${tone}${person ? ' vt-alert-click' : ''}"${person ? ` title="Open crew record" onclick="showCrewDetail('${esc(encodeURIComponent(person.key))}')"` : ''}>
       <div class="vt-alert-icon">${bday ? '🎂' : '🛂'}</div>
       <div style="min-width:0;">
         <div class="vt-alert-name">${esc(a.full_name)}${a.role === 'Captain' ? ' <span class="vt-chip">Captain</span>' : ''}</div>
@@ -4953,12 +5246,12 @@ function showVesselDetail(key) {
     const label = { current: 'In port', departed: 'Departed', expected: 'Expected', unknown: 'No departure on file' }[st];
     const d = visitDays(v, today);
     return `<tr>
-      <td>${v.start ? esc(fmtDate(v.start)) : '—'}</td>
-      <td>${v.end ? esc(fmtDate(v.end)) : '—'}</td>
-      <td>${d == null ? '—' : d}</td>
+      <td>${v.start ? esc(fmtDate(v.start)) : ''}</td>
+      <td>${v.end ? esc(fmtDate(v.end)) : ''}</td>
+      <td>${d == null ? '' : d}</td>
       <td>${esc((v.arrival && (v.arrival.to || v.arrival.port)) || '')}</td>
-      <td>${v.arrival && v.arrival.crew != null ? v.arrival.crew : '—'} / ${v.arrival && v.arrival.guests != null ? v.arrival.guests : '—'}</td>
-      <td>${v.departure && v.departure.crew != null ? v.departure.crew : '—'} / ${v.departure && v.departure.guests != null ? v.departure.guests : '—'}</td>
+      <td>${paxPair(v.arrival)}</td>
+      <td>${paxPair(v.departure)}</td>
       <td><span class="vt-chip vt-chip-${st}">${label}</span></td>
     </tr>`;
   }).join('');
@@ -4970,7 +5263,7 @@ function showVesselDetail(key) {
   const crewNowRows = crewNow.map(c => {
     const p = vtCrewPrivate[c.id] || {};
     return `<tr><td>${esc(c.full_name)}</td><td>${esc(c.rank || c.role || '')}</td><td>${esc(c.nationality || '')}</td>` +
-      (admin ? `<td>${p.date_of_birth ? esc(fmtDate(p.date_of_birth)) : '—'}</td><td>${p.passport_expiry ? esc(fmtDate(p.passport_expiry)) : '—'}</td>` : '') + '</tr>';
+      (admin ? `<td>${p.date_of_birth ? esc(fmtDate(p.date_of_birth)) : ''}</td><td>${p.passport_expiry ? esc(fmtDate(p.passport_expiry)) : ''}</td>` : '') + '</tr>';
   }).join('');
 
   // Everyone seen on this vessel (Crew log tab)
@@ -4996,8 +5289,8 @@ function showVesselDetail(key) {
     sums[sym] = (sums[sym] || 0) + total;
     return `<tr class="vt-click" onclick="showEntryDetail('${esc(e.entryId)}')">
       <td>${esc(fmtDate(e.serviceDate))}${e.serviceTime ? ' ' + esc(e.serviceTime) : ''}</td><td>${esc(e.entryId)}</td>
-      <td>${esc(e.category || '')}${e.serviceType ? ' — ' + esc(e.serviceType) : ''}</td><td>${esc(e.staffMember || '—')}</td>
-      <td><span class="status-badge status-${esc(st)}">${esc(st)}</span></td><td style="font-weight:600;">${sym}${total.toFixed(2)}</td></tr>`;
+      <td class="td-title">${esc(svcLabel(e))}</td><td>${esc(e.staffMember || '')}</td>
+      <td>${statusBadge(st)}</td><td style="font-weight:600;">${total > 0 ? sym + total.toFixed(2) : ''}</td></tr>`;
   };
   const jobRows = jobs.map(jobRow).join('');
   const openCount = jobs.filter(isOpen).length;
@@ -5013,7 +5306,7 @@ function showVesselDetail(key) {
     ${facts ? `<div class="vt-facts">${facts}</div>` : '<div class="db-empty">No vessel particulars on file</div>'}
     ${jobsHtml}
     <h3 class="vt-h3">Visits (${visits.length})</h3>
-    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Arrival</th><th>Departure</th><th>Days</th><th>Port</th><th>Crew / guests in</th><th>Crew / guests out</th><th>Status</th></tr></thead><tbody>${visitRows || '<tr><td colspan="7" class="db-empty">No visits on file</td></tr>'}</tbody></table></div>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Arrival</th><th>Departure</th><th>Days</th><th>Port</th><th>On arrival</th><th>On departure</th><th>Status</th></tr></thead><tbody>${visitRows || '<tr><td colspan="7" class="db-empty">No visits on file</td></tr>'}</tbody></table></div>
     ${crewNow.length ? `<h3 class="vt-h3">Crew on current list (${crewNow.length})</h3>
     <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Name</th><th>Rank</th><th>Nationality</th>${admin ? '<th>Date of birth</th><th>Passport expiry</th>' : ''}</tr></thead><tbody>${crewNowRows}</tbody></table></div>` : ''}
     <h3 class="vt-h3">Crew seen on this vessel (${Object.keys(seen).length})</h3>
@@ -5080,7 +5373,7 @@ function showCrewDetail(encodedKey) {
     <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>From vessel</th><th>Last seen there</th><th>To vessel</th><th>First seen there</th><th>Gap</th><th>Rank</th></tr></thead><tbody>${
       vesselChanges.map(c => {
         const ra = c.a.ranks[c.a.ranks.length - 1] || '', rb = c.b.ranks[0] || '';
-        return `<tr><td>${vesselLink(c.a)}</td><td>${esc(fmtDate(c.a.to))}</td><td>${vesselLink(c.b)}</td><td>${esc(fmtDate(c.b.from))}</td><td>${daysBetween(c.a.to, c.b.from)} d</td><td>${ra || rb ? esc(ra || '—') + (ra !== rb ? ' → ' + esc(rb || '—') : '') : '—'}</td></tr>`;
+        return `<tr><td>${vesselLink(c.a)}</td><td>${esc(fmtDate(c.a.to))}</td><td>${vesselLink(c.b)}</td><td>${esc(fmtDate(c.b.from))}</td><td>${daysBetween(c.a.to, c.b.from)} d</td><td>${ra || rb ? esc(ra || 'not given') + (ra !== rb ? ' → ' + esc(rb || 'not given') : '') : ''}</td></tr>`;
       }).join('') || '<tr><td colspan="6" class="db-empty">Seen on one vessel only</td></tr>'}</tbody></table></div>
     ${rankChanges.length ? `<h3 class="vt-h3">Rank changes (${rankChanges.length})</h3>
     <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>From</th><th>To</th><th>First seen with new rank</th><th>Vessel</th></tr></thead><tbody>${
@@ -5092,13 +5385,17 @@ function showCrewDetail(encodedKey) {
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
+// "20 crew, 4 guests" for a movement, blank when the notice gave no numbers.
+function paxPair(m) {
+  if (!m || (m.crew == null && m.guests == null)) return '';
+  return (m.crew != null ? m.crew + ' crew' : '') + (m.crew != null && m.guests != null ? ', ' : '') + (m.guests != null ? m.guests + ' guest' + (m.guests === 1 ? '' : 's') : '');
+}
 // ---------- Entry record: what a job is, and the buttons to resolve it ----------
 function showEntryDetail(entryId) {
   const e = allEntries.find(x => x.entryId === entryId);
   if (!e) return showToast('Entry not found');
   const today = antiguaToday();
   const st = computeStatus(e);
-  const statusLabel = { pending: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting confirmation', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' }[st] || st;
   const sym = (e.currency || 'USD') === 'XCD' ? 'EC$' : '$';
   const { blocks, total } = entryChargeBlocks(e);
   const driver = e.transferDriverId ? allDrivers.find(d => d.id === e.transferDriverId) : null;
@@ -5116,7 +5413,7 @@ function showEntryDetail(entryId) {
   const done = st === 'completed' || st === 'cancelled';
   const vKey = vtKey(e.vessel);
 
-  document.getElementById('vesselDetailTitle').innerHTML = esc(e.entryId) + ' · ' + esc(e.vessel || 'No vessel') + ` <span class="status-badge status-${esc(st)}">${esc(statusLabel)}</span>`;
+  document.getElementById('vesselDetailTitle').innerHTML = esc(e.vessel || 'No vessel') + ' · ' + esc(e.entryId) + ' ' + statusBadge(st);
   document.getElementById('vesselDetailBody').innerHTML = `
     ${why}
     <div class="vt-actions">
@@ -5125,26 +5422,32 @@ function showEntryDetail(entryId) {
       ${canWrite && done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','pending')">Reopen</button>` : ''}
       ${canWrite ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');openEditEntry('${esc(e.entryId)}')">Edit</button>` : ''}
       ${vKey ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(vKey)}')">Vessel record</button>` : ''}
+      ${isAdminUser() ? `<button type="button" class="vt-act vt-act-danger" onclick="recDeleteEntry('${esc(e.entryId)}')">Delete</button>` : ''}
     </div>
     <div class="vt-facts">
-      ${fact('Service', (e.category || '') + (e.serviceType ? ' — ' + e.serviceType : ''))}
-      ${fact('Service date', fmtDate(e.serviceDate) + (e.serviceTime ? ' ' + e.serviceTime : ''))}
+      ${fact('Service', svcLabel(e))}
+      ${fact('Date', fmtDate(e.serviceDate) + (e.serviceTime ? ' ' + e.serviceTime : ''))}
+      ${fact('Status', statusLabel(st))}
       ${fact('Priority', e.priority && e.priority !== 'normal' ? e.priority : '')}
       ${fact('Staff', e.staffMember)}
       ${fact('Logged on', fmtDate(e.submissionDate))}
       ${fact('Cleared in at', e.clearedIn)}${fact('Cleared out at', e.clearedOut)}${fact('Marina / berth', e.marina)}
       ${transfer ? fact('Route', [e.transferFrom, e.transferTo].filter(Boolean).join(' → ')) + fact('Pickup time', e.transferPickupTime) + fact('Driver', driver ? driver.name + (driver.phone ? ' (' + driver.phone + ')' : '') : 'Not assigned') + fact('Passengers', e.transferPaxCount || '') + fact('Flight', e.transferFlightNumber) + fact('Return', e.transferIsReturn ? (e.transferReturnTime || 'Yes') : '') : ''}
-      ${fact('Future task', e.futureTask)}
+      ${fact('Follow-up task', e.futureTask)}
       ${fact('Total charge', total > 0 ? sym + total.toFixed(2) : 'No charge')}
     </div>
-    ${note('Description', e.description)}
+    ${note('What needs doing', e.description)}
     ${transfer ? note('Transfer notes', e.transferNotes) : ''}
-    ${note('Notes for client', e.specialNotes)}${note('Internal notes', e.internalNotes)}${note('Client notes', e.clientNotes)}
+    ${note('Notes the client can see', e.specialNotes)}${note('Internal notes', e.internalNotes)}${note('Notes from or about the client', e.clientNotes)}
     ${chargeRows ? `<h3 class="vt-h3">Charges</h3><div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Item</th><th>Basis</th><th>Amount</th></tr></thead><tbody>${chargeRows}</tbody></table></div>` : ''}
     ${e.lastEditedBy ? `<p class="vt-note" style="margin-top:10px;">Last edited by ${esc(e.lastEditedBy)}${e.lastEditedAt ? ' on ' + esc(fmtDate(e.lastEditedAt.split('T')[0])) : ''}</p>` : ''}`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
+async function recDeleteEntry(entryId) {
+  await deleteEntry(entryId);
+  if (!allEntries.some(e => e.entryId === entryId)) { recStack.pop(); if (recStack.length) recBack(true); else closeModal('vesselDetailModal'); }
+}
 // One-click resolve from the entry record.
 async function quickSetStatus(entryId, status) {
   if (!canWriteUser()) return showToast('Your role is read-only');
@@ -5177,9 +5480,17 @@ function setEditBanner(entry) {
   const tab = document.querySelector('.tab-btn[data-view="form"]');
   if (banner) {
     banner.style.display = entry ? '' : 'none';
-    if (entry) document.getElementById('editBannerText').textContent = 'Editing ' + entry.entryId + ' · ' + (entry.vessel || 'No vessel') + ' · ' + (entry.category || '') + (entry.serviceType ? ' — ' + entry.serviceType : '') + ' · ' + fmtDate(entry.serviceDate);
+    if (entry) document.getElementById('editBannerText').textContent = 'Editing ' + entry.entryId + ' · ' + (entry.vessel || 'No vessel') + ' · ' + svcLabel(entry) + ' · ' + fmtDate(entry.serviceDate);
   }
-  if (tab) tab.textContent = entry ? 'Editing ' + entry.entryId : '+ New Entry';
+  if (tab) {
+    tab.querySelector('.tab-lbl').textContent = entry ? 'Editing ' + entry.entryId : 'New Entry';
+    tab.querySelector('.tab-lbl-s').textContent = entry ? 'Editing' : 'New';
+  }
+  const title = document.getElementById('formTitle'), help = document.getElementById('formHelp');
+  if (title) title.textContent = entry ? 'Edit ' + entry.entryId : 'New Entry';
+  if (help) help.style.display = entry ? 'none' : '';
+  const logged = document.getElementById('formLoggedHint');
+  if (logged) logged.style.display = entry ? 'none' : '';
 }
 
 // ---------- Vessels view (almanac) ----------
@@ -5231,19 +5542,20 @@ function vtRenderVesselAlmanac() {
   if (!el) return;
   const q = (document.getElementById('vt-vessel-search').value || '').toLowerCase().trim();
   document.getElementById('vt-vessel-head').innerHTML = sortHead('vessels', [['vessel', 'Vessel'], ['flag', 'Flag'], ['type', 'Type'], ['loa', 'LOA'], ['arrivals', 'Arrivals'], ['departures', 'Departures'], ['first', 'First seen'], ['last', 'Last seen'], ['captain', 'Latest captain'], ['now', 'Now']], 'vtRenderVesselAlmanac');
-  const list = sortList('vessels', vtVesselAlmanac().filter(r => !q || [r.vessel, r.flag, r.type, r.captain].join(' ').toLowerCase().includes(q)), {
+  const scope = (document.getElementById('vt-vessel-scope') || {}).value || '';
+  const list = sortList('vessels', vtVesselAlmanac().filter(r => (!scope || (scope === 'port' ? r.inPort : r.thisSeason)) && (!q || [r.vessel, r.flag, r.type, r.captain].join(' ').toLowerCase().includes(q))), {
     vessel: r => r.vessel, flag: r => r.flag, type: r => r.type, loa: r => r.loaNum, arrivals: r => r.arrivals, departures: r => r.departures,
     first: r => r.first, last: r => r.last, captain: r => r.captain, now: r => r.inPort ? 0 : 1
   });
   document.getElementById('vt-vessel-count').textContent = list.length + ' vessel' + (list.length === 1 ? '' : 's');
   el.innerHTML = list.map(r => `<tr class="vt-click" onclick="showVesselDetail('${esc(r.key)}')">
-    <td style="font-weight:600;">${esc(r.vessel)}${r.seenBefore && r.thisSeason ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
+    <td class="td-title" style="font-weight:600;">${esc(r.vessel)}${r.seenBefore && r.thisSeason ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
     <td>${esc(r.flag || '')}</td><td>${esc(r.type || '')}</td><td>${esc(r.loa || '')}</td>
     <td>${r.arrivals}</td><td>${r.departures}</td>
     <td>${esc(fmtDate(r.first))}</td><td>${esc(fmtDate(r.last))}</td>
     <td>${esc(r.captain || '')}</td>
     <td>${r.inPort ? '<span class="vt-chip vt-chip-current">In port</span>' : ''}</td>
-  </tr>`).join('') || '<tr><td colspan="10" class="db-empty">No vessels match</td></tr>';
+  </tr>`).join('') || ('<tr><td colspan="10">' + emptyState('No vessels match', 'Try a shorter search or choose "All vessels".') + '</td></tr>');
 }
 
 function vtCrewAlmanac() {
@@ -5283,14 +5595,14 @@ function vtRenderCrewAlmanac() {
   });
   document.getElementById('vt-crew-count').textContent = list.length + ' crew';
   el.innerHTML = list.map(p => `<tr class="vt-click" onclick="showCrewDetail('${esc(encodeURIComponent(p.key))}')">
-    <td style="font-weight:600;">${esc(p.name)}${p.thisSeason && p.seenBefore ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
+    <td class="td-title" style="font-weight:600;">${esc(p.name)}${p.thisSeason && p.seenBefore ? ' <span class="vt-star" title="Returning this season">★</span>' : ''}</td>
     <td>${p.n}</td>
     <td>${esc(p.vessels.join(', '))}</td>
     <td>${esc(p.latestVessel || '')}</td>
     <td>${esc(p.latestRank || '')}</td>
     <td>${esc(fmtDate(p.first))}</td><td>${esc(fmtDate(p.last))}</td>
     <td>${p.changedVessel ? '<span class="vt-chip vt-chip-link" title="Show what changed">Changed vessel ›</span>' : ''}${p.changedRank ? ' <span class="vt-chip vt-chip-link" title="Show what changed">Changed rank ›</span>' : ''}</td>
-  </tr>`).join('') || '<tr><td colspan="8" class="db-empty">No crew match</td></tr>';
+  </tr>`).join('') || ('<tr><td colspan="8">' + emptyState('No crew match', 'Try a shorter search or choose "All crew".') + '</td></tr>');
 }
 
 function vtRenderStats() {
@@ -5298,7 +5610,7 @@ function vtRenderStats() {
   if (!el) return;
   const today = antiguaToday();
   const moves = unifiedMovements().filter(m => m.type === 'Arrival' || m.type === 'Departure');
-  if (!moves.length) { el.innerHTML = '<div class="db-empty">No movements on file</div>'; return; }
+  if (!moves.length) { el.innerHTML = emptyState('No movements on file', 'Statistics appear once the Google Sheet has synced.'); return; }
 
   const seasons = [...new Set(moves.map(m => seasonLabelFor(m.date)))].sort();
   const monthOrder = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -5308,9 +5620,9 @@ function vtRenderStats() {
     const k = seasonLabelFor(m.date) + '|' + (+m.date.slice(5, 7)) + '|' + m.type;
     cell[k] = (cell[k] || 0) + 1;
   });
-  let monthTable = '<table class="log-table vt-table"><thead><tr><th rowspan="2">Month</th>' +
+  let monthTable = '<table class="log-table vt-table no-card"><thead><tr><th rowspan="2">Month</th>' +
     seasons.map(s => `<th colspan="2" style="text-align:center;">${esc(s)}</th>`).join('') + '</tr><tr>' +
-    seasons.map(() => '<th>Arr</th><th>Dep</th>').join('') + '</tr></thead><tbody>';
+    seasons.map(() => '<th title="Arrivals">In</th><th title="Departures">Out</th>').join('') + '</tr></thead><tbody>';
   monthOrder.forEach(mo => {
     monthTable += `<tr><td style="font-weight:600;">${monthNames[mo]}</td>` + seasons.map(s =>
       `<td>${cell[s + '|' + mo + '|Arrival'] || 0}</td><td>${cell[s + '|' + mo + '|Departure'] || 0}</td>`).join('') + '</tr>';
@@ -5325,8 +5637,8 @@ function vtRenderStats() {
     moves.forEach(m => { const k = f(m); if (k) c[k] = (c[k] || 0) + 1; });
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   };
-  const smallTable = (title, head, rows) => `<div class="vt-stat-card"><h3 class="vt-h3">${title}</h3><table class="log-table vt-table"><thead><tr><th>${head}</th><th>Movements</th></tr></thead><tbody>${
-    rows.map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('') || '<tr><td colspan="2" class="db-empty">None</td></tr>'}</tbody></table></div>`;
+  const smallTable = (title, head, rows, link) => `<div class="vt-stat-card"><h3 class="vt-h3">${title}</h3><table class="log-table vt-table no-card"><thead><tr><th>${head}</th><th>Movements</th></tr></thead><tbody>${
+    rows.map(r => `<tr${link ? ` class="vt-click" onclick="showVesselDetail('${esc(vtKey(r[0]))}')"` : ''}><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('') || '<tr><td colspan="2" class="db-empty">None</td></tr>'}</tbody></table></div>`;
 
   // What past seasons did in the same 28 calendar days that are coming up.
   const upcoming = [];
@@ -5336,20 +5648,20 @@ function vtRenderStats() {
     moves.filter(m => m.date.slice(5) === md && seasonLabelFor(m.date) !== thisSeason && m.date < today).forEach(m => upcoming.push({ i, m }));
   }
   upcoming.sort((a, b) => a.i - b.i || b.m.date.localeCompare(a.m.date));
-  const upcomingRows = upcoming.map(({ m }) => `<tr><td>${esc(fmtDate(m.date))}</td><td>${esc(m.vessel)}</td><td>${esc(m.type)}</td><td>${esc(m.port || '')}</td></tr>`).join('');
+  const upcomingRows = upcoming.map(({ m }) => `<tr class="vt-click" onclick="showVesselDetail('${esc(m.key || vtKey(m.vessel))}')"><td>${esc(fmtDate(m.date))}</td><td>${esc(m.vessel)}</td><td>${esc(m.type)}</td><td>${esc(m.port || '')}</td></tr>`).join('');
 
   const sourceNote = vtMovements.some(m => m.source_portal === 'eSeaClear' && m.movement_date < seasonStartFor(today))
     ? '' : '<p class="vt-note">Past seasons hold SailClear records only, so earlier seasons are partial.</p>';
 
   el.innerHTML = `
     ${sourceNote}
-    <div class="vt-stat-card"><h3 class="vt-h3">Arrivals and departures by month</h3><div class="log-table-wrap">${monthTable}</div></div>
+    <div class="vt-stat-card"><h3 class="vt-h3">Arrivals and departures by month</h3><div class="log-table-wrap keep-scroll">${monthTable}</div></div>
     <div class="vt-stat-grid">
       ${smallTable('Movements by flag', 'Flag', countBy(m => m.src === 'sheet' ? m.raw.flag : ''))}
       ${smallTable('Movements by vessel type', 'Type', countBy(m => m.src === 'sheet' ? m.raw.vessel_type : ''))}
-      ${smallTable('Most frequent vessels', 'Vessel', countBy(m => m.vessel).slice(0, 12))}
+      ${smallTable('Most frequent vessels', 'Vessel', countBy(m => m.vessel).slice(0, 12), true)}
     </div>
-    <div class="vt-stat-card"><h3 class="vt-h3">Past seasons: movements in the next 28 days of the calendar</h3>
+    <div class="vt-stat-card"><h3 class="vt-h3">Who came or went in the next 4 weeks in past seasons</h3>
       <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Date</th><th>Vessel</th><th>Movement</th><th>Port</th></tr></thead><tbody>${upcomingRows || '<tr><td colspan="4" class="db-empty">Nothing on file for these dates</td></tr>'}</tbody></table></div>
     </div>`;
 }
@@ -5376,16 +5688,16 @@ function vtRenderClearanceLog() {
     return `<tr class="vt-click" onclick="showVesselDetail('${esc(m.vessel_key)}')">
       <td>${esc(fmtDate(m.movement_date))}</td>
       <td>${esc((m.movement_time || '').slice(0, 5))}</td>
-      <td style="font-weight:600;">${esc(m.vessel_name)}</td>
+      <td class="td-title" style="font-weight:600;">${esc(m.vessel_name)}</td>
       <td><span class="db-movement-badge ${arr ? 'badge-arriving' : 'badge-departing'}">${esc(m.movement_type)}</span></td>
       <td>${esc(m.port || '')}</td>
       <td>${esc(arr ? (m.last_port || '') : (m.next_port || ''))}</td>
-      <td>${m.crew_count == null ? '—' : m.crew_count}</td>
-      <td>${m.guest_count == null ? '—' : m.guest_count}</td>
+      <td>${m.crew_count == null ? '' : m.crew_count}</td>
+      <td>${m.guest_count == null ? '' : m.guest_count}</td>
       <td>${esc(m.captain_name || '')}</td>
       <td style="font-size:11px;color:var(--gray-600);">${esc(m.source_portal || '')} ${esc(m.reference || '')}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="10" class="db-empty">No clearance records match</td></tr>';
+  }).join('') || ('<tr><td colspan="10">' + (vtMovements.length ? emptyState('Nothing matches', 'No clearance fits the search. Try "All seasons".') : emptyState('No clearances yet', 'They appear here after the Google Sheet syncs.')) + '</td></tr>');
 }
 
 // ============================================
@@ -5473,7 +5785,7 @@ async function loadMapLocations() {
     if (error) throw error;
     dbMapLocations = (data && data.length) ? data : null;
   } catch (e) {
-    console.warn('map_locations unavailable — using hardcoded fallback:', e && e.message);
+    console.warn('map_locations unavailable, using built-in list:', e && e.message);
     dbMapLocations = null;
   }
 }
@@ -5575,7 +5887,7 @@ function dbCalRenderWeek(body){
   const cur = new Date(dbCalCursor);
   const start = new Date(cur); start.setDate(cur.getDate() - cur.getDay());
   const end = new Date(start); end.setDate(start.getDate() + 6);
-  dbCalSetTitle(`${DB_CAL_MONTHS[start.getMonth()]} ${start.getDate()} – ${DB_CAL_MONTHS[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`);
+  dbCalSetTitle(`${start.getDate()} ${DB_CAL_MONTHS[start.getMonth()]} to ${end.getDate()} ${DB_CAL_MONTHS[end.getMonth()]} ${end.getFullYear()}`);
   const todayStr = antiguaToday();
   let html = '<div class="db-cal-week">';
   for (let i = 0; i < 7; i++){
@@ -5584,7 +5896,7 @@ function dbCalRenderWeek(body){
     const items = dbCalFor(ds);
     html += `<div class="db-cal-weekcol ${ds === todayStr ? 'today' : ''}" onclick="dbCalOpenDay('${ds}')">`;
     html += `<div class="db-cal-weekhead">${DB_CAL_DOW[i]} ${d.getDate()}</div>`;
-    if (!items.length) html += '<div class="db-cal-empty">—</div>';
+    if (!items.length) html += '<div class="db-cal-empty">Nothing</div>';
     items.forEach(e => html += dbCalPip(e));
     html += '</div>';
   }
@@ -5655,7 +5967,7 @@ function mleAddMarker(){
   _mleNewPlacing = tempId;
   const inp = document.querySelector('.mle-row[data-id="'+tempId+'"] input[type=text]');
   if(inp){ inp.focus(); inp.select(); }
-  showToast('New marker at map centre — drag it or click the map to place, then Save.');
+  showToast('New marker added at the centre of the map. Drag it or click the map to place it, then Save.');
 }
 async function mleOpen(){
   try { await ensureLeaflet(); } catch (e) { showToast('Map library did not load. Check the connection.'); return; }
@@ -5735,7 +6047,7 @@ async function mleSave(){
       if(!key){ if(st) st.textContent=''; showToast('New marker needs a name or key.'); return; }
       r.key = key;
       if(existingKeys.has(key.toLowerCase()) || inserts.some(n=>n.key.toLowerCase()===key.toLowerCase())){
-        if(st) st.textContent=''; showToast('Duplicate key "'+key+'" — choose a unique key.'); return;
+        if(st) st.textContent=''; showToast('The key "'+key+'" is already used. Choose a different one.'); return;
       }
       inserts.push({ key:r.key, name:r.name||key, category:r.category||null, latitude:r.latitude, longitude:r.longitude, notes:r.notes||null, is_active:!!r.is_active });
     } else {
@@ -5750,7 +6062,7 @@ async function mleSave(){
     const { error } = await sb.from('map_locations').insert(inserts);
     if(error){
       if(st) st.textContent='';
-      if(error.code==='23505' || /duplicate|unique/i.test(error.message||'')) showToast('Duplicate key blocked by database — choose a unique key.');
+      if(error.code==='23505' || /duplicate|unique/i.test(error.message||'')) showToast('That key is already used. Choose a different one.');
       else showToast('Add failed: '+error.message);
       return;
     }
@@ -5821,7 +6133,7 @@ function dbRenderMapVessels(inPort) {
 
   // Place a marker for each marina that has vessels
   Object.values(grouped).forEach(({ coords, vessels }) => {
-    const names = vessels.map(v => `<b>${esc(v.vessel)}</b> — ${esc(v.location)}`).join('<br>');
+    const names = vessels.map(v => `<b>${esc(v.vessel)}</b>: ${esc(v.location)}`).join('<br>');
     const count = vessels.length;
 
     const icon = L.divIcon({
@@ -5910,6 +6222,7 @@ function mvFromTo(m) { return [m.from, m.to].filter(Boolean).join(' → '); }
 // the movement form for one typed into the app.
 function openMovement(src, ref) {
   if (src === 'sheet') return showVesselDetail(ref);
+  closeModal('vesselDetailModal');
   showView('movements');
   setTimeout(() => editMovement(ref), 60);
 }
@@ -5986,20 +6299,19 @@ function renderAgenda(todayStr) {
   const items = agendaItems(from, to);
   // Single-day ranges always show their day. Longer ranges show only days with something on.
   const days = range.from === range.to ? [from] : [...new Set(items.map(i => i.date))];
-  if (!days.length) { bodyEl.innerHTML = `<div class="db-empty">Nothing scheduled in the ${esc(range.label.toLowerCase())}</div>`; return; }
+  if (!days.length) { bodyEl.innerHTML = `<div class="db-empty">Nothing in the ${esc(range.label.toLowerCase())}. Jobs and movements show here as soon as they are logged.</div>`; return; }
 
   const kindCls = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
   const moveCls = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation' };
-  const statusLabel = { pending: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' };
 
   const rowHtml = i => `
       <div class="ag-row ${kindCls[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
-        <div class="ag-time">${esc(i.time || '—')}</div>
+        <div class="ag-time">${esc(i.time || '')}</div>
         <div class="ag-main">
           <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (moveCls[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">●</span>' : ''}</div>
           ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
         </div>
-        ${i.status ? `<span class="status-badge status-${esc(i.status)}">${esc(statusLabel[i.status] || i.status)}</span>` : ''}
+        ${i.status ? statusBadge(i.status) : ''}
       </div>`;
 
   // On the single-day views, also show what is coming next so a quiet day is not a blank panel.
@@ -6015,7 +6327,7 @@ function renderAgenda(todayStr) {
     const list = items.filter(i => i.date === day);
     const rel = day === todayStr ? 'Today' : day === addDays(todayStr, 1) ? 'Tomorrow' : '';
     const head = `<div class="ag-day${day === todayStr ? ' ag-day-today' : ''}"><span>${rel ? rel + ' · ' : ''}${esc(fmtDate(day, { weekday: 'long', day: 'numeric', month: 'long' }))}</span><span class="ag-day-n">${list.length || ''}</span></div>`;
-    if (!list.length) return head + '<div class="ag-none">Nothing scheduled</div>';
+    if (!list.length) return head + '<div class="ag-none">Nothing logged for this day yet.</div>';
     return head + list.map(rowHtml).join('');
   }).join('') + comingUp;
 }
@@ -6080,7 +6392,7 @@ function dbRenderKPI(movements, urgentCount, inPort) {
     const display = vessels.length <= 2
       ? allNames
       : vessels.slice(0, 2).join(', ') + ' +' + (vessels.length - 2) + ' more';
-    portSub.textContent = display || 'none logged';
+    portSub.textContent = display || 'No vessels in port';
     portSub.title = allNames;
   }
 
@@ -6090,14 +6402,14 @@ function dbRenderKPI(movements, urgentCount, inPort) {
   if (mvSub) {
     const arr = movements.filter(m => m.type === 'Arrival').length;
     const dep = movements.filter(m => m.type === 'Departure').length;
-    mvSub.textContent = `${arr} arriv · ${dep} depart`;
+    mvSub.textContent = `${arr} arriving · ${dep} departing`;
   }
 
   const urgEl = document.getElementById('kpi-urgent');
   const urgSub = document.getElementById('kpi-urgent-sub');
   const urgCard = document.getElementById('kpi-urgent-card');
   if (urgEl) urgEl.textContent = urgentCount;
-  if (urgSub) urgSub.textContent = urgentCount === 0 ? 'all clear ✓' : 'action required';
+  if (urgSub) urgSub.textContent = urgentCount === 0 ? 'All clear' : (urgentCount === 1 ? 'job to sort out' : 'jobs to sort out');
   if (urgCard) urgCard.style.background = urgentCount === 0 ? '#15803d' : '#dc2626';
 }
 
@@ -6112,7 +6424,7 @@ function dbRenderUrgent(todayStr) {
 
   jobs.filter(e => isTransferEntry(e) && !e.transferDriverId && open(e) && (e.serviceDate === todayStr || e.serviceDate === tomorrow)).forEach(e => {
     const when = (e.serviceDate === todayStr ? 'Today' : 'Tomorrow') + ((e.transferPickupTime || '') ? ' ' + e.transferPickupTime.slice(0, 5) : '');
-    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'Driver not assigned — ' + (e.serviceType || 'transfer'), deadline: when, icon: '🚖' });
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'No driver assigned: ' + (e.serviceType || 'transfer'), deadline: when, icon: '🚖' });
     addedIds.add(e.entryId);
   });
 
@@ -6122,7 +6434,7 @@ function dbRenderUrgent(todayStr) {
       const pr = e.priority || 'normal';
       const icon = pr === 'critical' ? '🔴' : (pr === 'high' ? '⚠️' : '⏰');
       const days = daysBetween(e.serviceDate, todayStr);
-      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + (e.serviceType ? ': ' + e.serviceType : ''), deadline: 'Overdue since ' + fmtShort(e.serviceDate) + ' (' + days + ' d)', icon });
+      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: svcLabel(e) || 'Service', deadline: 'Overdue since ' + fmtShort(e.serviceDate) + ' (' + days + ' d)', icon });
       addedIds.add(e.entryId);
     });
 
@@ -6142,7 +6454,7 @@ function dbRenderUrgent(todayStr) {
   if (!panel || !countEl || !itemsEl) return urgents.length;
   countEl.textContent = urgents.length;
   if (!urgents.length) {
-    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear — no urgent actions ✓</div>';
+    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs and transfers with no driver show here.</div>';
     panel.style.borderColor = '#bbf7d0';
     panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
     panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
@@ -6154,7 +6466,7 @@ function dbRenderUrgent(todayStr) {
   panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
   countEl.style.background = '#dc2626';
   itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item" onclick="showEntryDetail('${esc(u.entryId)}')">
+    <div class="db-urgent-item" title="Open this job to sort it out" onclick="showEntryDetail('${esc(u.entryId)}')">
       <div class="db-urgent-icon">${u.icon}</div>
       <div>
         <div class="db-urgent-vessel">${esc(u.vessel)}</div>
@@ -6175,7 +6487,7 @@ function dbRenderInAntigua(dayStr) {
   if (countEl) countEl.textContent = inPort.length;
 
   if (!inPort.length) {
-    el.innerHTML = '<div class="db-empty">No vessels currently in port</div>';
+    el.innerHTML = '<div class="db-empty">No vessels in port today. A vessel shows here once its arrival is in the Google Sheet or added under Movements.</div>';
     return inPort;
   }
 
