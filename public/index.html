@@ -1068,13 +1068,24 @@
     .section-header { flex-wrap: wrap; row-gap: 4px; }
   }
 
+  .auth-gate.booting .auth-card { display: none; }
+  .auth-gate:not(.booting) .boot-splash { display: none; }
+  .boot-splash { text-align: center; color: #fff; }
+  .boot-anchor { font-size: 44px; line-height: 1; }
+  .boot-name { font-size: 22px; font-weight: 700; margin-top: 10px; letter-spacing: 0.3px; }
+  .boot-msg { font-size: 13px; color: var(--gold-light); margin-top: 6px; }
+  .boot-bar { width: 160px; height: 3px; background: rgba(255,255,255,0.18); border-radius: 2px; margin: 16px auto 0; overflow: hidden; }
+  .boot-bar i { display: block; width: 40%; height: 100%; background: var(--gold-light); border-radius: 2px; animation: bootSlide 1.1s ease-in-out infinite; }
+  @keyframes bootSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+
 </style>
 </head>
 
 <body>
 
 <!-- AUTH GATE -->
-<div id="authGate" class="auth-gate">
+<div id="authGate" class="auth-gate booting">
+  <div class="boot-splash"><div class="boot-anchor">&#9875;</div><div class="boot-name">Anchor Concierge</div><div class="boot-msg" id="bootMsg">Loading</div><div class="boot-bar"><i></i></div></div>
   <div class="auth-card">
     <h2>Anchor Concierge</h2>
     <div class="subtitle">Service Tracker</div>
@@ -1202,7 +1213,7 @@
   </div>
 
   <!-- VIEW: NEW ENTRY FORM -->
-  <div id="view-form">
+  <div id="view-form" style="display:none;">
     <div class="view-head">
       <div>
         <h2 id="formTitle">New Entry</h2>
@@ -2473,23 +2484,35 @@ function toggleAuthPanel(panel) {
 }
 
 // Runs after any successful sign-in or restored session.
+// The loading screen stays up until the dashboard is drawn, so nothing flashes in between.
+function bootScreen(on, msg) {
+  const gate = document.getElementById('authGate');
+  if (msg) document.getElementById('bootMsg').textContent = msg;
+  gate.classList.toggle('booting', !!on);
+  if (on) gate.classList.remove('hidden');
+}
 async function enterApp() {
-  await loadUserProfile();
-  if (!currentUser.role || currentUser.role === 'pending') {
-    document.getElementById('authGate').classList.remove('hidden');
-    toggleAuthPanel('pending');
-    return;
+  bootScreen(true, 'Loading your dashboard');
+  try {
+    await loadUserProfile();
+    if (!currentUser.role || currentUser.role === 'pending') {
+      bootScreen(false);
+      toggleAuthPanel('pending');
+      return;
+    }
+    // Independent loads run together, which shortens the wait.
+    await Promise.all([loadEntries(), loadVessels(), loadDrivers(), loadMapLocations(), loadStaff(), loadVesselTracking()]);
+    updateSubmissionDateTime();
+    subscribeToChanges();
+    showView('dashboard');
+  } catch (err) {
+    console.error('Start-up error:', err);
+    showView('dashboard');
+    showToast('Some data did not load. Press Refresh to try again.');
   }
   document.getElementById('authGate').classList.add('hidden');
-  await loadEntries();
-  await loadVessels();
-  await loadDrivers();
-  await loadMapLocations();
-  await loadStaff();
-  await loadVesselTracking();
-  updateSubmissionDateTime();
-  subscribeToChanges();
-  showView('dashboard');
+  bootScreen(false);
+  document.getElementById('authGate').classList.add('hidden');
 }
 
 async function handleLogin() {
@@ -2498,12 +2521,14 @@ async function handleLogin() {
   if (!email || !password) return showAuthError('authError', 'Please enter email and password');
   try {
     showAuthError('authError', '');
+    bootScreen(true, 'Signing in');
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
     document.getElementById('authPassword').value = '';
     currentUser = data.user;
     await enterApp();
   } catch (err) {
+    bootScreen(false);
     showAuthError('authError', err.message || 'Login failed');
   }
 }
@@ -2580,6 +2605,7 @@ async function handleSetNewPassword() {
 sb.auth.onAuthStateChange((event) => {
   if (event === 'PASSWORD_RECOVERY') {
     passwordRecoveryMode = true;
+    bootScreen(false);
     document.getElementById('authGate').classList.remove('hidden');
     toggleAuthPanel('setPassword');
   }
@@ -5086,6 +5112,22 @@ function vtSeasonStats(dayStr) {
     largestCrew: bigCrew ? bigCrew.vessel + ' (' + bigCrew.crew + ')' : 'None',
     largestGuests: bigGuests ? bigGuests.vessel + ' (' + bigGuests.guests + ')' : 'None',
     longestCurrent: longest(current),
+    longestStay: (() => {
+      const tot = {};
+      visits.forEach(v => {
+        if (!v.start || v.start > dayStr) return;
+        const st = visitStatus(v, dayStr);
+        if (st === 'unknown') return;
+        const to = v.end && v.end <= dayStr ? v.end : dayStr;
+        if (to < start) return;
+        const from = v.start < start ? start : v.start;
+        const t = tot[v.key] = tot[v.key] || { vessel: v.vessel, days: 0, here: false };
+        t.days += Math.max(0, daysBetween(from, to));
+        t.vessel = v.vessel;
+        if (st === 'current') t.here = true;
+      });
+      return Object.values(tot).sort((a, b) => b.days - a.days || byVesselName(a, b))[0] || null;
+    })(),
     longestSeason: longest(visits.filter(v => v.start && v.start >= start && v.start <= dayStr))
   };
 }
@@ -5109,7 +5151,7 @@ function vtRenderActivity(dayStr) {
     tile('Different crew seen', s.individualCrew, '', "vtOpen('crew','season')", 'Open the crew seen this season'),
     tile('Largest crew', esc(s.largestCrew), 'vt-tile-text'),
     tile('Largest guest party', esc(s.largestGuests), 'vt-tile-text'),
-    tile('Longest stay so far', stay(s.longestCurrent), 'vt-tile-text')
+    tile('Longest stay this season', stay(s.longestStay), 'vt-tile-text', '', 'Most days in Antigua since 1 October, across all visits, whether or not the vessel is still here')
   ].join('');
 
   const sub = document.getElementById('vt-activity-sub');
@@ -6541,11 +6583,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   const arrivingFromResetLink = /type=recovery/.test(window.location.hash || '');
   const { data } = await sb.auth.getSession();
   if (data && data.session && (arrivingFromResetLink || passwordRecoveryMode)) {
+    bootScreen(false);
     document.getElementById('authGate').classList.remove('hidden');
     toggleAuthPanel('setPassword');
   } else if (data && data.session) {
     currentUser = data.session.user;
     await enterApp();
+  } else {
+    bootScreen(false);   // not signed in: show the sign-in card
   }
 
   document.getElementById('authEmail').addEventListener('keypress', (e) => {
