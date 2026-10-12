@@ -1148,6 +1148,20 @@
   .sync-link:hover { border-color: var(--teal); }
   .sync-link .ico { font-size: 13px; }
 
+  .up-group { display: flex; justify-content: space-between; padding: 8px 16px 6px; margin-top: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); }
+  .up-group-late { color: #b45309; }
+  .up-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); border-left: 3px solid #bcd6f0; cursor: pointer; }
+  .up-row:hover { background: var(--gray-50); }
+  .up-row.up-dep { border-left-color: #fbdcbf; }
+  .up-date { min-width: 74px; font-size: 13px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .up-date small { display: block; font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px; }
+  .up-main { flex: 1; min-width: 0; }
+  .up-detail { font-size: 11px; color: var(--gray-600); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .up-cert { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; background: #e7f6ec; color: #1b6b3a; }
+  .up-cert-approx { background: #fff1e3; color: #9a5a12; }
+  .up-cert-tbc { background: var(--gray-100); color: var(--gray-700); }
+  @media (max-width: 700px) { .up-detail { white-space: normal; } .up-date { min-width: 62px; } }
+
 </style>
 </head>
 
@@ -2084,6 +2098,18 @@
           </div>
           <div class="ag-tabs" id="ag-tabs"></div>
           <div id="ag-body"></div>
+        </div>
+
+        <div class="db-panel" data-db-panel="upcoming">
+          <div class="db-panel-header">
+            <i data-ic="calendar" class="ph-ic"></i>
+            <div>
+              <div class="db-panel-title">Upcoming</div>
+              <div class="db-panel-sub">Expected arrivals and departures, from the Expected tab of the Google Sheet</div>
+            </div>
+            <span class="db-urgent-count" id="up-count" style="background:var(--navy);margin-left:auto;">0</span>
+          </div>
+          <div id="up-body"></div>
         </div>
 
         <div class="db-panel" data-db-panel="in-antigua">
@@ -4206,7 +4232,7 @@ function recBack(keepTop) {
   recUpdateBack();
 }
 function recInstall() {
-  ['showVesselDetail', 'showCrewDetail', 'showEntryDetail'].forEach(fn => {
+  ['showVesselDetail', 'showCrewDetail', 'showEntryDetail', 'showExpectedDetail'].forEach(fn => {
     const orig = window[fn];
     if (typeof orig !== 'function' || orig.__rec) return;
     const wrapped = function (arg) {
@@ -5118,6 +5144,7 @@ let vtSightings = [];     // crew_sightings rows
 let vtCrew = [];          // crew_members rows
 let vtCrewPrivate = {};   // crew_id -> { date_of_birth, passport_expiry } (admins only)
 let vtAlerts = [];        // crew_alerts() rows
+let vtExpected = [];      // expected_movements rows (the sheet's "Expected" tab)
 let vtLastSync = null;    // latest sync_runs row
 let vtCache = {};         // derived data, cleared whenever source data changes
 let vtTlOffset = 0;       // timeline strip offset in days
@@ -5159,7 +5186,7 @@ function sortList(table, list, getters) {
 }
 
 function vtReset() {
-  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtLastSync = null; vtCache = {};
+  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtExpected = []; vtLastSync = null; vtCache = {};
 }
 function vtInvalidate() { vtCache = {}; }
 
@@ -5181,6 +5208,9 @@ async function loadVesselTracking() {
       const { data, error } = await sb.rpc('crew_alerts');
       vtAlerts = error ? [] : (data || []);
     } catch (e) { vtAlerts = []; }
+    try {
+      vtExpected = await fetchAll('expected_movements', q => q.order('expected_date').order('id'));
+    } catch (e) { console.warn('expected_movements not loaded:', e.message); vtExpected = []; }
     try {
       const { data } = await sb.from('sync_runs').select('*').order('id', { ascending: false }).limit(1);
       vtLastSync = data && data[0] ? data[0] : null;
@@ -5204,9 +5234,41 @@ function seasonLabelFor(dayStr) {
 // One list of movements from both sources, in one shape.
 //   sheet  = clearance records synced from the sheet (arrivals and departures)
 //   manual = movements typed into this app (arrivals, departures, relocations)
+// Expected rows still to happen. Only Status "Expected" counts: "Not ours", "Pre-clearance",
+// "Arrived" and "Cancelled" stay off the dashboard and the calendar. An expected arrival also
+// drops out by itself once a real arrival for that vessel is logged after the notice date.
+function expectedOpen() {
+  if (vtCache.expectedOpen) return vtCache.expectedOpen;
+  const real = {};
+  vtMovements.forEach(r => { if (r.movement_type === 'Arrival') (real[r.vessel_key || vtKey(r.vessel_name)] = real[r.vessel_key || vtKey(r.vessel_name)] || []).push(r.movement_date); });
+  allEntries.forEach(e => { if (e.category === 'Vessel Movement' && e.serviceType === 'Arrival' && e.serviceDate) (real[vtKey(e.vessel)] = real[vtKey(e.vessel)] || []).push(e.serviceDate); });
+  const list = vtExpected.filter(r => String(r.status || 'Expected').trim().toLowerCase() === 'expected').filter(r => {
+    if (r.movement_type !== 'Arrival') return true;
+    const key = r.vessel_key || vtKey(r.vessel_name);
+    const since = r.source_date || (r.expected_date ? addDays(r.expected_date, -21) : '');
+    return !(real[key] || []).some(d => since && d >= since);
+  }).map(r => Object.assign({}, r, { key: r.vessel_key || vtKey(r.vessel_name) }));
+  vtCache.expectedOpen = list;
+  return list;
+}
+function expCertainty(r) {
+  const c = String(r.date_certainty || '').trim().toLowerCase();
+  return c === 'confirmed' ? 'Confirmed' : c === 'approx' ? 'Approx' : 'TBC';
+}
+
 function unifiedMovements() {
   if (vtCache.unified) return vtCache.unified;
   const out = [];
+  // Expected movements dated after today join the list, so the timeline, calendar and agenda show them.
+  const todayForExpected = antiguaToday();
+  expectedOpen().filter(r => r.expected_date && r.expected_date > todayForExpected).forEach(r => {
+    const arr = r.movement_type === 'Arrival';
+    out.push({
+      src: 'expected', expected: true, id: r.id, date: r.expected_date, time: '', type: r.movement_type, vessel: r.vessel_name, key: r.key,
+      port: r.port || '', from: arr ? '' : (r.port || ''), to: arr ? (r.port || '') : '', notes: 'Expected, date ' + expCertainty(r).toLowerCase(),
+      crew: null, guests: null, captain: '', intendedDeparture: '', ref: '', portal: 'Expected', raw: r
+    });
+  });
   vtMovements.forEach(r => {
     const arr = r.movement_type === 'Arrival';
     out.push({
@@ -5431,7 +5493,8 @@ function vtTimelineHtml(dayStr) {
         if (day === realToday) cls += ' vt-today';
         cells += `<td class="${cls}">${mark}</td>`;
       });
-      body += `<tr class="vt-tl-row" onclick="showVesselDetail('${esc(v.key)}')"><td class="vt-tl-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">★</span>' : ''}</td><td class="vt-tl-num">${d == null ? '' : d}</td>${cells}</tr>`;
+      const expSrc = (v.arrival && v.arrival.expected && v.arrival) || (v.departure && v.departure.expected && v.departure);
+      body += `<tr class="vt-tl-row" onclick="${expSrc ? `showExpectedDetail('${esc(expSrc.id)}')` : `showVesselDetail('${esc(v.key)}')`}"><td class="vt-tl-name">${esc(v.vessel)}${v.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">★</span>' : ''}</td><td class="vt-tl-num">${d == null || status === 'expected' ? '' : d}</td>${cells}</tr>`;
     });
   });
 
@@ -5771,7 +5834,7 @@ function vtVesselAlmanac() {
   const today = antiguaToday();
   const start = seasonStartFor(today);
   const map = {};
-  unifiedMovements().filter(m => m.key && (m.type === 'Arrival' || m.type === 'Departure')).forEach(m => {
+  unifiedMovements().filter(m => !m.expected && m.key && (m.type === 'Arrival' || m.type === 'Departure')).forEach(m => {
     const r = map[m.key] = map[m.key] || { key: m.key, vessel: m.vessel, arrivals: 0, departures: 0, first: m.date, last: m.date, captain: '', flag: '', type: '', loa: '' };
     if (m.type === 'Arrival') r.arrivals++; else r.departures++;
     if (m.date < r.first) r.first = m.date;
@@ -5865,7 +5928,7 @@ function vtRenderStats() {
   const el = document.getElementById('vt-stats');
   if (!el) return;
   const today = antiguaToday();
-  const moves = unifiedMovements().filter(m => m.type === 'Arrival' || m.type === 'Departure');
+  const moves = unifiedMovements().filter(m => !m.expected && (m.type === 'Arrival' || m.type === 'Departure'));
   if (!moves.length) { el.innerHTML = emptyState('No movements on file', 'Statistics appear once the Google Sheet has synced.'); return; }
 
   const seasons = [...new Set(moves.map(m => seasonLabelFor(m.date)))].sort();
@@ -6421,7 +6484,7 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'agenda', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'calendar', 'map'
+  'kpi', 'agenda', 'upcoming', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'calendar', 'map'
 ];
 
 function getDashboardConfig(role) {
@@ -6477,13 +6540,14 @@ function mvFromTo(m) { return [m.from, m.to].filter(Boolean).join(' → '); }
 // Opens the right thing for a movement: the vessel record for sheet data,
 // the movement form for one typed into the app.
 function openMovement(src, ref) {
+  if (src === 'expected') return showExpectedDetail(ref);
   if (src === 'sheet') return showVesselDetail(ref);
   closeModal('vesselDetailModal');
   showView('movements');
   setTimeout(() => editMovement(ref), 60);
 }
 function mvClick(m) {
-  return `openMovement('${m.src}','${esc(m.src === 'sheet' ? m.key : m.entryId)}')`;
+  return `openMovement('${m.src}','${esc(m.src === 'sheet' ? m.key : m.src === 'expected' ? m.id : m.entryId)}')`;
 }
 
 // Small per-browser memory for layout choices (which sections are open, which agenda range).
@@ -6505,8 +6569,8 @@ function agendaItems(fromStr, toStr) {
   unifiedMovements().filter(m => m.date >= fromStr && m.date <= toStr).forEach(m => {
     const people = m.crew != null ? m.crew + ' crew' + (m.guests ? ', ' + m.guests + ' guests' : '') : '';
     items.push({
-      date: m.date, time: m.time, kind: 'move', badge: m.type || 'Movement', vessel: m.vessel,
-      detail: [mvFromTo(m) || m.notes, people, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · '),
+      date: m.date, time: m.time, kind: 'move', badge: m.expected ? 'Expected ' + String(m.type || '').toLowerCase() : (m.type || 'Movement'), vessel: m.vessel,
+      detail: m.expected ? [m.port, 'Date ' + expCertainty(m.raw).toLowerCase(), m.raw.contact].filter(Boolean).join(' · ') : [mvFromTo(m) || m.notes, people, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · '),
       status: '', click: mvClick(m)
     });
   });
@@ -6611,6 +6675,85 @@ async function dbRenderMapSection(inPort) {
   dbRenderMapVessels(inPort || []);
 }
 
+// ---------- Dashboard: Upcoming (expected arrivals and departures) ----------
+function renderUpcoming(todayStr) {
+  const body = document.getElementById('up-body'), countEl = document.getElementById('up-count');
+  if (!body) return;
+  const list = expectedOpen();
+  if (countEl) countEl.textContent = list.length;
+  if (!list.length) {
+    body.innerHTML = '<div class="db-empty">Nothing expected. Add a row to the Expected tab of the Google Sheet and it shows here after the next sync.</div>';
+    return;
+  }
+  const soonEnd = addDays(todayStr, 14);
+  const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '') || String(a.vessel_name).localeCompare(String(b.vessel_name));
+  const groups = [
+    ['Past the expected date, no arrival logged', list.filter(r => r.expected_date && r.expected_date < todayStr).sort(byDate), 'up-group-late'],
+    ['Next 14 days', list.filter(r => r.expected_date && r.expected_date >= todayStr && r.expected_date <= soonEnd).sort(byDate), ''],
+    ['Later', list.filter(r => r.expected_date && r.expected_date > soonEnd).sort(byDate), ''],
+    ['Date to be confirmed', list.filter(r => !r.expected_date).sort(byDate), '']
+  ];
+  const row = r => {
+    const cert = expCertainty(r), dep = r.movement_type === 'Departure';
+    const days = r.expected_date ? daysBetween(todayStr, r.expected_date) : null;
+    const when = r.expected_date
+      ? `${cert === 'Approx' ? '~ ' : ''}${esc(fmtShort(r.expected_date))}<small>${days === 0 ? 'today' : days > 0 ? 'in ' + days + ' d' : Math.abs(days) + ' d ago'}${r.expected_date.slice(0, 4) !== todayStr.slice(0, 4) ? ' · ' + r.expected_date.slice(0, 4) : ''}</small>`
+      : 'No date';
+    return `<div class="up-row${dep ? ' up-dep' : ''}" title="Open the details" onclick="showExpectedDetail('${esc(r.id)}')">
+      <div class="up-date">${when}</div>
+      <div class="up-main">
+        <div class="ag-title"><span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span> <span class="ag-vessel">${esc(r.vessel_name)}</span></div>
+        <div class="up-detail">${esc([[r.vessel_type, r.loa].filter(Boolean).join(' '), r.port, r.contact].filter(Boolean).join(' · '))}</div>
+      </div>
+      <span class="up-cert up-cert-${cert.toLowerCase()}">${cert}</span>
+    </div>`;
+  };
+  const shown = groups.filter(g => g[1].length);
+  body.innerHTML = (groups[1][1].length ? '' : '<div class="ag-none">Nothing expected in the next 14 days.</div>') +
+    shown.map(g => `<div class="up-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(row).join('')).join('');
+}
+function showExpectedDetail(id) {
+  const r = vtExpected.find(x => x.id === id);
+  if (!r) return showToast('Expected movement not found');
+  const today = antiguaToday();
+  const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
+  const cert = expCertainty(r);
+  const key = r.vessel_key || vtKey(r.vessel_name);
+  const known = vtMovements.some(m => (m.vessel_key || vtKey(m.vessel_name)) === key);
+  const late = r.expected_date && r.expected_date < today;
+  document.getElementById('vesselDetailTitle').innerHTML = esc(r.vessel_name) + ` <span class="vt-chip vt-chip-expected">Expected ${esc(String(r.movement_type || '').toLowerCase())}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    ${late ? `<div class="vt-callout vt-callout-red"><b>The expected date has passed.</b> No arrival is logged for this vessel since the notice. If she is here, add the arrival to the Movements tab of the sheet. If plans changed, update the Expected tab.</div>` : ''}
+    <div class="vt-actions">
+      ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record (past visits)</button>` : ''}
+      ${canWriteUser() ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');newEntryForExpected('${esc(r.id)}')">+ New entry for this vessel</button>` : ''}
+    </div>
+    <div class="vt-facts">
+      ${fact('Movement', r.movement_type)}
+      ${fact('Expected date', r.expected_date ? (cert === 'Approx' ? 'Around ' : '') + fmtDate(r.expected_date) : 'Not known yet')}
+      ${fact('Date certainty', cert)}
+      ${fact('Type', r.vessel_type)}${fact('LOA', r.loa)}
+      ${fact('Port or marina', r.port)}
+      ${fact('Agent or contact', r.contact)}
+      ${fact('Source', r.source)}${fact('Source date', r.source_date ? fmtDate(r.source_date) : '')}
+    </div>
+    ${r.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para">${esc(r.notes)}</p>` : ''}
+    <p class="vt-note" style="margin-top:12px;">To change or remove this, edit the Expected tab of the Google Sheet. Set Status to Arrived or Cancelled to take it off the dashboard.</p>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+// Starts a new entry for an expected vessel, dated for the expected day when there is one.
+function newEntryForExpected(id) {
+  const r = vtExpected.find(x => x.id === id);
+  if (!r) return;
+  if (editingEntryId) exitEditMode();
+  showView('form');
+  const sel = document.getElementById('vesselSelect');
+  const opt = [...sel.options].find(o => vtKey(o.value) === (r.vessel_key || vtKey(r.vessel_name)));
+  if (opt) sel.value = opt.value;
+  else showToast(r.vessel_name + ' is not in the vessel list yet. Press + Add next to Vessel.');
+  if (r.expected_date) document.getElementById('serviceDate').value = r.expected_date;
+}
+
 function renderDashboard() {
   vtInvalidate();
   // Apply role-based panel visibility (non-disruptive — admin/staff see all)
@@ -6628,6 +6771,7 @@ function renderDashboard() {
   const inPort = dbRenderInAntigua(todayStr);
   dbRenderKPI(dayMovements, urgentCount, inPort);
   renderAgenda(todayStr);
+  renderUpcoming(todayStr);
   vtRenderAlerts();
   dbRenderTeam(dayEntries);
   vtRenderActivity(todayStr);
