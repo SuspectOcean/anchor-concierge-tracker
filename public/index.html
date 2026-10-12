@@ -658,6 +658,67 @@
   .db-panel-link { font-size: 11px; color: var(--teal); text-decoration: none; white-space: nowrap; font-weight: 600; margin-left: auto; }
   .db-panel-link:hover { text-decoration: underline; }
 
+
+  /* ═══════════════════════════════════════════
+     DASHBOARD — Next 4 weeks (visual calendar)
+  ═══════════════════════════════════════════ */
+  .wk-wrap { padding: 10px 12px 4px; }
+  .wk-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .wk-nav button { border: 1px solid var(--gray-300); background: #fff; color: var(--navy); border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 700; cursor: pointer; min-height: 28px; }
+  .wk-nav button.wk-today { font-weight: 600; }
+  .wk-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+  .wk-dow div { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); }
+  .wk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .wk-cell { position: relative; min-height: 58px; border-radius: 10px; background: var(--gray-50); border: 1.5px solid transparent; padding: 5px 4px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent; }
+  .wk-cell:hover { background: #eef2f8; }
+  .wk-cell.past { opacity: 0.45; }
+  .wk-cell.today { border-color: var(--orange); background: #fff7ed; }
+  .wk-cell.sel { border-color: var(--navy); background: #eaf0fb; box-shadow: 0 0 0 1px var(--navy) inset; }
+  .wk-cell.today.sel { background: #fff1dd; }
+  .wk-cell.has { background: #fff; border-color: var(--gray-200); }
+  .wk-cell.has.today { border-color: var(--orange); }
+  .wk-cell.has.sel { border-color: var(--navy); }
+  .wk-num { font-size: 15px; font-weight: 800; color: var(--navy); line-height: 1; font-variant-numeric: tabular-nums; }
+  .wk-cell.today .wk-num { color: #c2560a; }
+  .wk-mon { font-size: 9px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; line-height: 1; margin-top: -1px; }
+  .wk-rel { font-size: 9px; color: var(--gray-500); line-height: 1; white-space: nowrap; }
+  .wk-cell.today .wk-rel { color: #c2560a; font-weight: 700; }
+  .wk-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: auto; min-height: 8px; }
+  .wk-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .wk-dot.arr { background: #15803d; }
+  .wk-dot.dep { background: #dc2626; }
+  .wk-dot.rel { background: #ca8a04; }
+  .wk-dot.expa { background: #fff; border: 2px solid #15803d; box-sizing: border-box; }
+  .wk-dot.expd { background: #fff; border: 2px solid #dc2626; box-sizing: border-box; }
+  .wk-dot.job { background: var(--teal); }
+  .wk-dot.tra { background: #f59e0b; }
+  .wk-dot.urg { background: #dc2626; box-shadow: 0 0 0 2px #fecaca; }
+  .wk-more { font-size: 9px; font-weight: 800; color: var(--navy); line-height: 8px; }
+  .wk-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px 2px; font-size: 10px; color: var(--gray-600); border-top: 1px solid var(--gray-100); margin-top: 8px; }
+  .wk-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .wk-day-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 16px 6px; border-top: 1px solid var(--gray-200); margin-top: 8px; background: var(--gray-50); }
+  .wk-day-rel { font-size: 12px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; }
+  .wk-day-rel.today { color: #c2560a; }
+  .wk-day-date { font-size: 12px; color: var(--gray-600); }
+  .wk-day-n { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--gray-500); }
+  .wk-day-act { margin-left: auto; display: flex; gap: 6px; }
+  .wk-day-act button { background: #fff; border: 1px solid var(--gray-300); border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 600; color: var(--navy); cursor: pointer; white-space: nowrap; }
+  .wk-up { padding: 6px 16px 10px; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--gray-100); }
+  .wk-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: 11px; color: var(--navy); cursor: pointer; }
+  .wk-chip b { font-weight: 800; }
+  .wk-chip small { color: var(--gray-500); }
+  @media (max-width: 600px) {
+    .wk-wrap { padding: 8px 8px 2px; }
+    .wk-grid, .wk-dow { gap: 3px; }
+    .wk-cell { min-height: 56px; padding: 4px 2px 3px; border-radius: 8px; }
+    .wk-num { font-size: 14px; }
+    .wk-legend { padding: 8px 8px 2px; gap: 6px 10px; }
+  }
+  @media (max-width: 380px) {
+    .wk-cell { min-height: 52px; }
+    .wk-rel { display: none; }
+    .wk-cell.today .wk-rel, .wk-cell.sel .wk-rel { display: block; }
+  }
   /* ═══════════════════════════════════════════
      DASHBOARD — Urgent / Overdue
   ═══════════════════════════════════════════ */
@@ -2071,6 +2132,35 @@
     </div>
 
     <!-- Antigua vessel activity (from the sheet) -->
+
+    <!-- Next 4 weeks: visual calendar -->
+    <div class="db-panel" data-db-panel="weeks" id="db-weeks-panel">
+      <div class="db-panel-header">
+        <i data-ic="calendar" class="ph-ic"></i>
+        <div>
+          <div class="db-panel-title">Next 4 weeks</div>
+          <div class="db-panel-sub">Tap a day to see what is on. Dots show arrivals, departures, jobs and transfers.</div>
+        </div>
+        <div class="wk-nav">
+          <button type="button" onclick="wkShift(-1)" title="Previous week">&lsaquo;</button>
+          <button type="button" class="wk-today" onclick="wkGoToday()">Today</button>
+          <button type="button" onclick="wkShift(1)" title="Next week">&rsaquo;</button>
+        </div>
+      </div>
+      <div class="wk-wrap">
+        <div class="wk-dow"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
+        <div class="wk-grid" id="wk-grid"></div>
+      </div>
+      <div class="wk-legend">
+        <span><i class="wk-dot arr"></i>Arrival</span>
+        <span><i class="wk-dot dep"></i>Departure</span>
+        <span><i class="wk-dot expa"></i><i class="wk-dot expd"></i>Expected or intended (hollow)</span>
+        <span><i class="wk-dot job"></i>Job</span>
+        <span><i class="wk-dot tra"></i>Transfer</span>
+        <span><i class="wk-dot urg"></i>Needs action</span>
+      </div>
+      <div id="wk-day"></div>
+    </div>
     <div class="db-panel" data-db-panel="vessel-activity">
       <div class="db-panel-header">
         <i data-ic="anchor" class="ph-ic"></i>
@@ -6488,7 +6578,7 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'agenda', 'upcoming', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'calendar', 'map'
+  'kpi', 'weeks', 'agenda', 'upcoming', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'calendar', 'map'
 ];
 
 function getDashboardConfig(role) {
@@ -6758,6 +6848,124 @@ function newEntryForExpected(id) {
   if (r.expected_date) document.getElementById('serviceDate').value = r.expected_date;
 }
 
+
+// ─── Dashboard: Next 4 weeks visual calendar ─────────────────
+let wkSelected = null;   // YYYY-MM-DD of the tapped day
+let wkWeekOffset = 0;    // weeks shifted from the current week
+function wkMondayOf(ds) { const d = parseYMD(ds); const dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dow); return ymd(d); }
+function wkKindOf(i) {
+  if (i.kind === 'move') {
+    const b = String(i.badge || '').toLowerCase();
+    const exp = b.startsWith('expected');
+    if (b.includes('arriv')) return exp ? 'expa' : 'arr';
+    if (b.includes('depart')) return exp ? 'expd' : 'dep';
+    return 'rel';
+  }
+  if (i.kind === 'intended') return 'expd';
+  if (i.kind === 'transfer') return 'tra';
+  return 'job';
+}
+function wkIsUrgent(i) { return !!i.warn || i.status === 'overdue'; }
+function wkRelLabel(days) {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days === -1) return 'Yesterday';
+  if (days > 0) return 'In ' + days + ' day' + (days === 1 ? '' : 's');
+  return Math.abs(days) + ' days ago';
+}
+function wkShift(n) { wkWeekOffset += n; wkRender(antiguaToday()); }
+function wkGoToday() { wkWeekOffset = 0; wkSelected = antiguaToday(); wkRender(antiguaToday()); }
+function wkSelect(ds) {
+  wkSelected = ds;
+  wkRender(antiguaToday());
+  const el = document.getElementById('wk-day');
+  if (el && window.innerWidth <= 700) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
+}
+function wkRender(todayStr) {
+  const grid = document.getElementById('wk-grid');
+  const dayEl = document.getElementById('wk-day');
+  if (!grid || !dayEl) return;
+  if (!wkSelected) wkSelected = todayStr;
+  const start = addDays(wkMondayOf(todayStr), wkWeekOffset * 7);
+  const end = addDays(start, 27);
+  const items = agendaItems(start, end);
+  const byDay = {};
+  items.forEach(i => { (byDay[i.date] = byDay[i.date] || []).push(i); });
+
+  let html = '';
+  for (let n = 0; n < 28; n++) {
+    const ds = addDays(start, n);
+    const d = parseYMD(ds);
+    const list = byDay[ds] || [];
+    const rel = daysBetween(todayStr, ds);
+    const cls = ['wk-cell'];
+    if (ds === todayStr) cls.push('today');
+    if (ds < todayStr) cls.push('past');
+    if (ds === wkSelected) cls.push('sel');
+    if (list.length) cls.push('has');
+    // One dot per item, urgent first, at most 6 then a +N
+    const kinds = list.map(i => wkIsUrgent(i) ? 'urg' : wkKindOf(i)).sort((a, b) => (a === 'urg' ? -1 : 0) - (b === 'urg' ? -1 : 0));
+    const dots = kinds.slice(0, 6).map(k => `<i class="wk-dot ${k}"></i>`).join('') + (kinds.length > 6 ? `<span class="wk-more">+${kinds.length - 6}</span>` : '');
+    const showMon = d.getDate() === 1 || n === 0;
+    const relTxt = rel === 0 ? 'today' : rel > 0 ? '+' + rel + 'd' : rel + 'd';
+    html += `<div class="${cls.join(' ')}" onclick="wkSelect('${ds}')" title="${esc(fmtDate(ds, { weekday: 'long', day: 'numeric', month: 'long' }))}${list.length ? ' · ' + list.length + ' on' : ''}">
+      <div class="wk-num">${d.getDate()}</div>
+      ${showMon ? `<div class="wk-mon">${esc(fmtDate(ds, { month: 'short' }))}</div>` : `<div class="wk-rel">${relTxt}</div>`}
+      <div class="wk-dots">${dots}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  // Selected day detail
+  const sel = wkSelected;
+  const list = sel >= start && sel <= end ? (byDay[sel] || []) : agendaItems(sel, sel);
+  const rel = daysBetween(todayStr, sel);
+  const kindCls = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
+  const moveCls = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation' };
+  const rowHtml = i => `
+      <div class="ag-row ${kindCls[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
+        <div class="ag-time">${esc(i.time || '')}</div>
+        <div class="ag-main">
+          <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (moveCls[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">&#9888;</span>' : ''}</div>
+          ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
+        </div>
+        ${i.status ? statusBadge(i.status) : ''}
+      </div>`;
+  const canWrite = typeof canWriteUser === 'function' ? canWriteUser() : true;
+  const head = `<div class="wk-day-head">
+      <span class="wk-day-rel${rel === 0 ? ' today' : ''}">${wkRelLabel(rel)}</span>
+      <span class="wk-day-date">${esc(fmtDate(sel, { weekday: 'long', day: 'numeric', month: 'long' }))}</span>
+      ${canWrite ? `<span class="wk-day-act"><button type="button" onclick="wkNewEntry('${sel}')">+ Entry</button></span>` : `<span class="wk-day-n">${list.length || ''}</span>`}
+    </div>`;
+  let body = list.length ? list.map(rowHtml).join('') : '<div class="ag-none">Nothing logged for this day.</div>';
+
+  // Quick jump chips: the next few days that have something on, with how far away they are
+  const soon = agendaItems(addDays(todayStr, 1), addDays(todayStr, 60));
+  const seen = new Set(); const chips = [];
+  for (const i of soon) {
+    if (seen.has(i.date)) continue;
+    seen.add(i.date);
+    const n = soon.filter(x => x.date === i.date).length;
+    const dd = daysBetween(todayStr, i.date);
+    chips.push(`<span class="wk-chip" onclick="wkJump('${i.date}')"><b>${dd === 1 ? 'Tomorrow' : 'In ' + dd + ' days'}</b><small>${esc(fmtShort(i.date))} · ${n}</small></span>`);
+    if (chips.length >= 6) break;
+  }
+  const up = chips.length ? `<div class="wk-up">${chips.join('')}</div>` : '';
+  dayEl.innerHTML = head + body + up;
+}
+function wkJump(ds) {
+  const todayStr = antiguaToday();
+  wkWeekOffset = Math.floor(daysBetween(wkMondayOf(todayStr), ds) / 28) * 4;
+  wkSelected = ds;
+  wkRender(todayStr);
+}
+function wkNewEntry(ds) {
+  if (editingEntryId) exitEditMode();
+  showView('form');
+  const el = document.getElementById('serviceDate');
+  if (el) el.value = ds;
+}
+
 function renderDashboard() {
   vtInvalidate();
   // Apply role-based panel visibility (non-disruptive — admin/staff see all)
@@ -6774,6 +6982,7 @@ function renderDashboard() {
   const urgentCount = dbRenderUrgent(todayStr);
   const inPort = dbRenderInAntigua(todayStr);
   dbRenderKPI(dayMovements, urgentCount, inPort);
+  wkRender(todayStr);
   renderAgenda(todayStr);
   renderUpcoming(todayStr);
   vtRenderAlerts();
