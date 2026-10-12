@@ -989,6 +989,18 @@
   .vt-callout-red { background: #fff5f5; border: 1px solid #fecaca; color: #7f1d1d; }
   .vt-para { font-size: 13px; color: var(--gray-800); white-space: pre-wrap; margin: 0; }
   #vesselDetailTitle .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; vertical-align: middle; margin-left: 6px; }
+
+  /* Adjustable tables: drag a heading edge to resize, tap a heading to sort */
+  .log-table th { position: relative; }
+  .col-grip { position: absolute; top: 0; right: -4px; width: 9px; height: 100%; cursor: col-resize; z-index: 2; touch-action: none; }
+  .col-grip::after { content: ''; position: absolute; top: 25%; bottom: 25%; left: 4px; width: 1px; background: rgba(255,255,255,0.28); }
+  .col-grip:hover::after, .col-grip.active::after { background: var(--gold-light); width: 2px; left: 3px; }
+  table.col-resizing { user-select: none; cursor: col-resize; }
+  table.col-resizing td, table.col-resizing th { overflow: hidden; text-overflow: ellipsis; }
+  .log-table th.dom-sort { cursor: pointer; user-select: none; padding-right: 20px; }
+  .log-table th.dom-sort:hover { background: var(--navy-light); }
+  .log-table th.col-sized { overflow: hidden; text-overflow: ellipsis; }
+  .log-table td.col-sized { overflow: hidden; text-overflow: ellipsis; }
   /* sortable headings */
   .vt-sort { cursor: pointer; user-select: none; }
   .vt-sort:hover { background: var(--navy-light); }
@@ -5239,6 +5251,96 @@ let vtLastSync = null;    // latest sync_runs row
 let vtCache = {};         // derived data, cleared whenever source data changes
 let vtTlOffset = 0;       // timeline strip offset in days
 let vtTab = 'vessels';
+
+
+// ─── Adjustable tables: sort by tapping a heading, resize by dragging its edge ───
+// Applies to every .log-table (vessel almanac, crew almanac, vessel and crew records, service log).
+// Tables that already sort through sortHead() keep that; the others get sorting done on the rows in place.
+function tblCellValue(td) {
+  const t = (td.textContent || '').trim();
+  if (t === '' || t === '—' || t === '-') return null;
+  const n = t.replace(/[,$€£]|EC\$/g, '');
+  if (/^-?\d+(\.\d+)?$/.test(n)) return Number(n);
+  const m = t.match(/^(\d{1,2}) ([A-Za-z]{3}) (\d{4})/);
+  if (m) { const d = Date.parse(m[1] + ' ' + m[2] + ' ' + m[3]); if (!isNaN(d)) return d; }
+  if (/^\d{4}-\d{2}-\d{2}/.test(t)) { const d = Date.parse(t.slice(0, 10)); if (!isNaN(d)) return d; }
+  return t.toLowerCase();
+}
+function tblSortDom(table, idx, th) {
+  const tbody = table.tBodies[0]; if (!tbody) return;
+  const dir = th.dataset.dir === '1' ? -1 : 1;
+  table.querySelectorAll('thead th.dom-sort').forEach(h => { h.dataset.dir = ''; const a = h.querySelector('.vt-sort-arrow'); if (a) a.textContent = '↕'; h.classList.remove('vt-sorted'); });
+  th.dataset.dir = String(dir); th.classList.add('vt-sorted');
+  const arrow = th.querySelector('.vt-sort-arrow'); if (arrow) arrow.textContent = dir > 0 ? '▲' : '▼';
+  const rows = [...tbody.rows];
+  const keyed = rows.map((r, i) => ({ r, i, v: r.cells.length > idx && !r.querySelector('td[colspan]') ? tblCellValue(r.cells[idx]) : undefined }));
+  keyed.sort((a, b) => {
+    const x = a.v, y = b.v;
+    if (x === undefined) return y === undefined ? a.i - b.i : 1;
+    if (y === undefined) return -1;
+    if (x === null) return y === null ? a.i - b.i : 1;
+    if (y === null) return -1;
+    const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true, sensitivity: 'base' });
+    return (c || a.i - b.i) * dir;
+  });
+  keyed.forEach(k => tbody.appendChild(k.r));
+}
+function tblAddGrip(table, th, idx) {
+  const grip = document.createElement('div');
+  grip.className = 'col-grip'; grip.title = 'Drag to resize. Double-tap to reset all columns.';
+  let startX = 0, startW = 0, next = null, startNext = 0, tableW = 0;
+  const colCells = () => [th, ...[...table.tBodies].flatMap(b => [...b.rows].map(r => r.cells[idx]).filter(Boolean))];
+  grip.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    startX = e.clientX; startW = th.getBoundingClientRect().width;
+    next = th.nextElementSibling; startNext = next ? next.getBoundingClientRect().width : 0;
+    grip.setPointerCapture(e.pointerId); grip.classList.add('active'); table.classList.add('col-resizing');
+    if (!table.dataset.sized) { // lock current widths so one column moving does not reflow the rest
+      const cells = [...table.tHead.rows[0].cells];
+      const total = cells.reduce((a, c) => a + c.getBoundingClientRect().width, 0);
+      cells.forEach(c => { c.style.width = c.getBoundingClientRect().width + 'px'; });
+      table.style.tableLayout = 'fixed'; table.style.width = total + 'px'; table.style.minWidth = '0';
+      table.dataset.sized = '1';
+    }
+    tableW = table.getBoundingClientRect().width;
+  });
+  grip.addEventListener('pointermove', e => {
+    if (!grip.classList.contains('active')) return;
+    let delta = e.clientX - startX;
+    delta = Math.max(44 - startW, delta);                       // this column no narrower than 44px
+    if (next) delta = Math.min(delta, startNext - 44);          // the neighbour no narrower than 44px
+    th.style.width = (startW + delta) + 'px';
+    if (next) next.style.width = (startNext - delta) + 'px';   // neighbour gives or takes the space
+    else table.style.width = (tableW + delta) + 'px';          // last column: the table grows or shrinks
+    colCells().forEach(c => c.classList.add('col-sized'));
+  });
+  const stop = e => { grip.classList.remove('active'); table.classList.remove('col-resizing'); try { grip.releasePointerCapture(e.pointerId); } catch (_) {} };
+  grip.addEventListener('pointerup', stop); grip.addEventListener('pointercancel', stop);
+  grip.addEventListener('click', e => e.stopPropagation());
+  grip.addEventListener('dblclick', e => { e.stopPropagation(); [...table.tHead.rows[0].cells].forEach(c => { c.style.width = ''; }); table.style.tableLayout = ''; table.style.width = ''; table.style.minWidth = ''; delete table.dataset.sized; table.querySelectorAll('.col-sized').forEach(c => c.classList.remove('col-sized')); });
+  th.appendChild(grip);
+}
+function enhanceTables(root) {
+  (root || document).querySelectorAll('table.log-table:not([data-enh])').forEach(table => {
+    table.dataset.enh = '1';
+    const head = table.tHead && table.tHead.rows[0]; if (!head) return;
+    const builtIn = head.querySelector('th.vt-sort');
+    [...head.cells].forEach((th, idx) => {
+      if (!builtIn && th.textContent.trim() && !th.querySelector('input,button,select')) {
+        th.classList.add('dom-sort'); th.title = 'Sort by ' + th.textContent.trim();
+        const a = document.createElement('span'); a.className = 'vt-sort-arrow'; a.textContent = '↕'; th.appendChild(a);
+        th.addEventListener('click', () => tblSortDom(table, idx, th));
+      }
+      tblAddGrip(table, th, idx);
+    });
+  });
+}
+(function () {
+  let t = null;
+  const run = () => { t = null; enhanceTables(document); };
+  document.addEventListener('DOMContentLoaded', run);
+  new MutationObserver(() => { if (!t) t = setTimeout(run, 40); }).observe(document.documentElement, { childList: true, subtree: true });
+})();
 
 // ---------- sortable tables ----------
 const sortState = {};   // table id -> { key, dir }
