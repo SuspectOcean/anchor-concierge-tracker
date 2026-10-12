@@ -669,7 +669,7 @@
   .wk-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
   .wk-dow div { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); }
   .wk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .wk-cell { position: relative; min-height: 58px; border-radius: 10px; background: var(--gray-50); border: 1.5px solid transparent; padding: 5px 4px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent; }
+  .wk-cell { position: relative; min-height: 50px; border-radius: 10px; background: var(--gray-50); border: 1.5px solid transparent; padding: 5px 4px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent; }
   .wk-cell:hover { background: #eef2f8; }
   .wk-cell.past { opacity: 0.45; }
   .wk-cell.today { border-color: var(--orange); background: #fff7ed; }
@@ -681,8 +681,6 @@
   .wk-num { font-size: 15px; font-weight: 800; color: var(--navy); line-height: 1; font-variant-numeric: tabular-nums; }
   .wk-cell.today .wk-num { color: #c2560a; }
   .wk-mon { font-size: 9px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; line-height: 1; margin-top: -1px; }
-  .wk-rel { font-size: 9px; color: var(--gray-500); line-height: 1; white-space: nowrap; }
-  .wk-cell.today .wk-rel { color: #c2560a; font-weight: 700; }
   .wk-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: auto; min-height: 8px; }
   .wk-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
   .wk-dot.arr { background: #15803d; }
@@ -710,14 +708,12 @@
   @media (max-width: 600px) {
     .wk-wrap { padding: 8px 8px 2px; }
     .wk-grid, .wk-dow { gap: 3px; }
-    .wk-cell { min-height: 56px; padding: 4px 2px 3px; border-radius: 8px; }
+    .wk-cell { min-height: 48px; padding: 4px 2px 3px; border-radius: 8px; }
     .wk-num { font-size: 14px; }
     .wk-legend { padding: 8px 8px 2px; gap: 6px 10px; }
   }
   @media (max-width: 380px) {
-    .wk-cell { min-height: 52px; }
-    .wk-rel { display: none; }
-    .wk-cell.today .wk-rel, .wk-cell.sel .wk-rel { display: block; }
+    .wk-cell { min-height: 46px; }
   }
   /* ═══════════════════════════════════════════
      DASHBOARD — Urgent / Overdue
@@ -6907,10 +6903,9 @@ function wkRender(todayStr) {
     const kinds = list.map(i => wkIsUrgent(i) ? 'urg' : wkKindOf(i)).sort((a, b) => (a === 'urg' ? -1 : 0) - (b === 'urg' ? -1 : 0));
     const dots = kinds.slice(0, 6).map(k => `<i class="wk-dot ${k}"></i>`).join('') + (kinds.length > 6 ? `<span class="wk-more">+${kinds.length - 6}</span>` : '');
     const showMon = d.getDate() === 1 || n === 0;
-    const relTxt = rel === 0 ? 'today' : rel > 0 ? '+' + rel + 'd' : rel + 'd';
     html += `<div class="${cls.join(' ')}" onclick="wkSelect('${ds}')" title="${esc(fmtDate(ds, { weekday: 'long', day: 'numeric', month: 'long' }))}${list.length ? ' · ' + list.length + ' on' : ''}">
       <div class="wk-num">${d.getDate()}</div>
-      ${showMon ? `<div class="wk-mon">${esc(fmtDate(ds, { month: 'short' }))}</div>` : `<div class="wk-rel">${relTxt}</div>`}
+      ${showMon ? `<div class="wk-mon">${esc(fmtDate(ds, { month: 'short' }))}</div>` : ''}
       <div class="wk-dots">${dots}</div>
     </div>`;
   }
