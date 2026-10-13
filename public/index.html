@@ -5469,7 +5469,13 @@ function visitStatus(v, dayStr) {
   if (v.end && v.end <= dayStr) return 'departed';
   if (v.superseded) return 'unknown';
   if (!v.start) return 'current';
-  return v.start >= seasonStartFor(dayStr) ? 'current' : 'unknown';
+  if (v.start >= seasonStartFor(dayStr)) return 'current';
+  // An older arrival still counts when it was logged in this season's Movements tab on purpose
+  // (for example a vessel that arrived in the summer and is still here).
+  const raw = v.arrival && v.arrival.raw;
+  const logged = raw && raw.logged_at ? String(raw.logged_at).slice(0, 10) : '';
+  if (logged && logged >= seasonStartFor(dayStr)) return 'current';
+  return 'unknown';
 }
 function visitDays(v, dayStr) {
   if (!v.start) return null;
