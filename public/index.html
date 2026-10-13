@@ -579,19 +579,31 @@
   .db-cal-pip.move { background:#e3f2fd; color:#1565c0; }
   .db-cal-pip.service { background:#e8f5e9; color:#2e7d32; }
   .db-cal-pip.transfer { background:#fff8e1; color:#f9a825; }
+  .db-cal-pip.arr { background:#dcfce7; color:#166534; }
+  .db-cal-pip.dep { background:#fee2e2; color:#b91c1c; }
+  .db-cal-pip.rel { background:#fef9c3; color:#854d0e; }
+  .db-cal-pip.exp-arr { background:#fff; color:#166534; box-shadow:0 0 0 1px #86efac inset; }
+  .db-cal-pip.exp-dep { background:#fff; color:#b91c1c; box-shadow:0 0 0 1px #fca5a5 inset; }
   .db-cal-pip.urgent { background:#ffebee; color:#c62828; font-weight:700; }
+  .db-cal-cell:hover, .db-cal-weekcol:hover { border-color: var(--gray-300); }
+  .db-cal-cell.past { opacity:0.8; }
+  @media (max-width:600px){ .db-cal-grid .pip-word { display:none; } .db-cal-grid .db-cal-pip { padding:1px 2px; font-size:9px; } }
+  .db-cal-cell.today .db-cal-daynum { color: var(--teal); }
+  .db-cal-day { border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; }
+  .db-cal-day .wk-day-head { border-top:none; margin-top:0; }
+  .ag-more-link { display:block; padding:10px 16px 12px; font-size:12px; font-weight:600; color:var(--navy); cursor:pointer; border-top:1px solid var(--gray-100); }
+  .ag-more-link:hover { text-decoration:underline; }
   .db-cal-more { font-size:9px; color:var(--gray-500); margin-top:1px; }
   .db-cal-week { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
   .db-cal-weekcol { min-height:120px; border:1px solid var(--gray-100); border-radius:6px; padding:4px; background:var(--gray-50); cursor:pointer; }
   .db-cal-weekcol.today { border-color:var(--teal); box-shadow:0 0 0 1px var(--teal) inset; }
   .db-cal-weekhead { font-size:11px; font-weight:700; color:var(--navy); margin-bottom:4px; text-align:center; }
-  .db-cal-day { display:flex; flex-direction:column; gap:10px; }
   .db-cal-daysec-h { font-size:12px; font-weight:800; color:var(--navy); margin-bottom:4px; }
   .db-cal-daysec .db-cal-pip { font-size:12px; padding:4px 8px; white-space:normal; }
   .db-cal-empty { font-size:12px; color:var(--gray-500); text-align:center; padding:14px; }
   .db-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:10px; color:var(--gray-600); }
   .db-cal-legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:middle; }
-  .db-cal-legend .lg-move{background:#1565c0;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-urgent{background:#c62828;}
+  .db-cal-legend .lg-arr{background:#166534;} .db-cal-legend .lg-dep{background:#b91c1c;} .db-cal-legend .lg-exp{background:#fff;box-shadow:0 0 0 1.5px #166534 inset;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-urgent{background:#c62828;}
   @media (max-width:600px){ .db-cal-cell{min-height:52px;} .db-cal-week{grid-template-columns:1fr;} .db-cal-weekcol{min-height:auto;} }
 
   /* ═══════════════════════════════════════════
@@ -659,41 +671,6 @@
   .db-panel-link:hover { text-decoration: underline; }
 
 
-  /* ═══════════════════════════════════════════
-     DASHBOARD — Next 4 weeks (visual calendar)
-  ═══════════════════════════════════════════ */
-  .wk-wrap { padding: 10px 12px 4px; }
-  .wk-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-  .wk-nav button { border: 1px solid var(--gray-300); background: #fff; color: var(--navy); border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 700; cursor: pointer; min-height: 28px; }
-  .wk-nav button.wk-today { font-weight: 600; }
-  .wk-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
-  .wk-dow div { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); }
-  .wk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  .wk-cell { position: relative; min-height: 50px; border-radius: 10px; background: var(--gray-50); border: 1.5px solid transparent; padding: 5px 4px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent; }
-  .wk-cell:hover { background: #eef2f8; }
-  .wk-cell.past { opacity: 0.45; }
-  .wk-cell.today { border-color: var(--orange); background: #fff7ed; }
-  .wk-cell.sel { border-color: var(--navy); background: #eaf0fb; box-shadow: 0 0 0 1px var(--navy) inset; }
-  .wk-cell.today.sel { background: #fff1dd; }
-  .wk-cell.has { background: #fff; border-color: var(--gray-200); }
-  .wk-cell.has.today { border-color: var(--orange); }
-  .wk-cell.has.sel { border-color: var(--navy); }
-  .wk-num { font-size: 15px; font-weight: 800; color: var(--navy); line-height: 1; font-variant-numeric: tabular-nums; }
-  .wk-cell.today .wk-num { color: #c2560a; }
-  .wk-mon { font-size: 9px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; line-height: 1; margin-top: -1px; }
-  .wk-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: auto; min-height: 8px; }
-  .wk-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .wk-dot.arr { background: #15803d; }
-  .wk-dot.dep { background: #dc2626; }
-  .wk-dot.rel { background: #ca8a04; }
-  .wk-dot.expa { background: #fff; border: 2px solid #15803d; box-sizing: border-box; }
-  .wk-dot.expd { background: #fff; border: 2px solid #dc2626; box-sizing: border-box; }
-  .wk-dot.job { background: var(--teal); }
-  .wk-dot.tra { background: #f59e0b; }
-  .wk-dot.urg { background: #dc2626; box-shadow: 0 0 0 2px #fecaca; }
-  .wk-more { font-size: 9px; font-weight: 800; color: var(--navy); line-height: 8px; }
-  .wk-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px 2px; font-size: 10px; color: var(--gray-600); border-top: 1px solid var(--gray-100); margin-top: 8px; }
-  .wk-legend span { display: inline-flex; align-items: center; gap: 4px; }
   .wk-day-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 16px 6px; border-top: 1px solid var(--gray-200); margin-top: 8px; background: var(--gray-50); }
   .wk-day-rel { font-size: 12px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; }
   .wk-day-rel.today { color: #c2560a; }
@@ -701,20 +678,6 @@
   .wk-day-n { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--gray-500); }
   .wk-day-act { margin-left: auto; display: flex; gap: 6px; }
   .wk-day-act button { background: #fff; border: 1px solid var(--gray-300); border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 600; color: var(--navy); cursor: pointer; white-space: nowrap; }
-  .wk-up { padding: 6px 16px 10px; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--gray-100); }
-  .wk-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: 11px; color: var(--navy); cursor: pointer; }
-  .wk-chip b { font-weight: 800; }
-  .wk-chip small { color: var(--gray-500); }
-  @media (max-width: 600px) {
-    .wk-wrap { padding: 8px 8px 2px; }
-    .wk-grid, .wk-dow { gap: 3px; }
-    .wk-cell { min-height: 48px; padding: 4px 2px 3px; border-radius: 8px; }
-    .wk-num { font-size: 14px; }
-    .wk-legend { padding: 8px 8px 2px; gap: 6px 10px; }
-  }
-  @media (max-width: 380px) {
-    .wk-cell { min-height: 46px; }
-  }
   /* ═══════════════════════════════════════════
      DASHBOARD — Urgent / Overdue
   ═══════════════════════════════════════════ */
@@ -2141,33 +2104,41 @@
 
     <!-- Antigua vessel activity (from the sheet) -->
 
-    <!-- Next 4 weeks: visual calendar -->
-    <div class="db-panel" data-db-panel="weeks" id="db-weeks-panel">
+    <!-- Calendar: everything by month, week or day -->
+    <div class="db-panel" data-db-panel="calendar">
       <div class="db-panel-header">
         <i data-ic="calendar" class="ph-ic"></i>
         <div>
-          <div class="db-panel-title">Next 4 weeks</div>
-          <div class="db-panel-sub">Tap a day to see what is on. Dots show arrivals, departures, jobs and transfers.</div>
-        </div>
-        <div class="wk-nav">
-          <button type="button" onclick="wkShift(-1)" title="Previous week">&lsaquo;</button>
-          <button type="button" class="wk-today" onclick="wkGoToday()">Today</button>
-          <button type="button" onclick="wkShift(1)" title="Next week">&rsaquo;</button>
+          <div class="db-panel-title">Calendar</div>
+          <div class="db-panel-sub">Arrivals, departures, jobs and transfers. Select a day to see the details.</div>
         </div>
       </div>
-      <div class="wk-wrap">
-        <div class="wk-dow"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
-        <div class="wk-grid" id="wk-grid"></div>
+      <div class="sec-body" id="sec-cal">
+        <div class="db-cal-card">
+          <div class="db-cal-toolbar">
+            <div class="db-cal-nav">
+              <button type="button" onclick="dbCalPrev()" title="Previous">&#8249;</button>
+              <button type="button" onclick="dbCalToday()">Today</button>
+              <button type="button" onclick="dbCalNext()" title="Next">&#8250;</button>
+            </div>
+            <div class="db-cal-title" id="db-cal-title"></div>
+            <div class="db-cal-views">
+              <button type="button" data-view="month" class="active" onclick="dbCalSetView('month')">Month</button>
+              <button type="button" data-view="week" onclick="dbCalSetView('week')">Week</button>
+              <button type="button" data-view="day" onclick="dbCalSetView('day')">Day</button>
+            </div>
+          </div>
+          <div id="db-cal-body" class="db-cal-body"></div>
+          <div class="db-cal-legend">
+            <span><i class="lg-arr"></i>Arrival</span>
+            <span><i class="lg-dep"></i>Departure</span>
+            <span><i class="lg-exp"></i>Expected or intended</span>
+            <span><i class="lg-service"></i>Job</span>
+            <span><i class="lg-transfer"></i>Transfer</span>
+            <span><i class="lg-urgent"></i>Needs action</span>
+          </div>
+        </div>
       </div>
-      <div class="wk-legend">
-        <span><i class="wk-dot arr"></i>Arrival</span>
-        <span><i class="wk-dot dep"></i>Departure</span>
-        <span><i class="wk-dot expa"></i><i class="wk-dot expd"></i>Expected or intended (hollow)</span>
-        <span><i class="wk-dot job"></i>Job</span>
-        <span><i class="wk-dot tra"></i>Transfer</span>
-        <span><i class="wk-dot urg"></i>Needs action</span>
-      </div>
-      <div id="wk-day"></div>
     </div>
     <div class="db-panel" data-db-panel="vessel-activity">
       <div class="db-panel-header">
@@ -2200,18 +2171,6 @@
           </div>
           <div class="ag-tabs" id="ag-tabs"></div>
           <div id="ag-body"></div>
-        </div>
-
-        <div class="db-panel" data-db-panel="upcoming">
-          <div class="db-panel-header">
-            <i data-ic="calendar" class="ph-ic"></i>
-            <div>
-              <div class="db-panel-title">Upcoming</div>
-              <div class="db-panel-sub">Expected arrivals and departures, from the Expected tab of the Google Sheet</div>
-            </div>
-            <span class="db-urgent-count" id="up-count" style="background:var(--navy);margin-left:auto;">0</span>
-          </div>
-          <div id="up-body"></div>
         </div>
 
         <div class="db-panel" data-db-panel="in-antigua">
@@ -2263,40 +2222,6 @@
       </div>
 
     </div><!-- /db-layout -->
-
-    <!-- Month calendar (closed by default) -->
-    <div class="db-panel" data-db-panel="calendar">
-      <div class="db-panel-header sec-head" onclick="toggleSection2('cal')">
-        <i data-ic="calendar" class="ph-ic"></i>
-        <div class="db-panel-title">Month calendar</div>
-        <div class="db-panel-sub" style="margin-left:8px;">Jobs and movements by month, week or day</div>
-        <span class="sec-chev" id="sec-cal-chev">▸</span>
-      </div>
-      <div class="sec-body" id="sec-cal" style="display:none;">
-        <div class="db-cal-card">
-          <div class="db-cal-toolbar">
-            <div class="db-cal-nav">
-              <button type="button" onclick="dbCalPrev()" title="Previous">&#8249;</button>
-              <button type="button" onclick="dbCalToday()">Today</button>
-              <button type="button" onclick="dbCalNext()" title="Next">&#8250;</button>
-            </div>
-            <div class="db-cal-title" id="db-cal-title"></div>
-            <div class="db-cal-views">
-              <button type="button" data-view="month" class="active" onclick="dbCalSetView('month')">Month</button>
-              <button type="button" data-view="week" onclick="dbCalSetView('week')">Week</button>
-              <button type="button" data-view="day" onclick="dbCalSetView('day')">Day</button>
-            </div>
-          </div>
-          <div id="db-cal-body" class="db-cal-body"></div>
-          <div class="db-cal-legend">
-            <span><i class="lg-move"></i>Movement</span>
-            <span><i class="lg-service"></i>Service</span>
-            <span><i class="lg-transfer"></i>Transfer</span>
-            <span><i class="lg-urgent"></i>Urgent</span>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Map (closed by default; the map library loads when first opened) -->
     <div class="db-panel" data-db-panel="map">
@@ -6319,29 +6244,29 @@ let dbCalView = 'month';
 let dbCalCursor = parseYMD(antiguaToday());
 function dbCalEsc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function dbCalDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function dbCalKind(e){
-  if (e.category === 'Vessel Movement') return 'move';
-  if (e.serviceType === 'Crew Transfer' || e.serviceType === 'Guest Transfer' || e.serviceType === 'Taxi Transfer') return 'transfer';
-  return 'service';
+function dbCalClass(i){
+  if (i.warn || i.status === 'overdue') return 'urgent';
+  if (i.kind === 'move') {
+    const b = String(i.badge || '').toLowerCase(), exp = b.startsWith('expected');
+    if (b.includes('arriv')) return exp ? 'exp-arr' : 'arr';
+    if (b.includes('depart')) return exp ? 'exp-dep' : 'dep';
+    return 'rel';
+  }
+  if (i.kind === 'intended') return 'exp-dep';
+  return i.kind === 'transfer' ? 'transfer' : 'service';
 }
-function dbCalUrgent(e){
-  try { if (typeof computeStatus === 'function' && computeStatus(e) === 'overdue') return true; } catch(_){}
-  return e.priority === 'high' || e.priority === 'critical';
+// All items between two dates, grouped by day. One pass, shared with the agenda.
+function dbCalRange(fromStr, toStr){
+  const by = {};
+  agendaItems(fromStr, toStr).forEach(i => { (by[i.date] = by[i.date] || []).push(i); });
+  return by;
 }
-function dbCalFor(ds){
-  // Movements come from the sheet and from the app; services and transfers from the app.
-  const moves = movementsOn(ds).map(m => ({ category: 'Vessel Movement', serviceType: m.type, vessel: m.vessel, serviceDate: ds, priority: 'normal', status: 'completed', workCompleted: 'Yes' }));
-  return moves.concat((allEntries || []).filter(e => e.serviceDate === ds && e.category !== 'Vessel Movement'));
-}
-function dbCalPip(e){
-  const kind = dbCalKind(e);
-  let label;
-  if (kind === 'move') label = `${e.serviceType||''} · ${e.vessel||''}`;
-  else if (kind === 'transfer') label = `${e.transferPickupTime||''} ${e.transferFrom||''} → ${e.transferTo||''}`.trim();
-  else label = `${e.vessel||e.entryId||''}`;
-  const cls = dbCalUrgent(e) ? 'urgent' : kind;
-  const t = dbCalEsc(label);
-  return `<div class="db-cal-pip ${cls}" title="${t}">${t}</div>`;
+function dbCalPip(i){
+  const cls = dbCalClass(i);
+  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : '';
+  const label = (i.time ? i.time + ' ' : '') + (i.vessel || i.badge || '');
+  const pre = word ? `<span class="pip-word">${word} · </span>` : '';
+  return `<div class="db-cal-pip ${cls}" title="${dbCalEsc(i.badge + ' · ' + (i.vessel || '') + (i.detail ? ' · ' + i.detail : ''))}">${pre}${dbCalEsc(label)}</div>`;
 }
 function dbCalSetView(v){
   dbCalView = v;
@@ -6379,13 +6304,15 @@ function dbCalRenderMonth(body){
   const todayStr = antiguaToday();
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const mm = String(m+1).padStart(2,'0');
+  const by = dbCalRange(`${y}-${mm}-01`, `${y}-${mm}-${String(daysInMonth).padStart(2,'0')}`);
   let html = '<div class="db-cal-grid">';
   DB_CAL_DOW.forEach(d => html += `<div class="db-cal-dow">${d}</div>`);
   for (let i = 0; i < firstDay; i++) html += '<div class="db-cal-cell empty"></div>';
   for (let day = 1; day <= daysInMonth; day++){
     const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const items = dbCalFor(ds);
-    const cls = ['db-cal-cell']; if (ds === todayStr) cls.push('today');
+    const items = by[ds] || [];
+    const cls = ['db-cal-cell']; if (ds === todayStr) cls.push('today'); else if (ds < todayStr) cls.push('past');
     html += `<div class="${cls.join(' ')}" onclick="dbCalOpenDay('${ds}')"><div class="db-cal-daynum">${day}</div>`;
     items.slice(0, 3).forEach(e => html += dbCalPip(e));
     if (items.length > 3) html += `<div class="db-cal-more">+${items.length - 3} more</div>`;
@@ -6400,11 +6327,12 @@ function dbCalRenderWeek(body){
   const end = new Date(start); end.setDate(start.getDate() + 6);
   dbCalSetTitle(`${start.getDate()} ${DB_CAL_MONTHS[start.getMonth()]} to ${end.getDate()} ${DB_CAL_MONTHS[end.getMonth()]} ${end.getFullYear()}`);
   const todayStr = antiguaToday();
+  const by = dbCalRange(dbCalDateStr(start), dbCalDateStr(end));
   let html = '<div class="db-cal-week">';
   for (let i = 0; i < 7; i++){
     const d = new Date(start); d.setDate(start.getDate() + i);
     const ds = dbCalDateStr(d);
-    const items = dbCalFor(ds);
+    const items = by[ds] || [];
     html += `<div class="db-cal-weekcol ${ds === todayStr ? 'today' : ''}" onclick="dbCalOpenDay('${ds}')">`;
     html += `<div class="db-cal-weekhead">${DB_CAL_DOW[i]} ${d.getDate()}</div>`;
     if (!items.length) html += '<div class="db-cal-empty">Nothing</div>';
@@ -6419,22 +6347,21 @@ function dbCalRenderDay(body){
   const ds = dbCalDateStr(d);
   const dowFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   dbCalSetTitle(`${dowFull[d.getDay()]}, ${DB_CAL_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`);
-  const items = dbCalFor(ds);
-  const groups = { move: [], service: [], transfer: [] };
-  items.forEach(e => groups[dbCalKind(e)].push(e));
-  const sec = (label, arr) => {
-    if (!arr.length) return '';
-    let h = `<div class="db-cal-daysec"><div class="db-cal-daysec-h">${label} (${arr.length})</div>`;
-    arr.forEach(e => h += dbCalPip(e));
-    return h + '</div>';
-  };
-  let html = '<div class="db-cal-day">';
-  if (!items.length) html += '<div class="db-cal-empty">No movements, services or transfers on this day.</div>';
-  html += sec('Movements', groups.move);
-  html += sec('Services', groups.service);
-  html += sec('Transfers', groups.transfer);
-  html += '</div>';
-  body.innerHTML = html;
+  const items = agendaItems(ds, ds);
+  const todayStr = antiguaToday();
+  const rel = daysBetween(todayStr, ds);
+  const canWrite = typeof canWriteUser === 'function' ? canWriteUser() : true;
+  body.innerHTML = `<div class="db-cal-day">
+    <div class="wk-day-head">
+      <span class="wk-day-rel${rel === 0 ? ' today' : ''}">${wkRelLabel(rel)}</span>
+      <span class="wk-day-n" style="margin-left:0;">${items.length ? items.length + (items.length === 1 ? ' item' : ' items') : ''}</span>
+      <span class="wk-day-act">
+        ${canWrite ? `<button type="button" onclick="wkNewEntry('${ds}')">+ Entry on this day</button>` : ''}
+        <button type="button" onclick="dbCalSetView('month')">Back to month</button>
+      </span>
+    </div>
+    ${items.length ? items.map(agendaRowHtml).join('') : '<div class="ag-none">Nothing logged for this day.</div>'}
+  </div>`;
 }
 
 // ─── Admin Map Marker Editor (map_locations) ──────────────────
@@ -6676,7 +6603,7 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'weeks', 'agenda', 'upcoming', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'calendar', 'map'
+  'kpi', 'calendar', 'agenda', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'map'
 ];
 
 function getDashboardConfig(role) {
@@ -6795,17 +6722,31 @@ function agendaItems(fromStr, toStr) {
   return items;
 }
 
+const AG_KIND_CLS = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
+const AG_MOVE_CLS = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation', 'Expected arrival': 'badge-arriving', 'Expected departure': 'badge-departing' };
+function agendaRowHtml(i) {
+  return `
+      <div class="ag-row ${AG_KIND_CLS[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
+        <div class="ag-time">${esc(i.time || '')}</div>
+        <div class="ag-main">
+          <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (AG_MOVE_CLS[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">●</span>' : ''}</div>
+          ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
+        </div>
+        ${i.status ? statusBadge(i.status) : ''}
+      </div>`;
+}
 function renderAgenda(todayStr) {
   const tabsEl = document.getElementById('ag-tabs');
   const bodyEl = document.getElementById('ag-body');
   if (!tabsEl || !bodyEl) return;
-  if (!AGENDA_RANGES.some(r => r.id === agendaRange)) agendaRange = 'today';
+  if (agendaRange !== 'expected' && !AGENDA_RANGES.some(r => r.id === agendaRange)) agendaRange = 'today';
 
   tabsEl.innerHTML = AGENDA_RANGES.map(r => {
     const n = agendaItems(addDays(todayStr, r.from), addDays(todayStr, r.to)).length;
     return `<button type="button" class="${r.id === agendaRange ? 'active' : ''}" onclick="setAgendaRange('${r.id}')">${r.label}<span class="ag-count">${n}</span></button>`;
-  }).join('');
+  }).join('') + `<button type="button" class="${agendaRange === 'expected' ? 'active' : ''}" onclick="setAgendaRange('expected')" title="Every expected arrival and departure, from the Expected tab of the Google Sheet">All expected<span class="ag-count">${expectedOpen().length}</span></button>`;
 
+  if (agendaRange === 'expected') { bodyEl.innerHTML = upcomingHtml(todayStr); return; }
   const range = AGENDA_RANGES.find(r => r.id === agendaRange);
   const from = addDays(todayStr, range.from), to = addDays(todayStr, range.to);
   const items = agendaItems(from, to);
@@ -6813,26 +6754,17 @@ function renderAgenda(todayStr) {
   const days = range.from === range.to ? [from] : [...new Set(items.map(i => i.date))];
   if (!days.length) { bodyEl.innerHTML = `<div class="db-empty">Nothing in the ${esc(range.label.toLowerCase())}. Jobs and movements show here as soon as they are logged.</div>`; return; }
 
-  const kindCls = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
-  const moveCls = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation' };
-
-  const rowHtml = i => `
-      <div class="ag-row ${kindCls[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
-        <div class="ag-time">${esc(i.time || '')}</div>
-        <div class="ag-main">
-          <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (moveCls[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">●</span>' : ''}</div>
-          ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
-        </div>
-        ${i.status ? statusBadge(i.status) : ''}
-      </div>`;
+  const rowHtml = agendaRowHtml;
 
   // On the single-day views, also show what is coming next so a quiet day is not a blank panel.
   let comingUp = '';
   if (range.from === range.to) {
-    const next = agendaItems(addDays(to, 1), addDays(todayStr, 60)).slice(0, 6);
+    const next = agendaItems(addDays(to, 1), addDays(todayStr, 60)).slice(0, 5);
     comingUp = `<div class="ag-day"><span>Coming up</span><span class="ag-day-n">${next.length || ''}</span></div>` + (next.length
       ? next.map(i => rowHtml(Object.assign({}, i, { time: fmtShort(i.date) + (i.time ? ' ' + i.time : '') }))).join('')
       : '<div class="ag-none">Nothing logged for the next 60 days</div>');
+    const nExp = expectedOpen().length;
+    if (nExp) comingUp += `<a class="ag-more-link" onclick="setAgendaRange('expected')">See all ${nExp} expected arrivals and departures &rarr;</a>`;
   }
 
   bodyEl.innerHTML = days.map(day => {
@@ -6868,15 +6800,9 @@ async function dbRenderMapSection(inPort) {
 }
 
 // ---------- Dashboard: Upcoming (expected arrivals and departures) ----------
-function renderUpcoming(todayStr) {
-  const body = document.getElementById('up-body'), countEl = document.getElementById('up-count');
-  if (!body) return;
+function upcomingHtml(todayStr) {
   const list = expectedOpen();
-  if (countEl) countEl.textContent = list.length;
-  if (!list.length) {
-    body.innerHTML = '<div class="db-empty">Nothing expected. Add a row to the Expected tab of the Google Sheet and it shows here after the next sync.</div>';
-    return;
-  }
+  if (!list.length) return '<div class="db-empty">Nothing expected. Add a row to the Expected tab of the Google Sheet and it shows here after the next sync.</div>';
   const soonEnd = addDays(todayStr, 14);
   const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '') || String(a.vessel_name).localeCompare(String(b.vessel_name));
   const groups = [
@@ -6901,7 +6827,7 @@ function renderUpcoming(todayStr) {
     </div>`;
   };
   const shown = groups.filter(g => g[1].length);
-  body.innerHTML = (groups[1][1].length ? '' : '<div class="ag-none">Nothing expected in the next 14 days.</div>') +
+  return (groups[1][1].length ? '' : '<div class="ag-none">Nothing expected in the next 14 days.</div>') +
     shown.map(g => `<div class="up-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(row).join('')).join('');
 }
 function showExpectedDetail(id) {
@@ -6947,114 +6873,13 @@ function newEntryForExpected(id) {
 }
 
 
-// ─── Dashboard: Next 4 weeks visual calendar ─────────────────
-let wkSelected = null;   // YYYY-MM-DD of the tapped day
-let wkWeekOffset = 0;    // weeks shifted from the current week
-function wkMondayOf(ds) { const d = parseYMD(ds); const dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dow); return ymd(d); }
-function wkKindOf(i) {
-  if (i.kind === 'move') {
-    const b = String(i.badge || '').toLowerCase();
-    const exp = b.startsWith('expected');
-    if (b.includes('arriv')) return exp ? 'expa' : 'arr';
-    if (b.includes('depart')) return exp ? 'expd' : 'dep';
-    return 'rel';
-  }
-  if (i.kind === 'intended') return 'expd';
-  if (i.kind === 'transfer') return 'tra';
-  return 'job';
-}
-function wkIsUrgent(i) { return !!i.warn || i.status === 'overdue'; }
+// ─── Day helpers used by the dashboard calendar ─────────────
 function wkRelLabel(days) {
   if (days === 0) return 'Today';
   if (days === 1) return 'Tomorrow';
   if (days === -1) return 'Yesterday';
   if (days > 0) return 'In ' + days + ' day' + (days === 1 ? '' : 's');
   return Math.abs(days) + ' days ago';
-}
-function wkShift(n) { wkWeekOffset += n; wkRender(antiguaToday()); }
-function wkGoToday() { wkWeekOffset = 0; wkSelected = antiguaToday(); wkRender(antiguaToday()); }
-function wkSelect(ds) {
-  wkSelected = ds;
-  wkRender(antiguaToday());
-  const el = document.getElementById('wk-day');
-  if (el && window.innerWidth <= 700) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 30);
-}
-function wkRender(todayStr) {
-  const grid = document.getElementById('wk-grid');
-  const dayEl = document.getElementById('wk-day');
-  if (!grid || !dayEl) return;
-  if (!wkSelected) wkSelected = todayStr;
-  const start = addDays(wkMondayOf(todayStr), wkWeekOffset * 7);
-  const end = addDays(start, 27);
-  const items = agendaItems(start, end);
-  const byDay = {};
-  items.forEach(i => { (byDay[i.date] = byDay[i.date] || []).push(i); });
-
-  let html = '';
-  for (let n = 0; n < 28; n++) {
-    const ds = addDays(start, n);
-    const d = parseYMD(ds);
-    const list = byDay[ds] || [];
-    const rel = daysBetween(todayStr, ds);
-    const cls = ['wk-cell'];
-    if (ds === todayStr) cls.push('today');
-    if (ds < todayStr) cls.push('past');
-    if (ds === wkSelected) cls.push('sel');
-    if (list.length) cls.push('has');
-    // One dot per item, urgent first, at most 6 then a +N
-    const kinds = list.map(i => wkIsUrgent(i) ? 'urg' : wkKindOf(i)).sort((a, b) => (a === 'urg' ? -1 : 0) - (b === 'urg' ? -1 : 0));
-    const dots = kinds.slice(0, 6).map(k => `<i class="wk-dot ${k}"></i>`).join('') + (kinds.length > 6 ? `<span class="wk-more">+${kinds.length - 6}</span>` : '');
-    const showMon = d.getDate() === 1 || n === 0;
-    html += `<div class="${cls.join(' ')}" onclick="wkSelect('${ds}')" title="${esc(fmtDate(ds, { weekday: 'long', day: 'numeric', month: 'long' }))}${list.length ? ' · ' + list.length + ' on' : ''}">
-      <div class="wk-num">${d.getDate()}</div>
-      ${showMon ? `<div class="wk-mon">${esc(fmtDate(ds, { month: 'short' }))}</div>` : ''}
-      <div class="wk-dots">${dots}</div>
-    </div>`;
-  }
-  grid.innerHTML = html;
-
-  // Selected day detail
-  const sel = wkSelected;
-  const list = sel >= start && sel <= end ? (byDay[sel] || []) : agendaItems(sel, sel);
-  const rel = daysBetween(todayStr, sel);
-  const kindCls = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
-  const moveCls = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation' };
-  const rowHtml = i => `
-      <div class="ag-row ${kindCls[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
-        <div class="ag-time">${esc(i.time || '')}</div>
-        <div class="ag-main">
-          <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (moveCls[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">&#9888;</span>' : ''}</div>
-          ${i.detail ? `<div class="ag-detail">${esc(i.detail)}</div>` : ''}
-        </div>
-        ${i.status ? statusBadge(i.status) : ''}
-      </div>`;
-  const canWrite = typeof canWriteUser === 'function' ? canWriteUser() : true;
-  const head = `<div class="wk-day-head">
-      <span class="wk-day-rel${rel === 0 ? ' today' : ''}">${wkRelLabel(rel)}</span>
-      <span class="wk-day-date">${esc(fmtDate(sel, { weekday: 'long', day: 'numeric', month: 'long' }))}</span>
-      ${canWrite ? `<span class="wk-day-act"><button type="button" onclick="wkNewEntry('${sel}')">+ Entry</button></span>` : `<span class="wk-day-n">${list.length || ''}</span>`}
-    </div>`;
-  let body = list.length ? list.map(rowHtml).join('') : '<div class="ag-none">Nothing logged for this day.</div>';
-
-  // Quick jump chips: the next few days that have something on, with how far away they are
-  const soon = agendaItems(addDays(todayStr, 1), addDays(todayStr, 60));
-  const seen = new Set(); const chips = [];
-  for (const i of soon) {
-    if (seen.has(i.date)) continue;
-    seen.add(i.date);
-    const n = soon.filter(x => x.date === i.date).length;
-    const dd = daysBetween(todayStr, i.date);
-    chips.push(`<span class="wk-chip" onclick="wkJump('${i.date}')"><b>${dd === 1 ? 'Tomorrow' : 'In ' + dd + ' days'}</b><small>${esc(fmtShort(i.date))} · ${n}</small></span>`);
-    if (chips.length >= 6) break;
-  }
-  const up = chips.length ? `<div class="wk-up">${chips.join('')}</div>` : '';
-  dayEl.innerHTML = head + body + up;
-}
-function wkJump(ds) {
-  const todayStr = antiguaToday();
-  wkWeekOffset = Math.floor(daysBetween(wkMondayOf(todayStr), ds) / 28) * 4;
-  wkSelected = ds;
-  wkRender(todayStr);
 }
 function wkNewEntry(ds) {
   if (editingEntryId) exitEditMode();
@@ -7079,15 +6904,12 @@ function renderDashboard() {
   const urgentCount = dbRenderUrgent(todayStr);
   const inPort = dbRenderInAntigua(todayStr);
   dbRenderKPI(dayMovements, urgentCount, inPort);
-  wkRender(todayStr);
   renderAgenda(todayStr);
-  renderUpcoming(todayStr);
   vtRenderAlerts();
   dbRenderTeam(dayEntries);
   vtRenderActivity(todayStr);
-  applySection('cal');
   applySection('map');
-  if (sectionOpen('cal') && document.getElementById('db-cal-body')) dbCalRender();
+  if (document.getElementById('db-cal-body')) dbCalRender();
   dbRenderMapSection(inPort);
 }
 
