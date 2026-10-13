@@ -1194,6 +1194,15 @@
   .up-main { flex: 1; min-width: 0; }
   .up-detail { font-size: 11px; color: var(--gray-600); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .up-cert { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; background: #e7f6ec; color: #1b6b3a; }
+  .ls-chip { display:inline-block; font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; white-space:nowrap; vertical-align:middle; background:var(--gray-100); color:var(--gray-600); }
+  .ls-chip.ls-done { background:#e7f6ec; color:#1b6b3a; }
+  .ls-chip.ls-todo { background:#fff1e3; color:#9a5a12; }
+  .ls-chip.ls-urgent { background:#fee2e2; color:#b91c1c; }
+  .ls-chip.ls-na { background:transparent; color:var(--gray-500); font-weight:600; }
+  .db-urgent-item.db-todo-item { background:#fffbeb; border-color:#fcd34d; }
+  .db-urgent-item.db-todo-item:hover { background:#fef3c7; box-shadow:0 2px 8px rgba(217,119,6,0.15); }
+  .db-urgent-item.db-todo-item .db-urgent-deadline { color:#b45309; }
+  .db-urgent-item.db-todo-item .db-urgent-icon { color:#b45309; }
   .up-cert-approx { background: #fff1e3; color: #9a5a12; }
   .up-cert-tbc { background: var(--gray-100); color: var(--gray-700); }
   @media (max-width: 700px) { .up-detail { white-space: normal; } .up-date { min-width: 62px; } }
@@ -6689,8 +6698,9 @@ function agendaItems(fromStr, toStr) {
     const people = m.crew != null ? m.crew + ' crew' + (m.guests ? ', ' + m.guests + ' guests' : '') : '';
     items.push({
       date: m.date, time: m.time, kind: 'move', badge: m.expected ? 'Expected ' + String(m.type || '').toLowerCase() : (m.type || 'Movement'), vessel: m.vessel,
-      detail: m.expected ? [m.port, 'Date ' + expCertainty(m.raw).toLowerCase(), m.raw.contact].filter(Boolean).join(' · ') : [mvFromTo(m) || m.notes, people, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · '),
-      status: '', click: mvClick(m)
+      detail: m.expected ? [m.port, 'Date ' + expCertainty(m.raw).toLowerCase(), m.raw.contact, ['urgent', 'todo'].includes((listsState(m.raw, antiguaToday()) || {}).code) ? 'Crew and guest lists to do' : ''].filter(Boolean).join(' · ') : [mvFromTo(m) || m.notes, people, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · '),
+      status: '', click: mvClick(m),
+      warn: m.expected && (listsState(m.raw, antiguaToday()) || {}).code === 'urgent'
     });
   });
   // Departure dates given on arrival notices, for vessels with no departure logged yet
@@ -6799,6 +6809,30 @@ async function dbRenderMapSection(inPort) {
   dbRenderMapVessels(inPort || []);
 }
 
+// ---------- Crew and guest list check for expected arrivals ----------
+// Column M of the sheet's Expected tab: "To do", "Done" or "Not needed". Empty counts as to do.
+// A to-do from 7 days before the expected arrival, urgent from 3 days before.
+const LISTS_TODO_DAYS = 7, LISTS_URGENT_DAYS = 3;
+function listsState(r, todayStr) {
+  if (!r || r.movement_type !== 'Arrival') return null;
+  const s = String(r.lists_status || '').trim().toLowerCase();
+  if (s.startsWith('done')) return { code: 'done', label: 'Lists done' };
+  if (s.startsWith('not')) return { code: 'na', label: 'Lists not needed' };
+  const days = r.expected_date ? daysBetween(todayStr, r.expected_date) : null;
+  if (days != null && days <= LISTS_URGENT_DAYS) return { code: 'urgent', label: 'Lists urgent', days };
+  if (days != null && days <= LISTS_TODO_DAYS) return { code: 'todo', label: 'Lists to do', days };
+  return { code: 'later', label: 'Lists to do', days };
+}
+function listsTodos(todayStr) {
+  return expectedOpen().map(r => ({ r, st: listsState(r, todayStr) }))
+    .filter(x => x.st && (x.st.code === 'urgent' || x.st.code === 'todo'))
+    .sort((a, b) => a.st.days - b.st.days || String(a.r.vessel_name).localeCompare(String(b.r.vessel_name)));
+}
+function listsChip(r, todayStr) {
+  const st = listsState(r, todayStr);
+  return st ? `<span class="ls-chip ls-${st.code}" title="Crew and guest lists added to the clearance systems">${st.label}</span>` : '';
+}
+
 // ---------- Dashboard: Upcoming (expected arrivals and departures) ----------
 function upcomingHtml(todayStr) {
   const list = expectedOpen();
@@ -6820,7 +6854,7 @@ function upcomingHtml(todayStr) {
     return `<div class="up-row${dep ? ' up-dep' : ''}" title="Open the details" onclick="showExpectedDetail('${esc(r.id)}')">
       <div class="up-date">${when}</div>
       <div class="up-main">
-        <div class="ag-title"><span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span> <span class="ag-vessel">${esc(r.vessel_name)}</span></div>
+        <div class="ag-title"><span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span> <span class="ag-vessel">${esc(r.vessel_name)}</span> ${listsChip(r, todayStr)}</div>
         <div class="up-detail">${esc([[r.vessel_type, r.loa].filter(Boolean).join(' '), r.port, r.contact].filter(Boolean).join(' · '))}</div>
       </div>
       <span class="up-cert up-cert-${cert.toLowerCase()}">${cert}</span>
@@ -6853,10 +6887,11 @@ function showExpectedDetail(id) {
       ${fact('Type', r.vessel_type)}${fact('LOA', r.loa)}
       ${fact('Port or marina', r.port)}
       ${fact('Agent or contact', r.contact)}
+      ${r.movement_type === 'Arrival' ? fact('Crew and guest lists', ({ done: 'Done', na: 'Not needed', urgent: 'To do, urgent', todo: 'To do', later: 'To do' })[listsState(r, today).code]) : ''}
       ${fact('Source', r.source)}${fact('Source date', r.source_date ? fmtDate(r.source_date) : '')}
     </div>
     ${r.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para">${esc(r.notes)}</p>` : ''}
-    <p class="vt-note" style="margin-top:12px;">To change or remove this, edit the Expected tab of the Google Sheet. Set Status to Arrived or Cancelled to take it off the dashboard.</p>`;
+    <p class="vt-note" style="margin-top:12px;">To change or remove this, edit the Expected tab of the Google Sheet. Set Status to Arrived or Cancelled to take it off the dashboard. When the crew and guest lists are in the clearance systems, set the "Crew and guest lists" column to Done.</p>`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 // Starts a new entry for an expected vessel, dated for the expected day when there is one.
@@ -6980,25 +7015,35 @@ function dbRenderUrgent(todayStr) {
     addedIds.add(e.entryId);
   });
 
+  // Crew and guest lists still to add for arrivals in the next week
+  let redCount = urgents.length;
+  listsTodos(todayStr).forEach(x => {
+    const d = x.st.days, urgent = x.st.code === 'urgent';
+    const when = d < 0 ? 'Expected ' + fmtShort(x.r.expected_date) + ' (' + Math.abs(d) + ' d ago)' : 'Arrives ' + fmtShort(x.r.expected_date) + (d === 0 ? ' (today)' : d === 1 ? ' (tomorrow)' : ' (in ' + d + ' d)');
+    urgents.push({ vessel: x.r.vessel_name, desc: 'Crew and guest lists to add to the systems', deadline: (urgent ? 'Urgent · ' : 'To do · ') + when, icon: urgent ? 'alert!' : 'users', todo: !urgent, click: `showExpectedDetail('${esc(x.r.id)}')` });
+    if (urgent) redCount++;
+  });
+
   const panel = document.getElementById('db-urgent-panel');
   const countEl = document.getElementById('db-urgent-count');
   const itemsEl = document.getElementById('db-urgent-items');
   if (!panel || !countEl || !itemsEl) return urgents.length;
   countEl.textContent = urgents.length;
   if (!urgents.length) {
-    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs and transfers with no driver show here.</div>';
+    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver and crew and guest lists due for arrivals show here.</div>';
     panel.style.borderColor = '#bbf7d0';
     panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
     panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
     countEl.style.background = '#15803d';
     return 0;
   }
-  panel.style.borderColor = '#fca5a5';
-  panel.querySelector('.db-panel-header').style.background = '#fff5f5';
-  panel.querySelector('.db-panel-header').style.borderColor = '#fca5a5';
-  countEl.style.background = '#dc2626';
+  const red = redCount > 0;
+  panel.style.borderColor = red ? '#fca5a5' : '#fcd34d';
+  panel.querySelector('.db-panel-header').style.background = red ? '#fff5f5' : '#fffbeb';
+  panel.querySelector('.db-panel-header').style.borderColor = red ? '#fca5a5' : '#fcd34d';
+  countEl.style.background = red ? '#dc2626' : '#d97706';
   itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item" title="Open this job to sort it out" onclick="showEntryDetail('${esc(u.entryId)}')">
+    <div class="db-urgent-item${u.todo ? ' db-todo-item' : ''}" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
       <div class="db-urgent-icon${u.icon.endsWith('!') ? ' tone-red' : ''}">${ic(u.icon.replace('!', ''))}</div>
       <div>
         <div class="db-urgent-vessel">${esc(u.vessel)}</div>
@@ -7006,7 +7051,7 @@ function dbRenderUrgent(todayStr) {
         <div class="db-urgent-deadline">${esc(u.deadline)}</div>
       </div>
     </div>`).join('');
-  return urgents.length;
+  return redCount;
 }
 
 // In port = an arrival on or before the chosen day with no departure on or before it.
