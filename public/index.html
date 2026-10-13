@@ -5474,7 +5474,7 @@ function visitStatus(v, dayStr) {
   // (for example a vessel that arrived in the summer and is still here).
   const raw = v.arrival && v.arrival.raw;
   const logged = raw && raw.logged_at ? String(raw.logged_at).slice(0, 10) : '';
-  if (logged && logged >= seasonStartFor(dayStr)) return 'current';
+  if (raw && raw.sheet_tab === 'Movements' && logged && logged >= seasonStartFor(dayStr)) return 'current';
   return 'unknown';
 }
 function visitDays(v, dayStr) {
