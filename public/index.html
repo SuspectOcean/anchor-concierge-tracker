@@ -2398,7 +2398,7 @@
       <div id="userManagementSection" class="set-sec hidden">
         <button type="button" class="set-sec-head" onclick="toggleSettingsSection(this)"><span>Users and roles<small>Approve new accounts and set what each person can do</small></span><span class="set-chev">▸</span></button>
         <div class="set-sec-body collapsed">
-          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">New accounts start as Pending and see nothing until you give them a role. Viewer can look but not change. Staff and Manager can add and edit. Admin can also delete, manage users and see crew passport and birthday dates.</p>
+          <p style="font-size:12px;color:var(--gray-500);margin-bottom:10px;">New accounts start as Pending and see nothing until you give them a role. User can log services, vessels, drivers and movements but cannot delete, change the invite code or manage accounts. Admin can also delete, manage users, change the invite code and see crew passport and birthday dates.</p>
           <div id="userList" style="max-height:260px;overflow:auto;"></div>
         </div>
       </div>
@@ -2586,7 +2586,9 @@ async function fetchAll(table, build) {
 }
 
 function isAdminUser() { return !!(currentUser && currentUser.role === 'admin'); }
-function canWriteUser() { return !!(currentUser && ['admin', 'manager', 'staff'].includes(currentUser.role)); }
+function canWriteUser() { return !!(currentUser && ['admin', 'user'].includes(currentUser.role)); }
+// Extended access: set from my_access() on sign-in. Nothing in the UI names it.
+function hasExtendedAccess() { return !!(currentUser && currentUser.extended === true); }
 
 async function logAudit(row) {
   try {
@@ -2883,11 +2885,16 @@ async function loadUserProfile() {
     currentUser.role = data.role;
     currentUser.avatar_url = data.avatar_url;
     currentUser.phone = data.phone || '';
+    currentUser.extended = false;
+    try {
+      const { data: acc } = await sb.rpc('my_access');
+      if (acc && acc.extended === true) currentUser.extended = true;
+    } catch (e) { /* default: no extended access */ }
     updateHeaderWithUser();
     applyRoleUI();
     document.getElementById('settingsEmail').value = currentUser.email || '';
     document.getElementById('settingsName').value = currentUser.full_name || '';
-    document.getElementById('settingsRole').value = currentUser.role || 'staff';
+    document.getElementById('settingsRole').value = currentUser.role || 'user';
     document.getElementById('settingsPhone').value = currentUser.phone || '';
   }
 }
@@ -4202,22 +4209,31 @@ function applyRoleUI() {
 }
 
 // ─── Users (admin) ────────────────────────────────────────────
-const USER_ROLES = ['pending', 'viewer', 'staff', 'manager', 'admin'];
+const USER_ROLES = ['pending', 'user', 'admin'];
+const ROLE_LABELS = { pending: 'Pending', user: 'User', admin: 'Admin' };
 async function loadUsers() {
   const el = document.getElementById('userList');
   if (!el) return;
   const { data, error } = await sb.from('profiles').select('id, email, full_name, role').order('email');
   if (error) { el.innerHTML = '<p style="font-size:13px;color:var(--red);">Could not load users: ' + esc(error.message) + '</p>'; return; }
-  el.innerHTML = (data || []).map(u => `
+  const ext = hasExtendedAccess();
+  el.innerHTML = (data || []).map(u => {
+    const self = u.id === currentUser.id;
+    // Admin rows are locked unless the viewer has extended access.
+    const locked = self || (!ext && u.role === 'admin');
+    const options = USER_ROLES.filter(r => ext || r !== 'admin' || u.role === 'admin');
+    const title = self ? 'You cannot change your own role' : (locked ? 'Admin roles are managed separately' : '');
+    return `
     <div class="user-row">
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;color:var(--navy);">${esc(u.full_name || '(no name)')}${u.role === 'pending' ? ' <span class="vt-chip vt-chip-unknown">Awaiting approval</span>' : ''}</div>
         <div style="font-size:11px;color:var(--gray-600);overflow:hidden;text-overflow:ellipsis;">${esc(u.email)}</div>
       </div>
-      <select onchange="setUserRole('${esc(u.id)}', this.value)" ${u.id === currentUser.id ? 'disabled title="You cannot change your own role"' : ''}>
-        ${USER_ROLES.map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('')}
+      <select onchange="setUserRole('${esc(u.id)}', this.value)" ${locked ? `disabled title="${esc(title)}"` : ''}>
+        ${options.map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${ROLE_LABELS[r] || r}</option>`).join('')}
       </select>
-    </div>`).join('') || '<p style="font-size:13px;color:var(--gray-400);">No users.</p>';
+    </div>`;
+  }).join('') || '<p style="font-size:13px;color:var(--gray-400);">No users.</p>';
 }
 async function setUserRole(id, role) {
   if (!USER_ROLES.includes(role)) return;
@@ -6628,7 +6644,7 @@ function getDashboardConfig(role) {
     // case 'broker':    return ['kpi', 'map', 'movements', 'in-antigua', 'week'];
     // case 'vessel':    return ['active-vessels', 'movements', 'services', 'whats-next'];
     case 'admin':
-    case 'staff':
+    case 'user':
     default:
       return DB_ALL_PANELS;
   }
