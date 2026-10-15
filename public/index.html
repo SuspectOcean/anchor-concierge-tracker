@@ -5443,6 +5443,7 @@ function vtVisits() {
     (byKey[m.key] = byKey[m.key] || []).push(m);
   });
   const visits = [];
+  const today = antiguaToday();
   Object.values(byKey).forEach(all => {
     // If the sheet and a manual entry record the same event, the sheet wins.
     const inSheet = new Set(all.filter(m => m.src === 'sheet').map(m => m.date + '|' + m.type));
@@ -5466,7 +5467,15 @@ function vtVisits() {
         } else if (open) {
           open.departure = m; open.end = m.date; visits.push(open); open = null;
         } else {
-          visits.push({ vessel: m.vessel, key: m.key, arrival: null, departure: m, start: null, end: m.date, returning: m.date > firstDate });
+          // A second departure filed ahead of time for a visit that has not ended yet (for example a
+          // portal notice for the 16th and an expected departure for the 17th) is the same intended
+          // departure, not a new unmatched visit. Keep the first, note the other, count the vessel once.
+          const last = visits.filter(v => v.key === m.key).pop();
+          if (last && last.arrival && last.end && last.end > today) {
+            (last.otherDepartures = last.otherDepartures || []).push(m);
+          } else {
+            visits.push({ vessel: m.vessel, key: m.key, arrival: null, departure: m, start: null, end: m.date, returning: m.date > firstDate });
+          }
         }
       });
     });
