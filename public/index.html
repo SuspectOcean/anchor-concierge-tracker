@@ -1238,6 +1238,29 @@
   .db-cal-pip.todo { background: #e0e7ff; color: #3730a3; }
   .db-cal-pip.todo-late { background: #fee2e2; color: #b91c1c; }
   .td-para { white-space: pre-wrap; }
+  .td-act { margin-left: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; cursor: pointer; white-space: nowrap; }
+  .td-act:hover { background: #dcfce7; }
+  .td-act[disabled] { opacity: .5; cursor: wait; }
+  .td-act.td-act-blue { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+  .td-act.td-act-blue:hover { background: #dbeafe; }
+  .td-act.td-act-red { border-color: #fecaca; background: #fff5f5; color: #b91c1c; }
+  .td-act.td-act-red:hover { background: #fee2e2; }
+  .cc-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); border-left: 3px solid #bcd6f0; cursor: pointer; }
+  .cc-row:hover { background: var(--gray-50); }
+  .cc-row.cc-off { border-left-color: #fbdcbf; }
+  .cc-row.cc-late { border-left-color: #fca5a5; background: #fffafa; }
+  .cc-row.cc-today { border-left-color: #fcd34d; }
+  .cc-row.cc-done { opacity: .6; }
+  .cc-row.cc-done .cc-name { text-decoration: line-through; }
+  .cc-name { font-weight: 700; color: var(--navy); font-size: 13px; }
+  .cc-detail { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
+  .cc-state { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .cc-state-ok { background: #e7f6ec; color: #1b6b3a; }
+  .cc-state-detected { background: #e0ecfa; color: #1d4e89; }
+  .cc-state-due { background: #fff1e3; color: #9a5a12; }
+  .cc-state-late { background: #fee2e2; color: #b91c1c; }
+  .cc-state-later { background: var(--gray-100); color: var(--gray-600); }
+  .cc-state-warn { background: #fef3c7; color: #92400e; }
   @media (max-width: 700px) { .td-meta { white-space: normal; } .td-date { min-width: 62px; } }
 
 </style>
@@ -2227,6 +2250,18 @@
           </div>
           <div class="ag-tabs" id="td-tabs"></div>
           <div id="td-body"></div>
+        </div>
+
+        <div class="db-panel" data-db-panel="crew-changes">
+          <div class="db-panel-header">
+            <i data-ic="idcard" class="ph-ic"></i>
+            <div>
+              <div class="db-panel-title">Crew sign on and sign off</div>
+              <div class="db-panel-sub" id="cc-sub">Immigration formalities per person, from the Crew changes tab of the Google Sheet</div>
+            </div>
+            <span class="db-urgent-count" id="cc-count" style="background:var(--navy);margin-left:auto;">0</span>
+          </div>
+          <div id="cc-body"></div>
         </div>
 
         <div class="db-panel" data-db-panel="in-antigua">
@@ -5245,6 +5280,7 @@ let vtCrewPrivate = {};   // crew_id -> { date_of_birth, passport_expiry } (admi
 let vtAlerts = [];        // crew_alerts() rows
 let vtExpected = [];      // expected_movements rows (the sheet's "Expected" tab)
 let vtTodo = [];          // todo_items rows (the sheet's "To Do" tab)
+let vtChanges = [];       // crew_changes rows (the sheet's "Crew changes" tab)
 let vtLastSync = null;    // latest sync_runs row
 let vtCache = {};         // derived data, cleared whenever source data changes
 let vtTlOffset = 0;       // timeline strip offset in days
@@ -5376,7 +5412,7 @@ function sortList(table, list, getters) {
 }
 
 function vtReset() {
-  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtExpected = []; vtTodo = []; vtLastSync = null; vtCache = {};
+  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtExpected = []; vtTodo = []; vtChanges = []; vtLastSync = null; vtCache = {};
 }
 function vtInvalidate() { vtCache = {}; }
 
@@ -5404,6 +5440,9 @@ async function loadVesselTracking() {
     try {
       vtTodo = await fetchAll('todo_items', q => q.order('due', { nullsFirst: false }).order('todo_id'));
     } catch (e) { console.warn('todo_items not loaded:', e.message); vtTodo = []; }
+    try {
+      vtChanges = await fetchAll('crew_changes', q => q.order('change_date', { nullsFirst: false }).order('change_id'));
+    } catch (e) { console.warn('crew_changes not loaded:', e.message); vtChanges = []; }
     try {
       const { data } = await sb.from('sync_runs').select('*').order('id', { ascending: false }).limit(1);
       vtLastSync = data && data[0] ? data[0] : null;
@@ -6713,7 +6752,7 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'calendar', 'agenda', 'todo', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'map'
+  'kpi', 'calendar', 'agenda', 'todo', 'crew-changes', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'map'
 ];
 
 function getDashboardConfig(role) {
@@ -6985,7 +7024,10 @@ function showExpectedDetail(id) {
   document.getElementById('vesselDetailTitle').innerHTML = esc(r.vessel_name) + ` <span class="vt-chip vt-chip-expected">Expected ${esc(String(r.movement_type || '').toLowerCase())}</span>`;
   document.getElementById('vesselDetailBody').innerHTML = `
     ${late ? `<div class="vt-callout vt-callout-red"><b>The expected date has passed.</b> No arrival is logged for this vessel since the notice. If she is here, add the arrival to the Movements tab of the sheet. If plans changed, update the Expected tab.</div>` : ''}
+    ${(() => { const ev = listsEvidence(r); const ls = listsState(r, today); return ev && ls && ls.code !== 'done' && ls.code !== 'na' ? `<div class="vt-callout vt-callout-blue"><b>Crew and guest lists found in the systems:</b> ${esc(ev.text)}. The app will mark the lists done.</div>` : ''; })()}
     <div class="vt-actions">
+      ${r.movement_type === 'Arrival' && canWriteUser() && (listsState(r, today) || {}).code !== 'done' ? `<button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'Done')">Lists done</button><button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'Not needed')">Lists not needed</button>` : ''}
+      ${r.movement_type === 'Arrival' && canWriteUser() && (listsState(r, today) || {}).code === 'done' ? `<button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'To do')">Reopen lists check</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record (past visits)</button>` : ''}
       ${canWriteUser() ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');newEntryForExpected('${esc(r.id)}')">+ New entry for this vessel</button>` : ''}
     </div>
@@ -7000,7 +7042,7 @@ function showExpectedDetail(id) {
       ${fact('Source', r.source)}${fact('Source date', r.source_date ? fmtDate(r.source_date) : '')}
     </div>
     ${r.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para">${esc(r.notes)}</p>` : ''}
-    <p class="vt-note" style="margin-top:12px;">To change or remove this, edit the Expected tab of the Google Sheet. Set Status to Arrived or Cancelled to take it off the dashboard. When the crew and guest lists are in the clearance systems, set the "Crew and guest lists" column to Done.</p>`;
+    <p class="vt-note" style="margin-top:12px;">To change or remove this, edit the Expected tab of the Google Sheet. Set Status to Arrived or Cancelled to take it off the dashboard. The lists buttons above write the "Crew and guest lists" column; the app also sets it to Done itself once an arrival notice or crew list for the vessel is on file.</p>`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 // Starts a new entry for an expected vessel, dated for the expected day when there is one.
@@ -7060,6 +7102,7 @@ function todoRowHtml(t, todayStr) {
       <div class="td-meta">${esc([t.owner ? 'Owner ' + t.owner : '', t.requested_by ? 'For ' + t.requested_by : ''].filter(Boolean).join(' · '))}</div>
     </div>
     ${pri !== 'Normal' ? `<span class="td-pri td-pri-${pri.toLowerCase()}">${esc(pri)}</span>` : ''}
+    ${canWriteUser() ? `<button type="button" class="td-act" title="Mark Done in the sheet" onclick="todoMarkDone('${esc(t.id)}', event)">Done</button>` : ''}
   </div>`;
 }
 function renderTodoPanel(todayStr) {
@@ -7105,6 +7148,8 @@ function showTodoDetail(id) {
     ${st.code === 'late' && t.status !== 'Done' ? `<div class="vt-callout vt-callout-red"><b>Past the due date</b> by ${Math.abs(st.days)} day${Math.abs(st.days) === 1 ? '' : 's'} (${esc(fmtDate(t.due))}).</div>` : ''}
     ${todoIsCrewChange(t) && t.status !== 'Done' ? `<div class="vt-callout vt-callout-blue"><b>Crew change.</b> Anyone leaving must be signed off with Immigration within 24 hours of departure, and a change of captain filed if the master differs.</div>` : ''}
     <div class="vt-actions">
+      ${t.status !== 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoMarkDone('${esc(t.id)}')">Mark Done</button>` : ''}
+      ${t.status === 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(t.id)}')">Reopen</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
     </div>
     <h3 class="vt-h3">Task</h3><p class="vt-para td-para">${esc(t.task || '')}</p>
@@ -7116,10 +7161,256 @@ function showTodoDetail(id) {
     </div>
     ${t.last_action ? `<h3 class="vt-h3">Last action</h3><p class="vt-para td-para">${esc(t.last_action)}</p>` : ''}
     ${t.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para td-para">${esc(t.notes)}</p>` : ''}
-    <p class="vt-note" style="margin-top:12px;">To change this, edit the To Do tab of the Google Sheet. Set Status to Done to take it off the dashboard. The app updates after the next sync.</p>`;
+    <p class="vt-note" style="margin-top:12px;">Mark Done here writes Status and a Last action line to the To Do tab of the Google Sheet. Anything else (task wording, dates, owner) is edited in the sheet and shows here after the next sync.</p>`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
+
+// ---------- Writes back to the sheet (Done ticks) ----------
+// The sheet stays the master. sheet-write asks the Apps Script to change one cell group,
+// the script pushes a fresh copy, then the app reloads what it shows.
+let sheetWriteBusy = false;
+async function sheetWrite(payload, label) {
+  if (!canWriteUser()) return showToast('Your account cannot change the sheet');
+  if (sheetWriteBusy) return showToast('One moment, a change is still being written');
+  sheetWriteBusy = true;
+  document.querySelectorAll('.td-act').forEach(b => { b.disabled = true; });
+  showToast((label || 'Writing to the sheet') + '…');
+  try {
+    const { data, error } = await sb.functions.invoke('sheet-write', { body: payload });
+    const reply = data || {};
+    if (error || !reply.ok) {
+      let msg = error ? error.message : (reply.error || 'the sheet did not accept the change');
+      try { if (error && error.context) { const j = await error.context.json(); if (j && j.error) msg = j.error; } } catch (_) {}
+      showToast('Not saved: ' + msg);
+      return false;
+    }
+    await loadVesselTracking();
+    renderDashboard();
+    showToast((label || 'Saved') + (reply.synced ? '' : ' (the app refreshes after the next sync)'));
+    return true;
+  } catch (e) {
+    showToast('Not saved: ' + e.message);
+    return false;
+  } finally {
+    sheetWriteBusy = false;
+    document.querySelectorAll('.td-act').forEach(b => { b.disabled = false; });
+  }
+}
+async function todoMarkDone(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  if (!confirm('Mark ' + t.todo_id + ' as Done in the sheet?')) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done' }, t.todo_id + ' marked Done');
+}
+async function todoReopen(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Open', note: 'reopened in the app' }, t.todo_id + ' reopened');
+}
+async function changeMarkDone(id, ev, note) {
+  if (ev) ev.stopPropagation();
+  const c = vtChanges.find(x => x.id === id); if (!c) return;
+  if (!note && !confirm('Mark ' + c.full_name + ' (' + c.change_type.toLowerCase() + ') as done with Immigration?')) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'change_status', id: c.change_id, status: 'Done', note: note || '' }, c.full_name + ' ' + c.change_type.toLowerCase() + ' done');
+}
+async function changeReopen(id, ev) {
+  if (ev) ev.stopPropagation();
+  const c = vtChanges.find(x => x.id === id); if (!c) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'change_status', id: c.change_id, status: 'Open' }, c.change_id + ' reopened');
+}
+async function listsMark(id, value, ev, note) {
+  if (ev) ev.stopPropagation();
+  const r = vtExpected.find(x => x.id === id); if (!r) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'lists_status', vessel: r.vessel_name, movement: r.movement_type, expected_date: r.expected_date || '', value: value + (note ? ' (' + note + ')' : '') },
+    r.vessel_name + ' crew and guest lists: ' + value.toLowerCase());
+}
+
+// ---------- Automatic checks against the clearance systems ----------
+// The sheet's Movements and Crew log tabs are what Anchor has filed in eSeaClear and SailClear.
+// When those records show a thing has been done, the app marks it done itself (noting what it saw).
+function personParts(name) {
+  const n = String(name || '').trim();
+  if (!n) return null;
+  let last, first;
+  if (n.includes(',')) { const [l, f] = n.split(',').map(x => x.trim()); last = l; first = (f || '').split(/\s+/)[0]; }
+  else { const parts = n.split(/\s+/); first = parts[0]; last = parts.slice(1).join(' ') || parts[0]; }
+  const clean = x => String(x || '').toLowerCase().replace(/[^a-z]/g, '');
+  return { first: clean(first), last: clean(last), lastWord: clean(last.split(/\s+/).pop()) };
+}
+function samePerson(a, b) {
+  const x = personParts(a), y = personParts(b);
+  if (!x || !y || !x.first || !y.first) return false;
+  if (x.first !== y.first && !x.first.startsWith(y.first) && !y.first.startsWith(x.first)) return false;
+  return x.last === y.last || x.lastWord === y.lastWord || x.last.includes(y.lastWord) || y.last.includes(x.lastWord);
+}
+// Evidence in the clearance records for one crew change.
+function changeEvidence(c) {
+  const key = c.vessel_key || vtKey(c.vessel_name);
+  const d = c.change_date || '';
+  const lists = {};   // sighting_date -> { names: [...], ref, portal }
+  vtSightings.filter(s => s.vessel_key === key && s.sighting_date).forEach(s => {
+    const l = lists[s.sighting_date] = lists[s.sighting_date] || { date: s.sighting_date, names: [], ref: s.reference, portal: s.source_portal, type: s.movement_type };
+    l.names.push(s.full_name);
+  });
+  const all = Object.values(lists).sort((a, b) => a.date.localeCompare(b.date));
+  if (c.change_type === 'Sign on') {
+    const hit = all.find(l => l.date >= addDays(d, -1) && l.names.some(n => samePerson(n, c.full_name)));
+    if (hit) return { code: 'detected', text: 'On the ' + (hit.portal || 'clearance') + ' list of ' + fmtShort(hit.date) + (hit.ref ? ' (' + hit.ref + ')' : ''), note: 'detected on ' + (hit.portal || 'clearance') + ' list ' + hit.date + (hit.ref ? ' ' + hit.ref : '') };
+    return null;
+  }
+  // Sign off: a later list for the vessel without this person means the sign off went through.
+  const later = all.filter(l => l.date > d);
+  if (!later.length) return null;
+  const still = later.find(l => l.names.some(n => samePerson(n, c.full_name)));
+  if (still) return { code: 'warn', text: 'Still on the ' + (still.portal || 'clearance') + ' list of ' + fmtShort(still.date) + (still.ref ? ' (' + still.ref + ')' : ''), note: '' };
+  const l = later[0];
+  return { code: 'detected', text: 'Not on the later ' + (l.portal || 'clearance') + ' list of ' + fmtShort(l.date) + (l.ref ? ' (' + l.ref + ')' : ''), note: 'not on later ' + (l.portal || 'clearance') + ' list ' + l.date + (l.ref ? ' ' + l.ref : '') };
+}
+// Evidence that an expected arrival's crew and guest lists are in the systems: a filed arrival notice
+// for the vessel near the expected date, or crew sightings for it in that window.
+function listsEvidence(r) {
+  if (!r || r.movement_type !== 'Arrival') return null;
+  const key = r.vessel_key || vtKey(r.vessel_name);
+  const from = r.expected_date ? addDays(r.expected_date, -7) : null, to = r.expected_date ? addDays(r.expected_date, 14) : null;
+  const inWin = d => !from || (d >= from && d <= to);
+  const mv = vtMovements.find(m => (m.vessel_key || vtKey(m.vessel_name)) === key && m.movement_type === 'Arrival' && m.reference && inWin(m.movement_date));
+  if (mv) return { text: (mv.source_portal || 'Clearance') + ' arrival notice ' + mv.reference + ' filed for ' + fmtShort(mv.movement_date) + (mv.crew_count != null ? ', ' + mv.crew_count + ' crew' : ''), note: (mv.source_portal || 'notice') + ' ' + mv.reference + ' ' + mv.movement_date };
+  const sg = vtSightings.filter(s => s.vessel_key === key && inWin(s.sighting_date));
+  if (sg.length) return { text: sg.length + ' crew on the ' + (sg[0].source_portal || 'clearance') + ' list of ' + fmtShort(sg[0].sighting_date), note: (sg[0].source_portal || 'list') + ' ' + sg[0].sighting_date };
+  return null;
+}
+const autoChecked = new Set();   // ids already written this session, so one detection writes once
+async function runAutoChecks(todayStr) {
+  if (!canWriteUser() || sheetWriteBusy) return;
+  for (const c of vtChanges.filter(x => x.status === 'Open' && !autoChecked.has(x.id))) {
+    const ev = changeEvidence(c);
+    if (ev && ev.code === 'detected') { autoChecked.add(c.id); await changeMarkDone(c.id, null, ev.note); return; }
+  }
+  for (const r of expectedOpen().filter(x => x.movement_type === 'Arrival' && (listsState(x, todayStr) || {}).code !== 'done' && (listsState(x, todayStr) || {}).code !== 'na' && !autoChecked.has(x.id))) {
+    const ev = listsEvidence(r);
+    if (ev) { autoChecked.add(r.id); await listsMark(r.id, 'Done', null, 'app: ' + ev.note); return; }
+  }
+}
+
+// ---------- Crew changes panel (sign on / sign off per person) ----------
+function changeState(c, todayStr) {
+  if (c.status === 'Done') return { code: 'ok', label: 'Done', days: null };
+  if (c.status === 'Cancelled') return { code: 'ok', label: 'Cancelled', days: null };
+  const ev = changeEvidence(c);
+  if (ev && ev.code === 'detected') return { code: 'detected', label: 'Seen in the systems', days: null, ev };
+  const days = c.change_date ? daysBetween(todayStr, c.change_date) : null;
+  if (ev && ev.code === 'warn') return { code: 'warn', label: 'Still on a later list', days, ev };
+  if (days == null) return { code: 'later', label: 'No date', days };
+  if (c.change_type === 'Sign off') {
+    if (days < -1) return { code: 'late', label: 'Overdue, 24 h passed', days };
+    if (days <= 0) return { code: 'due', label: days === 0 ? 'Departs today' : 'Departed yesterday, sign off today', days };
+    if (days === 1) return { code: 'due', label: 'Departs tomorrow, collect passport today', days };
+    return { code: 'later', label: 'In ' + days + ' d', days };
+  }
+  if (days < 0) return { code: 'late', label: 'Arrived ' + Math.abs(days) + ' d ago, not entered', days };
+  if (days === 0) return { code: 'due', label: 'Arrives today', days };
+  if (days === 1) return { code: 'due', label: 'Arrives tomorrow', days };
+  return { code: 'later', label: 'In ' + days + ' d', days };
+}
+function renderCrewChangesPanel(todayStr) {
+  const body = document.getElementById('cc-body'), countEl = document.getElementById('cc-count'), subEl = document.getElementById('cc-sub');
+  if (!body) return;
+  const open = vtChanges.filter(c => c.status !== 'Done' && c.status !== 'Cancelled');
+  const states = vtChanges.map(c => ({ c, st: changeState(c, todayStr) }));
+  const late = states.filter(x => x.st.code === 'late' || x.st.code === 'warn').length;
+  if (countEl) { countEl.textContent = open.length; countEl.style.background = late ? '#dc2626' : 'var(--navy)'; }
+  if (subEl) subEl.textContent = vtChanges.length ? `${open.length} open${late ? ', ' + late + ' need Immigration attention' : ''}. The app ticks these off itself when the clearance records show the change.` : 'Immigration formalities per person, from the Crew changes tab of the Google Sheet';
+  if (!vtChanges.length) { body.innerHTML = '<div class="db-empty">No crew changes logged. Add rows to the Crew changes tab of the Google Sheet (ID, Vessel, Name, Change, Date, Flight).</div>'; return; }
+  const order = { late: 0, warn: 1, due: 2, detected: 3, later: 4, ok: 5 };
+  const recentDone = x => x.st.code !== 'ok' || (x.c.done_date && daysBetween(x.c.done_date, todayStr) <= 7) || (x.c.change_date && daysBetween(x.c.change_date, todayStr) <= 7);
+  const list = states.filter(recentDone).sort((a, b) => order[a.st.code] - order[b.st.code] || (a.c.change_date || '9999').localeCompare(b.c.change_date || '9999') || String(a.c.vessel_name).localeCompare(String(b.c.vessel_name)) || String(a.c.full_name).localeCompare(String(b.c.full_name)));
+  const byVessel = {};
+  list.forEach(x => { (byVessel[x.c.vessel_name] = byVessel[x.c.vessel_name] || []).push(x); });
+  body.innerHTML = Object.entries(byVessel).map(([vessel, rows]) => `<div class="td-group"><span>${esc(vessel)}</span><span>${rows.filter(x => x.st.code !== 'ok').length} open</span></div>` + rows.map(({ c, st }) => {
+    const off = c.change_type === 'Sign off';
+    const cls = st.code === 'late' || st.code === 'warn' ? ' cc-late' : st.code === 'due' ? ' cc-today' : st.code === 'ok' ? ' cc-done' : '';
+    const act = st.code === 'ok' ? '' : st.code === 'late' && off ? `<button type="button" class="td-act td-act-red" onclick="apologyLetter('${esc(c.id)}', event)">Apology letter</button><button type="button" class="td-act" onclick="changeMarkDone('${esc(c.id)}', event)">Done</button>` : `<button type="button" class="td-act" onclick="changeMarkDone('${esc(c.id)}', event)">Done</button>`;
+    return `<div class="cc-row${off ? ' cc-off' : ''}${cls}" onclick="showChangeDetail('${esc(c.id)}')" title="Open the details">
+      <div class="td-date">${c.change_date ? esc(fmtShort(c.change_date)) : 'No date'}<small>${off ? 'sign off' : 'sign on'}</small></div>
+      <div class="td-main">
+        <div class="cc-name">${esc(c.full_name)} <span class="td-id">${esc(c.change_id)}</span></div>
+        <div class="cc-detail">${esc([c.flight, st.ev ? st.ev.text : '', c.status === 'Done' && c.done_by ? 'Done by ' + c.done_by + (c.done_date ? ' ' + fmtShort(c.done_date) : '') : ''].filter(Boolean).join(' · '))}</div>
+      </div>
+      <span class="cc-state cc-state-${st.code}">${esc(st.label)}</span>${act}
+    </div>`;
+  }).join('')).join('');
+}
+function showChangeDetail(id) {
+  const c = vtChanges.find(x => x.id === id);
+  if (!c) return showToast('Crew change not found');
+  const today = antiguaToday(), st = changeState(c, today), off = c.change_type === 'Sign off';
+  const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
+  const key = c.vessel_key || vtKey(c.vessel_name);
+  const known = vtMovements.some(m => (m.vessel_key || vtKey(m.vessel_name)) === key);
+  const task = c.linked_task ? vtTodo.find(t => t.todo_id === c.linked_task) : null;
+  document.getElementById('vesselDetailTitle').innerHTML = esc(c.full_name) + ` <span class="cc-state cc-state-${st.code}">${esc(st.label)}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    ${st.code === 'late' && off ? `<div class="vt-callout vt-callout-red"><b>More than 24 hours since departure and no sign off recorded.</b> Immigration requires crew leaving a yacht to be signed off within 24 hours. If it was done, press Done. If it was missed, prepare the apology letter to the Chief Immigration Officer.</div>` : ''}
+    ${st.code === 'warn' ? `<div class="vt-callout vt-callout-red"><b>${esc(st.ev.text)}.</b> The departing crew list should not include this person once signed off. Check the eSeaClear crew list.</div>` : ''}
+    ${st.code === 'detected' ? `<div class="vt-callout vt-callout-blue"><b>${esc(st.ev.text)}.</b> The app will mark this done.</div>` : ''}
+    <div class="vt-actions">
+      ${c.status !== 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="changeMarkDone('${esc(c.id)}')">Mark done with Immigration</button>` : ''}
+      ${c.status === 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="changeReopen('${esc(c.id)}')">Reopen</button>` : ''}
+      ${off ? `<button type="button" class="vt-act" onclick="apologyLetter('${esc(c.id)}')">Apology letter (print)</button>` : ''}
+      ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
+      ${task ? `<button type="button" class="vt-act" onclick="showTodoDetail('${esc(task.id)}')">${esc(task.todo_id)}</button>` : ''}
+    </div>
+    <div class="vt-facts">
+      ${fact('Vessel', c.vessel_name)}${fact('Change', c.change_type)}
+      ${fact(off ? 'Departure date' : 'Arrival date', c.change_date ? fmtDate(c.change_date) : '')}${fact('Flight', c.flight)}
+      ${fact('Status', c.status)}${fact('Done by', c.done_by)}${fact('Done date', c.done_date ? fmtDate(c.done_date) : '')}
+      ${fact('Linked task', c.linked_task)}
+    </div>
+    ${c.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para td-para">${esc(c.notes)}</p>` : ''}
+    <p class="vt-note" style="margin-top:12px;">Rows live in the Crew changes tab of the Google Sheet. Done ticks here are written to that tab. The app also marks a change done by itself when the Crew log shows the person on (sign on) or off (sign off) the vessel's clearance list.</p>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+// Immigration apology letter, pre-filled and opened for printing. One letter per vessel covers every
+// missed sign off for that vessel that is still open.
+function apologyLetter(id, ev) {
+  if (ev) ev.stopPropagation();
+  const c = vtChanges.find(x => x.id === id); if (!c) return;
+  const today = antiguaToday();
+  const people = vtChanges.filter(x => x.vessel_key === c.vessel_key && x.change_type === 'Sign off' && x.status !== 'Done' && x.status !== 'Cancelled' && x.change_date && x.change_date <= today);
+  const rows = (people.length ? people : [c]).map(p => `<tr><td>${esc(p.full_name)}</td><td>${esc(fmtDate(p.change_date))}</td><td>${esc(p.flight || '')}</td></tr>`).join('');
+  const rec = allVessels.find(v => (v.name_key || vtKey(v.name)) === c.vessel_key) || {};
+  const user = (currentUser && (currentUser.full_name || currentUser.email)) || '';
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Failure to sign off individuals from yacht ${esc(c.vessel_name)}</title>
+  <style>body{font-family:Georgia,'Times New Roman',serif;color:#111;max-width:720px;margin:40px auto;padding:0 32px;line-height:1.55;font-size:14px}
+  .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1d4e89;padding-bottom:12px;margin-bottom:28px}
+  .hd b{font-size:20px;color:#1d4e89;letter-spacing:.5px}.hd small{display:block;color:#555;font-size:11px;margin-top:2px}
+  .hd .r{text-align:right;font-size:11px;color:#555}
+  h1{font-size:15px;margin:26px 0 12px;text-transform:uppercase;letter-spacing:.6px;color:#1d4e89}
+  table{border-collapse:collapse;width:100%;margin:12px 0 18px}th,td{border:1px solid #bbb;padding:7px 10px;text-align:left;font-size:13px}th{background:#eef3fa}
+  .sig{margin-top:44px}.sig div{margin-top:36px;border-top:1px solid #333;width:260px;padding-top:4px;font-size:12px}
+  @media print{body{margin:0;padding:18mm 20mm}}</style></head><body>
+  <div class="hd"><div><b>ANCHOR CONCIERGE</b><small>Superyacht Services · English Harbour, Antigua</small><small>info@anchorcsys.com</small></div>
+  <div class="r">${esc(fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }))}<br>Ref: ${esc(c.vessel_name)} / Immigration</div></div>
+  <p>The Chief Immigration Officer<br>Immigration Department<br>Nelson's Dockyard, English Harbour<br>Antigua</p>
+  <p>Dear Sir / Madam,</p>
+  <h1>Failure to sign off individuals from yacht ${esc(c.vessel_name)}</h1>
+  <p>We write on behalf of the yacht <b>${esc(c.vessel_name)}</b>${rec.flag ? ' (' + esc(rec.flag) + ' flag' + (rec.loa_m ? ', ' + esc(rec.loa_m) + ' m' : '') + ')' : ''}, for which Anchor Concierge acts as agent in Antigua and Barbuda, to apologise for the failure to sign off the following crew member${(people.length || 1) > 1 ? 's' : ''} with the Immigration Department within 24 hours of their departure from the vessel.</p>
+  <table><thead><tr><th>Name</th><th>Departed the vessel</th><th>Flight</th></tr></thead><tbody>${rows}</tbody></table>
+  <p>The omission was an oversight on the part of the vessel and its agent and was not intended to circumvent the requirements of the Immigration Department. The passport${(people.length || 1) > 1 ? 's' : ''}, ticket${(people.length || 1) > 1 ? 's' : ''} and inbound document${(people.length || 1) > 1 ? 's' : ''} are attached so that the sign off can be completed.</p>
+  <p>We have reviewed our procedures so that every departing crew member is signed off within the required period, and we apologise for any inconvenience caused to your Department.</p>
+  <p>Yours faithfully,</p>
+  <div class="sig"><div>${esc(user)}<br>For Anchor Concierge, agent for ${esc(c.vessel_name)}</div><div>Master, ${esc(c.vessel_name)}</div></div>
+  <script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) return showToast('Allow pop-ups to open the letter');
+  w.document.write(html); w.document.close();
+}
 
 // ─── Day helpers used by the dashboard calendar ─────────────
 function wkRelLabel(days) {
@@ -7154,7 +7445,9 @@ function renderDashboard() {
   dbRenderKPI(dayMovements, urgentCount, inPort);
   renderAgenda(todayStr);
   renderTodoPanel(todayStr);
+  renderCrewChangesPanel(todayStr);
   vtRenderAlerts();
+  runAutoChecks(todayStr);
   dbRenderTeam(dayEntries);
   vtRenderActivity(todayStr);
   applySection('map');
