@@ -603,7 +603,7 @@
   .db-cal-empty { font-size:12px; color:var(--gray-500); text-align:center; padding:14px; }
   .db-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:10px; color:var(--gray-600); }
   .db-cal-legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:middle; }
-  .db-cal-legend .lg-arr{background:#166534;} .db-cal-legend .lg-dep{background:#b91c1c;} .db-cal-legend .lg-exp{background:#fff;box-shadow:0 0 0 1.5px #166534 inset;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-urgent{background:#c62828;}
+  .db-cal-legend .lg-arr{background:#166534;} .db-cal-legend .lg-dep{background:#b91c1c;} .db-cal-legend .lg-exp{background:#fff;box-shadow:0 0 0 1.5px #166534 inset;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-todo{background:#4f46e5;} .db-cal-legend .lg-urgent{background:#c62828;}
   @media (max-width:600px){ .db-cal-cell{min-height:52px;} .db-cal-week{grid-template-columns:1fr;} .db-cal-weekcol{min-height:auto;} }
 
   /* ═══════════════════════════════════════════
@@ -950,6 +950,7 @@
   .vt-act-green:hover { background: #126c34; color: var(--white); }
   .vt-callout { border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
   .vt-callout-red { background: #fff5f5; border: 1px solid #fecaca; color: #7f1d1d; }
+  .vt-callout-blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
   .vt-para { font-size: 13px; color: var(--gray-800); white-space: pre-wrap; margin: 0; }
   #vesselDetailTitle .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; text-transform: uppercase; vertical-align: middle; margin-left: 6px; }
 
@@ -1206,6 +1207,38 @@
   .up-cert-approx { background: #fff1e3; color: #9a5a12; }
   .up-cert-tbc { background: var(--gray-100); color: var(--gray-700); }
   @media (max-width: 700px) { .up-detail { white-space: normal; } .up-date { min-width: 62px; } }
+
+  /* To Do (the sheet's To Do tab) */
+  .td-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); border-left: 3px solid #bcd6f0; cursor: pointer; }
+  .td-row:hover { background: var(--gray-50); }
+  .td-row.td-late { border-left-color: #fca5a5; }
+  .td-row.td-today { border-left-color: #fcd34d; }
+  .td-row.td-wait { border-left-color: #d6d3d1; }
+  .td-row.td-wait .td-task { color: var(--gray-600); }
+  .td-date { min-width: 74px; font-size: 13px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 1px; }
+  .td-date small { display: block; font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.4px; }
+  .td-row.td-late .td-date, .td-row.td-late .td-date small { color: #b91c1c; }
+  .td-row.td-today .td-date small { color: #b45309; }
+  .td-main { flex: 1; min-width: 0; }
+  .td-task { font-size: 13px; color: var(--gray-800); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .td-meta { font-size: 11px; color: var(--gray-600); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .td-id { font-size: 10px; font-weight: 700; color: var(--gray-500); letter-spacing: 0.3px; }
+  .td-pri { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; background: var(--gray-100); color: var(--gray-700); }
+  .td-pri-high { background: #fee2e2; color: #b91c1c; }
+  .td-pri-low { background: transparent; color: var(--gray-500); font-weight: 600; }
+  .td-st { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; white-space: nowrap; vertical-align: middle; background: #fff1e3; color: #9a5a12; }
+  .td-st-wait { background: var(--gray-100); color: var(--gray-600); }
+  .td-st-done { background: #e7f6ec; color: #1b6b3a; }
+  .td-st-crew { background: #e0ecfa; color: #1d4e89; }
+  .td-group { display: flex; justify-content: space-between; padding: 8px 16px 6px; margin-top: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); }
+  .td-group-late { color: #b91c1c; }
+  .td-group-today { color: #b45309; }
+  .ag-row.ag-todo { border-left-color: #c7d2fe; }
+  .ag-badge-todo { background: #e0e7ff; color: #3730a3; }
+  .db-cal-pip.todo { background: #e0e7ff; color: #3730a3; }
+  .db-cal-pip.todo-late { background: #fee2e2; color: #b91c1c; }
+  .td-para { white-space: pre-wrap; }
+  @media (max-width: 700px) { .td-meta { white-space: normal; } .td-date { min-width: 62px; } }
 
 </style>
 </head>
@@ -2144,6 +2177,7 @@
             <span><i class="lg-exp"></i>Expected or intended</span>
             <span><i class="lg-service"></i>Job</span>
             <span><i class="lg-transfer"></i>Transfer</span>
+            <span><i class="lg-todo"></i>To do</span>
             <span><i class="lg-urgent"></i>Needs action</span>
           </div>
         </div>
@@ -2180,6 +2214,19 @@
           </div>
           <div class="ag-tabs" id="ag-tabs"></div>
           <div id="ag-body"></div>
+        </div>
+
+        <div class="db-panel" data-db-panel="todo">
+          <div class="db-panel-header">
+            <i data-ic="list" class="ph-ic"></i>
+            <div>
+              <div class="db-panel-title">To Do</div>
+              <div class="db-panel-sub" id="td-sub">Open requests, quotes and replies owed, from the To Do tab of the Google Sheet</div>
+            </div>
+            <span class="db-urgent-count" id="td-count" style="background:var(--navy);margin-left:auto;">0</span>
+          </div>
+          <div class="ag-tabs" id="td-tabs"></div>
+          <div id="td-body"></div>
         </div>
 
         <div class="db-panel" data-db-panel="in-antigua">
@@ -5197,6 +5244,7 @@ let vtCrew = [];          // crew_members rows
 let vtCrewPrivate = {};   // crew_id -> { date_of_birth, passport_expiry } (admins only)
 let vtAlerts = [];        // crew_alerts() rows
 let vtExpected = [];      // expected_movements rows (the sheet's "Expected" tab)
+let vtTodo = [];          // todo_items rows (the sheet's "To Do" tab)
 let vtLastSync = null;    // latest sync_runs row
 let vtCache = {};         // derived data, cleared whenever source data changes
 let vtTlOffset = 0;       // timeline strip offset in days
@@ -5328,7 +5376,7 @@ function sortList(table, list, getters) {
 }
 
 function vtReset() {
-  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtExpected = []; vtLastSync = null; vtCache = {};
+  vtMovements = []; vtSightings = []; vtCrew = []; vtCrewPrivate = {}; vtAlerts = []; vtExpected = []; vtTodo = []; vtLastSync = null; vtCache = {};
 }
 function vtInvalidate() { vtCache = {}; }
 
@@ -5353,6 +5401,9 @@ async function loadVesselTracking() {
     try {
       vtExpected = await fetchAll('expected_movements', q => q.order('expected_date').order('id'));
     } catch (e) { console.warn('expected_movements not loaded:', e.message); vtExpected = []; }
+    try {
+      vtTodo = await fetchAll('todo_items', q => q.order('due', { nullsFirst: false }).order('todo_id'));
+    } catch (e) { console.warn('todo_items not loaded:', e.message); vtTodo = []; }
     try {
       const { data } = await sb.from('sync_runs').select('*').order('id', { ascending: false }).limit(1);
       vtLastSync = data && data[0] ? data[0] : null;
@@ -5775,11 +5826,26 @@ function showVesselDetail(key) {
   const jobsHtml = `<h3 class="vt-h3">Services and transfers (${jobs.length}${openCount ? ', ' + openCount + ' open' : ''})${sumText ? ' <span class="vt-h3-note">Total charged ' + esc(sumText) + '</span>' : ''}${inRegistry && canWriteUser() ? ` <button type="button" class="vt-btn vt-h3-btn" onclick="newEntryForVessel('${esc(key)}')">+ New entry</button>` : ''}</h3>
     <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Date</th><th>Entry</th><th>Service</th><th>Staff</th><th>Status</th><th>Total</th></tr></thead><tbody>${jobRows || '<tr><td colspan="6" class="db-empty">No services logged for this vessel</td></tr>'}</tbody></table></div>`;
 
+  // To Do items for this vessel (sheet To Do tab), open first
+  const todos = vtTodo.filter(t => (t.vessel_key || vtKey(t.vessel_name)) === key || (t.vessel_key || '').startsWith(key + 'tender'))
+    .sort((a, b) => ((a.status === 'Done') - (b.status === 'Done')) || (a.due || '9999').localeCompare(b.due || '9999') || a.todo_id.localeCompare(b.todo_id));
+  const openTodos = todos.filter(t => t.status !== 'Done' && t.status !== 'Cancelled').length;
+  const todoRows = todos.map(t => {
+    const st = todoState(t, today), stChip = t.status === 'Done' ? 'td-st-done' : t.status === 'Waiting on client' ? 'td-st-wait' : '';
+    return `<tr class="vt-click${t.status === 'Done' ? ' ag-done' : ''}" onclick="showTodoDetail('${esc(t.id)}')">
+      <td>${esc(t.todo_id)}</td><td>${t.due ? esc(fmtDate(t.due)) + (t.status !== 'Done' && st.code === 'late' ? ' <span class="td-st" style="background:#fee2e2;color:#b91c1c;">' + Math.abs(st.days) + ' d late</span>' : '') : ''}</td>
+      <td class="td-title">${esc(String(t.task || '').slice(0, 140))}${String(t.task || '').length > 140 ? '…' : ''}</td><td>${esc(t.owner || '')}</td>
+      <td>${esc(t.priority || '')}</td><td><span class="td-st ${stChip}">${esc(t.status || 'Open')}</span></td></tr>`;
+  }).join('');
+  const todoHtml = todos.length ? `<h3 class="vt-h3">To Do (${todos.length}${openTodos ? ', ' + openTodos + ' open' : ''}) <span class="vt-h3-note">From the To Do tab of the sheet</span></h3>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>ID</th><th>Due</th><th>Task</th><th>Owner</th><th>Priority</th><th>Status</th></tr></thead><tbody>${todoRows}</tbody></table></div>` : '';
+
   document.getElementById('vesselDetailTitle').innerHTML = esc(name) +
     (visits.some(v => v.returning) ? ' <span class="vt-star" title="Seen in Antigua before">★</span>' : '') +
     (current ? ' <span class="vt-chip vt-chip-current">In port</span>' : '');
   document.getElementById('vesselDetailBody').innerHTML = `
     ${facts ? `<div class="vt-facts">${facts}</div>` : '<div class="db-empty">No vessel particulars on file</div>'}
+    ${todoHtml}
     ${jobsHtml}
     <h3 class="vt-h3">Visits (${visits.length})</h3>
     <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Arrival</th><th>Departure</th><th>Days</th><th>Port</th><th>On arrival</th><th>On departure</th><th>Status</th></tr></thead><tbody>${visitRows || '<tr><td colspan="7" class="db-empty">No visits on file</td></tr>'}</tbody></table></div>
@@ -6293,6 +6359,7 @@ function dbCalClass(i){
     return 'rel';
   }
   if (i.kind === 'intended') return 'exp-dep';
+  if (i.kind === 'todo') return 'todo';
   return i.kind === 'transfer' ? 'transfer' : 'service';
 }
 // All items between two dates, grouped by day. One pass, shared with the agenda.
@@ -6303,7 +6370,7 @@ function dbCalRange(fromStr, toStr){
 }
 function dbCalPip(i){
   const cls = dbCalClass(i);
-  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : '';
+  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : i.kind === 'todo' ? 'To do' : '';
   const label = (i.time ? i.time + ' ' : '') + (i.vessel || i.badge || '');
   const pre = word ? `<span class="pip-word">${word} · </span>` : '';
   return `<div class="db-cal-pip ${cls}" title="${dbCalEsc(i.badge + ' · ' + (i.vessel || '') + (i.detail ? ' · ' + i.detail : ''))}">${pre}${dbCalEsc(label)}</div>`;
@@ -6643,7 +6710,7 @@ function dbRenderMapVessels(inPort) {
 // touching the dashboard HTML or renderDashboard() logic.
 // ─── Dashboard role config ────────────────────────────────────
 const DB_ALL_PANELS = [
-  'kpi', 'calendar', 'agenda', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'map'
+  'kpi', 'calendar', 'agenda', 'todo', 'urgent', 'in-antigua', 'crew-alerts', 'team', 'vessel-activity', 'map'
 ];
 
 function getDashboardConfig(role) {
@@ -6759,11 +6826,19 @@ function agendaItems(fromStr, toStr) {
       });
     }
   });
+  // To Do items (sheet To Do tab) on their due date
+  todoOpen().filter(t => t.due && t.due >= fromStr && t.due <= toStr).forEach(t => {
+    items.push({
+      date: t.due, time: '', kind: 'todo', badge: t.priority === 'High' ? 'To do · High' : 'To do', vessel: t.vessel_name || 'General',
+      detail: [t.todo_id, String(t.task || '').slice(0, 110) + (String(t.task || '').length > 110 ? '…' : ''), t.owner].filter(Boolean).join(' · '),
+      status: '', warn: t.priority === 'High' || todoIsCrewChange(t), click: `showTodoDetail('${esc(t.id)}')`
+    });
+  });
   items.sort((a, b) => a.date.localeCompare(b.date) || (a.time || '99:99').localeCompare(b.time || '99:99') || String(a.vessel).localeCompare(String(b.vessel)));
   return items;
 }
 
-const AG_KIND_CLS = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service' };
+const AG_KIND_CLS = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-transfer', service: 'ag-service', todo: 'ag-todo' };
 const AG_MOVE_CLS = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation', 'Expected arrival': 'badge-arriving', 'Expected departure': 'badge-departing' };
 function agendaRowHtml(i) {
   return `
@@ -6938,6 +7013,110 @@ function newEntryForExpected(id) {
   if (r.expected_date) document.getElementById('serviceDate').value = r.expected_date;
 }
 
+// ---------- To Do (the sheet's "To Do" tab, synced into todo_items) ----------
+// Open = Open or Waiting on client. Done and Cancelled rows are kept for the vessel record only.
+function todoOpen() { return vtTodo.filter(t => t.status !== 'Done' && t.status !== 'Cancelled'); }
+function todoIsCrewChange(t) { return /\bsign[- ]?(off|on)\b|immigration appointment|crew change/i.test(t.task || ''); }
+function todoState(t, todayStr) {
+  if (!t.due) return { code: 'nodate', days: null };
+  const days = daysBetween(todayStr, t.due);
+  if (days < 0) return { code: 'late', days };
+  if (days === 0) return { code: 'today', days };
+  if (days === 1) return { code: 'tomorrow', days };
+  if (days <= 6) return { code: 'week', days };
+  return { code: 'later', days };
+}
+let todoRange = uiGet('todo', 'week');   // due | today | week | all
+const TODO_RANGES = [
+  { id: 'due', label: 'Overdue' },
+  { id: 'today', label: 'Today and tomorrow' },
+  { id: 'week', label: 'This week' },
+  { id: 'all', label: 'All open' }
+];
+function setTodoRange(id) { todoRange = id; uiSet('todo', id); renderTodoPanel(antiguaToday()); }
+function todoInRange(t, todayStr, id) {
+  const st = todoState(t, todayStr);
+  if (id === 'due') return st.code === 'late';
+  if (id === 'today') return ['late', 'today', 'tomorrow'].includes(st.code);
+  if (id === 'week') return ['late', 'today', 'tomorrow', 'week'].includes(st.code);
+  return true;
+}
+function todoRowHtml(t, todayStr) {
+  const st = todoState(t, todayStr);
+  const wait = t.status === 'Waiting on client';
+  const when = t.due
+    ? `${esc(fmtShort(t.due))}<small>${st.days === 0 ? 'today' : st.days === 1 ? 'tomorrow' : st.days > 0 ? 'in ' + st.days + ' d' : Math.abs(st.days) + ' d late'}</small>`
+    : 'No date<small>open</small>';
+  const pri = String(t.priority || 'Normal');
+  const cls = st.code === 'late' ? ' td-late' : st.code === 'today' ? ' td-today' : '';
+  return `<div class="td-row${cls}${wait ? ' td-wait' : ''}" title="Open the details" onclick="showTodoDetail('${esc(t.id)}')">
+    <div class="td-date">${when}</div>
+    <div class="td-main">
+      <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> ${wait ? '<span class="td-st td-st-wait">Waiting on client</span>' : ''}${todoIsCrewChange(t) ? ' <span class="td-st td-st-crew">Crew change</span>' : ''} <span class="td-id">${esc(t.todo_id)}</span></div>
+      <div class="td-task">${esc(t.task || '')}</div>
+      <div class="td-meta">${esc([t.owner ? 'Owner ' + t.owner : '', t.requested_by ? 'For ' + t.requested_by : ''].filter(Boolean).join(' · '))}</div>
+    </div>
+    ${pri !== 'Normal' ? `<span class="td-pri td-pri-${pri.toLowerCase()}">${esc(pri)}</span>` : ''}
+  </div>`;
+}
+function renderTodoPanel(todayStr) {
+  const tabsEl = document.getElementById('td-tabs'), bodyEl = document.getElementById('td-body');
+  const countEl = document.getElementById('td-count'), subEl = document.getElementById('td-sub');
+  if (!tabsEl || !bodyEl) return;
+  if (!TODO_RANGES.some(r => r.id === todoRange)) todoRange = 'week';
+  const open = todoOpen();
+  const late = open.filter(t => todoState(t, todayStr).code === 'late').length;
+  if (countEl) { countEl.textContent = open.length; countEl.style.background = late ? '#dc2626' : 'var(--navy)'; }
+  if (subEl) subEl.textContent = vtTodo.length
+    ? `${open.length} open${late ? ', ' + late + ' past the due date' : ''}. From the To Do tab of the Google Sheet.`
+    : 'Open requests, quotes and replies owed, from the To Do tab of the Google Sheet';
+  tabsEl.innerHTML = TODO_RANGES.map(r => {
+    const n = open.filter(t => todoInRange(t, todayStr, r.id)).length;
+    return `<button type="button" class="${r.id === todoRange ? 'active' : ''}" onclick="setTodoRange('${r.id}')">${r.label}<span class="ag-count">${n}</span></button>`;
+  }).join('');
+  if (!vtTodo.length) { bodyEl.innerHTML = '<div class="db-empty">No To Do rows synced yet. The To Do tab of the Google Sheet shows here after the next sync.</div>'; return; }
+  const list = open.filter(t => todoInRange(t, todayStr, todoRange));
+  if (!list.length) { bodyEl.innerHTML = `<div class="db-empty">Nothing ${todoRange === 'due' ? 'past its due date' : todoRange === 'today' ? 'due today or tomorrow' : todoRange === 'week' ? 'due this week' : 'open'}.</div>`; return; }
+  const byDue = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || ({ High: 0, Normal: 1, Low: 2 }[a.priority] ?? 1) - ({ High: 0, Normal: 1, Low: 2 }[b.priority] ?? 1) || String(a.vessel_name).localeCompare(String(b.vessel_name)) || a.todo_id.localeCompare(b.todo_id);
+  const groups = [
+    ['Past the due date', list.filter(t => todoState(t, todayStr).code === 'late').sort(byDue), 'td-group-late'],
+    ['Today', list.filter(t => todoState(t, todayStr).code === 'today').sort(byDue), 'td-group-today'],
+    ['Tomorrow', list.filter(t => todoState(t, todayStr).code === 'tomorrow').sort(byDue), ''],
+    ['This week', list.filter(t => todoState(t, todayStr).code === 'week').sort(byDue), ''],
+    ['Later', list.filter(t => todoState(t, todayStr).code === 'later').sort(byDue), ''],
+    ['No due date', list.filter(t => !t.due).sort(byDue), '']
+  ].filter(g => g[1].length);
+  bodyEl.innerHTML = groups.map(g => `<div class="td-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(t => todoRowHtml(t, todayStr)).join('')).join('');
+}
+function showTodoDetail(id) {
+  const t = vtTodo.find(x => x.id === id);
+  if (!t) return showToast('To Do item not found');
+  const today = antiguaToday();
+  const st = todoState(t, today);
+  const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
+  const key = t.vessel_key || vtKey(t.vessel_name);
+  const known = key && vtMovements.some(m => (m.vessel_key || vtKey(m.vessel_name)) === key);
+  const stChip = t.status === 'Done' ? 'td-st-done' : t.status === 'Waiting on client' ? 'td-st-wait' : '';
+  document.getElementById('vesselDetailTitle').innerHTML = esc(t.todo_id) + ' · ' + esc(t.vessel_name || 'General') + ` <span class="td-st ${stChip}">${esc(t.status || 'Open')}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    ${st.code === 'late' && t.status !== 'Done' ? `<div class="vt-callout vt-callout-red"><b>Past the due date</b> by ${Math.abs(st.days)} day${Math.abs(st.days) === 1 ? '' : 's'} (${esc(fmtDate(t.due))}).</div>` : ''}
+    ${todoIsCrewChange(t) && t.status !== 'Done' ? `<div class="vt-callout vt-callout-blue"><b>Crew change.</b> Anyone leaving must be signed off with Immigration within 24 hours of departure, and a change of captain filed if the master differs.</div>` : ''}
+    <div class="vt-actions">
+      ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
+    </div>
+    <h3 class="vt-h3">Task</h3><p class="vt-para td-para">${esc(t.task || '')}</p>
+    <div class="vt-facts">
+      ${fact('Owner', t.owner)}${fact('Requested by', t.requested_by)}
+      ${fact('Requested', t.requested_date ? fmtDate(t.requested_date) : '')}${fact('Due', t.due ? fmtDate(t.due) : 'No date')}
+      ${fact('Priority', t.priority)}${fact('Status', t.status)}
+      ${fact('Sheet row', t.sheet_row ? 'To Do row ' + t.sheet_row : '')}
+    </div>
+    ${t.last_action ? `<h3 class="vt-h3">Last action</h3><p class="vt-para td-para">${esc(t.last_action)}</p>` : ''}
+    ${t.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para td-para">${esc(t.notes)}</p>` : ''}
+    <p class="vt-note" style="margin-top:12px;">To change this, edit the To Do tab of the Google Sheet. Set Status to Done to take it off the dashboard. The app updates after the next sync.</p>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+
 
 // ─── Day helpers used by the dashboard calendar ─────────────
 function wkRelLabel(days) {
@@ -6971,6 +7150,7 @@ function renderDashboard() {
   const inPort = dbRenderInAntigua(todayStr);
   dbRenderKPI(dayMovements, urgentCount, inPort);
   renderAgenda(todayStr);
+  renderTodoPanel(todayStr);
   vtRenderAlerts();
   dbRenderTeam(dayEntries);
   vtRenderActivity(todayStr);
@@ -7055,13 +7235,23 @@ function dbRenderUrgent(todayStr) {
     if (urgent) redCount++;
   });
 
+  // High priority To Do items past their due date, and crew changes due today or overdue
+  todoOpen().filter(t => t.due && t.due <= todayStr && (t.priority === 'High' || todoIsCrewChange(t)))
+    .sort((a, b) => a.due.localeCompare(b.due) || a.todo_id.localeCompare(b.todo_id))
+    .forEach(t => {
+      const d = daysBetween(t.due, todayStr);
+      const crew = todoIsCrewChange(t);
+      urgents.push({ vessel: t.vessel_name || 'General', desc: (crew ? 'Crew change: ' : '') + String(t.task || '').slice(0, 70) + (String(t.task || '').length > 70 ? '…' : ''), deadline: (crew ? 'Immigration · ' : 'High · ') + t.todo_id + (d === 0 ? ' · due today' : ' · due ' + fmtShort(t.due) + ' (' + d + ' d late)'), icon: crew ? 'users' : 'alert!', click: `showTodoDetail('${esc(t.id)}')` });
+      redCount++;
+    });
+
   const panel = document.getElementById('db-urgent-panel');
   const countEl = document.getElementById('db-urgent-count');
   const itemsEl = document.getElementById('db-urgent-items');
   if (!panel || !countEl || !itemsEl) return urgents.length;
   countEl.textContent = urgents.length;
   if (!urgents.length) {
-    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver and crew and guest lists due for arrivals show here.</div>';
+    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver, crew and guest lists due for arrivals, and high priority To Do items past their date show here.</div>';
     panel.style.borderColor = '#bbf7d0';
     panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
     panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
