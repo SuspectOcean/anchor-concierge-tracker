@@ -6366,6 +6366,9 @@ function dbCalClass(i){
 function dbCalRange(fromStr, toStr){
   const by = {};
   agendaItems(fromStr, toStr).forEach(i => { (by[i.date] = by[i.date] || []).push(i); });
+  // Movements and jobs first in each day cell; To Do items after, so the 3 pips a month cell shows are the vessel events
+  const rank = i => i.kind === 'todo' ? (i.warn ? 1 : 2) : 0;
+  Object.values(by).forEach(list => list.sort((a, b) => rank(a) - rank(b)));
   return by;
 }
 function dbCalPip(i){
