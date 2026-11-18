@@ -604,6 +604,7 @@
   .db-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:10px; color:var(--gray-600); }
   .db-cal-legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:middle; }
   .db-cal-legend .lg-arr{background:#166534;} .db-cal-legend .lg-dep{background:#b91c1c;} .db-cal-legend .lg-exp{background:#fff;box-shadow:0 0 0 1.5px #166534 inset;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-todo{background:#4f46e5;} .db-cal-legend .lg-urgent{background:#c62828;}
+  .db-cal-legend .lg-clear{background:#7dd3fc;} .db-cal-legend .lg-prov{background:#bef264;} .db-cal-legend .lg-ship{background:#fdba74;} .db-cal-legend .lg-marina{background:#a5b4fc;} .db-cal-legend .lg-crew{background:#f0abfc;} .db-cal-legend .lg-tfr{background:#fcd34d;} .db-cal-legend .lg-admin{background:#cbd5e1;}
   @media (max-width:600px){ .db-cal-cell{min-height:52px;} .db-cal-week{grid-template-columns:1fr;} .db-cal-weekcol{min-height:auto;} }
 
   /* ═══════════════════════════════════════════
@@ -1237,6 +1238,44 @@
   .ag-badge-todo { background: #e0e7ff; color: #3730a3; }
   .db-cal-pip.todo { background: #e0e7ff; color: #3730a3; }
   .db-cal-pip.todo-late { background: #fee2e2; color: #b91c1c; }
+  /* Service kind colours. A vessel's day shows what is happening on it, not just "To do". Soft tints, no solid fills. */
+  .db-cal-pip.sv-clear    { background:#e0f2fe; color:#075985; }
+  .db-cal-pip.sv-prov     { background:#ecfccb; color:#4d7c0f; }
+  .db-cal-pip.sv-ship     { background:#ffedd5; color:#9a3412; }
+  .db-cal-pip.sv-marina   { background:#e0e7ff; color:#3730a3; }
+  .db-cal-pip.sv-crew     { background:#fae8ff; color:#86198f; }
+  .db-cal-pip.sv-transfer { background:#fff8e1; color:#a16207; }
+  .db-cal-pip.sv-admin    { background:#f1f5f9; color:#475569; }
+  /* Key under the calendar */
+  .db-cal-key { display:flex; flex-wrap:wrap; gap:6px 10px; padding:8px 12px 2px; }
+  .db-cal-key span { font-size:10px; padding:1px 6px; border-radius:4px; }
+  /* Likely done: the scan's inferred closures, waiting for anyone to confirm */
+  .td-likely { border:1px solid #c7d2fe; background:#f5f7ff; border-radius:8px; margin:0 0 10px; }
+  .td-likely-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border-bottom:1px solid #e0e7ff; }
+  .td-likely-head b { font-size:12px; color:#3730a3; }
+  .td-likely-head small { font-size:11px; color:var(--gray-600); font-weight:400; }
+  .td-likely-row { display:flex; align-items:flex-start; gap:10px; padding:8px 12px; border-top:1px solid #eef2ff; }
+  .td-likely-row:first-of-type { border-top:0; }
+  .td-likely-main { flex:1; min-width:0; }
+  .td-likely-main .td-task { margin-top:2px; }
+  .td-ev { font-size:11px; color:#4338ca; margin-top:3px; }
+  .td-ev b { font-weight:600; }
+  .td-likely-acts { display:flex; gap:6px; flex-shrink:0; }
+  .td-confirm, .td-reject { font-size:11px; padding:4px 9px; border-radius:6px; border:1px solid transparent; cursor:pointer; white-space:nowrap; }
+  .td-confirm { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+  .td-reject  { background:#fff; color:var(--gray-600); border-color:var(--gray-300); }
+  .td-confirm:hover { background:#bbf7d0; }
+  .td-reject:hover  { background:var(--gray-100); }
+  /* Vessel grouping */
+  .td-vessel { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 12px; margin-top:6px; background:#f8fafc; border-top:1px solid var(--gray-200); border-bottom:1px solid var(--gray-200); cursor:pointer; }
+  .td-vessel b { font-size:12px; letter-spacing:.02em; }
+  .td-vessel .td-vcount { font-size:11px; color:var(--gray-600); }
+  .td-vessel .td-kinds { display:flex; gap:4px; flex-wrap:wrap; }
+  .td-vessel .td-kinds span { font-size:9px; padding:1px 5px; border-radius:4px; }
+  .td-collapsed { display:none; }
+  /* Dormant */
+  .td-dormant-head { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; margin-top:10px; background:var(--gray-100); border-radius:6px; cursor:pointer; font-size:12px; color:var(--gray-600); }
+  .td-dormant .td-row { opacity:.72; }
   .td-para { white-space: pre-wrap; }
   .td-act { margin-left: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; cursor: pointer; white-space: nowrap; }
   .td-act:hover { background: #dcfce7; }
@@ -2200,8 +2239,16 @@
             <span><i class="lg-exp"></i>Expected or intended</span>
             <span><i class="lg-service"></i>Job</span>
             <span><i class="lg-transfer"></i>Transfer</span>
-            <span><i class="lg-todo"></i>To do</span>
             <span><i class="lg-urgent"></i>Needs action</span>
+          </div>
+          <div class="db-cal-legend" style="margin-top:4px;">
+            <span><i class="lg-clear"></i>Clearance</span>
+            <span><i class="lg-prov"></i>Provisioning</span>
+            <span><i class="lg-ship"></i>Shipping</span>
+            <span><i class="lg-marina"></i>Marina</span>
+            <span><i class="lg-crew"></i>Crew</span>
+            <span><i class="lg-tfr"></i>Transfer</span>
+            <span><i class="lg-admin"></i>Admin</span>
           </div>
         </div>
       </div>
@@ -5438,8 +5485,13 @@ async function loadVesselTracking() {
       vtExpected = await fetchAll('expected_movements', q => q.order('expected_date').order('id'));
     } catch (e) { console.warn('expected_movements not loaded:', e.message); vtExpected = []; }
     try {
-      vtTodo = await fetchAll('todo_items', q => q.order('due', { nullsFirst: false }).order('todo_id'));
-    } catch (e) { console.warn('todo_items not loaded:', e.message); vtTodo = []; }
+      vtTodo = await fetchAll('todo_items_v', q => q.order('due', { nullsFirst: false }).order('todo_id'));
+    } catch (e) {
+      console.warn('todo_items_v not loaded:', e.message);
+      // Fall back to the base table so an old database still shows the list.
+      try { vtTodo = await fetchAll('todo_items', q => q.order('due', { nullsFirst: false }).order('todo_id')); }
+      catch (e2) { console.warn('todo_items not loaded:', e2.message); vtTodo = []; }
+    }
     try {
       vtChanges = await fetchAll('crew_changes', q => q.order('change_date', { nullsFirst: false }).order('change_id'));
     } catch (e) { console.warn('crew_changes not loaded:', e.message); vtChanges = []; }
@@ -6398,7 +6450,7 @@ function dbCalClass(i){
     return 'rel';
   }
   if (i.kind === 'intended') return 'exp-dep';
-  if (i.kind === 'todo') return 'todo';
+  if (i.kind === 'todo') return i.svCls || 'todo';
   return i.kind === 'transfer' ? 'transfer' : 'service';
 }
 // All items between two dates, grouped by day. One pass, shared with the agenda.
@@ -6412,7 +6464,7 @@ function dbCalRange(fromStr, toStr){
 }
 function dbCalPip(i){
   const cls = dbCalClass(i);
-  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : i.kind === 'todo' ? 'To do' : '';
+  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : i.kind === 'todo' ? (i.svLabel || 'To do') : '';
   const label = (i.time ? i.time + ' ' : '') + (i.vessel || i.badge || '');
   const pre = word ? `<span class="pip-word">${word} · </span>` : '';
   return `<div class="db-cal-pip ${cls}" title="${dbCalEsc(i.badge + ' · ' + (i.vessel || '') + (i.detail ? ' · ' + i.detail : ''))}">${pre}${dbCalEsc(label)}</div>`;
@@ -6869,9 +6921,11 @@ function agendaItems(fromStr, toStr) {
     }
   });
   // To Do items (sheet To Do tab) on their due date
-  todoOpen().filter(t => t.due && t.due >= fromStr && t.due <= toStr).forEach(t => {
+  todoActive().filter(t => t.due && t.due >= fromStr && t.due <= toStr).forEach(t => {
+    const km = todoKindMeta(t);
     items.push({
-      date: t.due, time: '', kind: 'todo', badge: t.priority === 'High' ? 'To do · High' : 'To do', vessel: t.vessel_name || 'General',
+      date: t.due, time: '', kind: 'todo', svKind: todoKind(t), svCls: km.cls, svLabel: km.label,
+      badge: km.label + (t.priority === 'High' ? ' · High' : ''), vessel: t.vessel_name || 'General',
       detail: [t.todo_id, String(t.task || '').slice(0, 110) + (String(t.task || '').length > 110 ? '…' : ''), t.owner].filter(Boolean).join(' · '),
       status: '', warn: t.priority === 'High' || todoIsCrewChange(t), click: `showTodoDetail('${esc(t.id)}')`
     });
@@ -7061,7 +7115,38 @@ function newEntryForExpected(id) {
 // ---------- To Do (the sheet's "To Do" tab, synced into todo_items) ----------
 // Open = Open or Waiting on client. Done and Cancelled rows are kept for the vessel record only.
 function todoOpen() { return vtTodo.filter(t => t.status !== 'Done' && t.status !== 'Cancelled'); }
-function todoIsCrewChange(t) { return /\bsign[- ]?(off|on)\b|immigration appointment|crew change/i.test(t.task || ''); }
+function todoIsCrewChange(t) { return /\bsign[- ]?(off|on)\b|immigration appointment|crew change|joining crew|crew and guest list/i.test(t.task || ''); }
+// Likely done: the daily scan found evidence the job is finished but not proof. Waits for a person to confirm.
+function todoIsLikely(t) { return t.status === 'Likely done'; }
+// Dormant: no mailbox activity for 21 days. Still open, just not live work. Computed in todo_items_v.
+function todoIsDormant(t) { return t.dormant === true && !todoIsLikely(t); }
+// Active: what the dashboard works from. Excludes Likely done (own panel) and Dormant (own group).
+function todoActive() { return todoOpen().filter(t => !todoIsLikely(t) && !todoIsDormant(t)); }
+function todoLikely() { return vtTodo.filter(todoIsLikely); }
+function todoDormant() { return todoOpen().filter(todoIsDormant); }
+// Service kind drives the calendar colour, so a vessel's day shows what is happening, not just "To do".
+const TODO_KINDS = {
+  clearance:    { label: 'Clearance',    cls: 'sv-clear' },
+  provisioning: { label: 'Provisioning', cls: 'sv-prov' },
+  shipping:     { label: 'Shipping',     cls: 'sv-ship' },
+  marina:       { label: 'Marina',       cls: 'sv-marina' },
+  crew:         { label: 'Crew',         cls: 'sv-crew' },
+  transfer:     { label: 'Transfer',     cls: 'sv-transfer' },
+  admin:        { label: 'Admin',        cls: 'sv-admin' },
+  other:        { label: 'To do',        cls: 'todo' }
+};
+function todoKind(t) {
+  const x = ((t.task || '') + ' ' + (t.vessel_name || '')).toLowerCase();
+  if (todoIsCrewChange(t)) return 'crew';
+  if (/\bprovision|galley order|fresh fish|phytosanitary|plant protection|ships stores|ship's stores/.test(x)) return 'provisioning';
+  if (/\btaxi|\btransfers?\b|pickup|pick up|\bdriver|vehicle|car rental/.test(x)) return 'transfer';
+  if (/\bshipment|shipping|freight|container|bill of lading|parcel|fedex|\bdhl\b|air waybill|\bawb\b|pallet|crate|discharge|offload|transporter|customs entry|customs agent|import\b/.test(x)) return 'shipping';
+  if (/\bclear(ance|ing| in| out)?\b|eseaclear|sailclear|immigration|cruising permit|inward|outward|pratique/.test(x)) return 'clearance';
+  if (/\bberth|marina|dockage|dock\b|haul out|dry storage|mooring|anchorage|shore power|bunker/.test(x)) return 'marina';
+  if (/\binvoice|renewal|audit|questionnaire|newsletter|office\b|accounts\b/.test(x)) return 'admin';
+  return 'other';
+}
+function todoKindMeta(t) { return TODO_KINDS[todoKind(t)] || TODO_KINDS.other; }
 function todoState(t, todayStr) {
   if (!t.due) return { code: 'nodate', days: null };
   const days = daysBetween(todayStr, t.due);
@@ -7079,6 +7164,15 @@ const TODO_RANGES = [
   { id: 'all', label: 'All open' }
 ];
 function setTodoRange(id) { todoRange = id; uiSet('todo', id); renderTodoPanel(antiguaToday()); }
+let todoGroupBy = uiGet('todogroup', 'date');   // date | vessel
+function setTodoGroup(v) { todoGroupBy = v; uiSet('todogroup', v); renderTodoPanel(antiguaToday()); }
+let todoDormantOpen = false;
+function toggleTodoDormant() { todoDormantOpen = !todoDormantOpen; renderTodoPanel(antiguaToday()); }
+const todoClosedVessels = new Set();
+function toggleTodoVessel(key) {
+  if (todoClosedVessels.has(key)) todoClosedVessels.delete(key); else todoClosedVessels.add(key);
+  renderTodoPanel(antiguaToday());
+}
 function todoInRange(t, todayStr, id) {
   const st = todoState(t, todayStr);
   if (id === 'due') return st.code === 'late';
@@ -7105,34 +7199,91 @@ function todoRowHtml(t, todayStr) {
     ${canWriteUser() ? `<button type="button" class="td-act" title="Mark Done in the sheet" onclick="todoMarkDone('${esc(t.id)}', event)">Done</button>` : ''}
   </div>`;
 }
+function todoLikelyRowHtml(t) {
+  const km = todoKindMeta(t);
+  return `<div class="td-likely-row">
+    <div class="td-likely-main" onclick="showTodoDetail('${esc(t.id)}')" style="cursor:pointer;">
+      <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> <span class="db-cal-pip ${km.cls}" style="display:inline-block;margin:0;">${esc(km.label)}</span> <span class="td-id">${esc(t.todo_id)}</span></div>
+      <div class="td-task">${esc(String(t.task || '').slice(0, 150))}${String(t.task || '').length > 150 ? '…' : ''}</div>
+      ${t.close_evidence ? `<div class="td-ev"><b>Looks finished:</b> ${esc(t.close_evidence)}</div>` : ''}
+    </div>
+    ${canWriteUser() ? `<div class="td-likely-acts">
+      <button type="button" class="td-confirm" title="Confirm this is finished and close it in the sheet" onclick="todoConfirm('${esc(t.id)}', event)">Confirm</button>
+      <button type="button" class="td-reject" title="Not finished, put it back on the open list" onclick="todoNotDone('${esc(t.id)}', event)">Not done</button>
+    </div>` : ''}
+  </div>`;
+}
 function renderTodoPanel(todayStr) {
   const tabsEl = document.getElementById('td-tabs'), bodyEl = document.getElementById('td-body');
   const countEl = document.getElementById('td-count'), subEl = document.getElementById('td-sub');
   if (!tabsEl || !bodyEl) return;
   if (!TODO_RANGES.some(r => r.id === todoRange)) todoRange = 'week';
-  const open = todoOpen();
-  const late = open.filter(t => todoState(t, todayStr).code === 'late').length;
-  if (countEl) { countEl.textContent = open.length; countEl.style.background = late ? '#dc2626' : 'var(--navy)'; }
+  const active = todoActive(), likely = todoLikely(), dormant = todoDormant();
+  const late = active.filter(t => todoState(t, todayStr).code === 'late').length;
+  if (countEl) { countEl.textContent = active.length; countEl.style.background = late ? '#dc2626' : 'var(--navy)'; }
   if (subEl) subEl.textContent = vtTodo.length
-    ? `${open.length} open${late ? ', ' + late + ' past the due date' : ''}. From the To Do tab of the Google Sheet.`
+    ? `${active.length} live${late ? ', ' + late + ' past the due date' : ''}${likely.length ? ', ' + likely.length + ' to confirm' : ''}${dormant.length ? ', ' + dormant.length + ' dormant' : ''}. From the To Do tab of the Google Sheet.`
     : 'Open requests, quotes and replies owed, from the To Do tab of the Google Sheet';
   tabsEl.innerHTML = TODO_RANGES.map(r => {
-    const n = open.filter(t => todoInRange(t, todayStr, r.id)).length;
+    const n = active.filter(t => todoInRange(t, todayStr, r.id)).length;
     return `<button type="button" class="${r.id === todoRange ? 'active' : ''}" onclick="setTodoRange('${r.id}')">${r.label}<span class="ag-count">${n}</span></button>`;
-  }).join('');
+  }).join('')
+    + `<button type="button" class="${todoGroupBy === 'vessel' ? 'active' : ''}" style="margin-left:auto;" title="Group by vessel instead of by date" onclick="setTodoGroup('${todoGroupBy === 'vessel' ? 'date' : 'vessel'}')">By vessel</button>`;
+
   if (!vtTodo.length) { bodyEl.innerHTML = '<div class="db-empty">No To Do rows synced yet. The To Do tab of the Google Sheet shows here after the next sync.</div>'; return; }
-  const list = open.filter(t => todoInRange(t, todayStr, todoRange));
-  if (!list.length) { bodyEl.innerHTML = `<div class="db-empty">Nothing ${todoRange === 'due' ? 'past its due date' : todoRange === 'today' ? 'due today or tomorrow' : todoRange === 'week' ? 'due this week' : 'open'}.</div>`; return; }
+
   const byDue = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || ({ High: 0, Normal: 1, Low: 2 }[a.priority] ?? 1) - ({ High: 0, Normal: 1, Low: 2 }[b.priority] ?? 1) || String(a.vessel_name).localeCompare(String(b.vessel_name)) || a.todo_id.localeCompare(b.todo_id);
-  const groups = [
-    ['Past the due date', list.filter(t => todoState(t, todayStr).code === 'late').sort(byDue), 'td-group-late'],
-    ['Today', list.filter(t => todoState(t, todayStr).code === 'today').sort(byDue), 'td-group-today'],
-    ['Tomorrow', list.filter(t => todoState(t, todayStr).code === 'tomorrow').sort(byDue), ''],
-    ['This week', list.filter(t => todoState(t, todayStr).code === 'week').sort(byDue), ''],
-    ['Later', list.filter(t => todoState(t, todayStr).code === 'later').sort(byDue), ''],
-    ['No due date', list.filter(t => !t.due).sort(byDue), '']
-  ].filter(g => g[1].length);
-  bodyEl.innerHTML = groups.map(g => `<div class="td-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(t => todoRowHtml(t, todayStr)).join('')).join('');
+
+  // Confirm queue first: the scan's inferred closures. Anyone can clear these.
+  let html = '';
+  if (likely.length) {
+    html += `<div class="td-likely"><div class="td-likely-head"><b>Looks finished, needs a tick (${likely.length})</b><small>The daily scan found evidence these are done. Confirm to close, or put one back.</small></div>`
+      + likely.sort(byDue).map(todoLikelyRowHtml).join('') + '</div>';
+  }
+
+  const list = active.filter(t => todoInRange(t, todayStr, todoRange));
+  if (!list.length) {
+    html += `<div class="db-empty">Nothing ${todoRange === 'due' ? 'past its due date' : todoRange === 'today' ? 'due today or tomorrow' : todoRange === 'week' ? 'due this week' : 'live'}.</div>`;
+  } else if (todoGroupBy === 'vessel') {
+    // One line per vessel with its open count and the kinds of work outstanding, expandable.
+    const byVessel = {};
+    list.forEach(t => { const k = t.vessel_name || 'General'; (byVessel[k] = byVessel[k] || []).push(t); });
+    const names = Object.keys(byVessel).sort((a, b) => byVessel[b].length - byVessel[a].length || a.localeCompare(b));
+    html += names.map(name => {
+      const rows = byVessel[name].sort(byDue);
+      const key = vtKey(name) || name;
+      const shut = todoClosedVessels.has(key);
+      const lateN = rows.filter(t => todoState(t, todayStr).code === 'late').length;
+      const kinds = [...new Set(rows.map(todoKind))];
+      const kindChips = kinds.map(k => { const m = TODO_KINDS[k] || TODO_KINDS.other; return `<span class="db-cal-pip ${m.cls}" style="margin:0;">${esc(m.label)}</span>`; }).join('');
+      return `<div class="td-vessel" onclick="toggleTodoVessel('${esc(key)}')">
+          <b>${shut ? '▸' : '▾'} ${esc(name)}</b>
+          <div class="td-kinds">${kindChips}</div>
+          <span class="td-vcount">${rows.length} open${lateN ? ' · ' + lateN + ' late' : ''}</span>
+        </div>
+        <div class="${shut ? 'td-collapsed' : ''}">${rows.map(t => todoRowHtml(t, todayStr)).join('')}</div>`;
+    }).join('');
+  } else {
+    const groups = [
+      ['Past the due date', list.filter(t => todoState(t, todayStr).code === 'late').sort(byDue), 'td-group-late'],
+      ['Today', list.filter(t => todoState(t, todayStr).code === 'today').sort(byDue), 'td-group-today'],
+      ['Tomorrow', list.filter(t => todoState(t, todayStr).code === 'tomorrow').sort(byDue), ''],
+      ['This week', list.filter(t => todoState(t, todayStr).code === 'week').sort(byDue), ''],
+      ['Later', list.filter(t => todoState(t, todayStr).code === 'later').sort(byDue), ''],
+      ['No due date', list.filter(t => !t.due).sort(byDue), '']
+    ].filter(g => g[1].length);
+    html += groups.map(g => `<div class="td-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(t => todoRowHtml(t, todayStr)).join('')).join('');
+  }
+
+  // Dormant last, folded away. Still open, just nothing has moved on them for three weeks.
+  if (dormant.length) {
+    html += `<div class="td-dormant-head" onclick="toggleTodoDormant()">
+        <span>${todoDormantOpen ? '▾' : '▸'} Dormant: no mail for 21 days (${dormant.length})</span>
+        <span>${todoDormantOpen ? 'hide' : 'show'}</span>
+      </div>`
+      + (todoDormantOpen ? `<div class="td-dormant">${dormant.sort(byDue).map(t => todoRowHtml(t, todayStr)).join('')}</div>` : '');
+  }
+  bodyEl.innerHTML = html;
 }
 function showTodoDetail(id) {
   const t = vtTodo.find(x => x.id === id);
@@ -7143,12 +7294,16 @@ function showTodoDetail(id) {
   const key = t.vessel_key || vtKey(t.vessel_name);
   const known = key && vtMovements.some(m => (m.vessel_key || vtKey(m.vessel_name)) === key);
   const stChip = t.status === 'Done' ? 'td-st-done' : t.status === 'Waiting on client' ? 'td-st-wait' : '';
+  const likely = todoIsLikely(t);
   document.getElementById('vesselDetailTitle').innerHTML = esc(t.todo_id) + ' · ' + esc(t.vessel_name || 'General') + ` <span class="td-st ${stChip}">${esc(t.status || 'Open')}</span>`;
   document.getElementById('vesselDetailBody').innerHTML = `
     ${st.code === 'late' && t.status !== 'Done' ? `<div class="vt-callout vt-callout-red"><b>Past the due date</b> by ${Math.abs(st.days)} day${Math.abs(st.days) === 1 ? '' : 's'} (${esc(fmtDate(t.due))}).</div>` : ''}
     ${todoIsCrewChange(t) && t.status !== 'Done' ? `<div class="vt-callout vt-callout-blue"><b>Crew change.</b> Anyone leaving must be signed off with Immigration within 24 hours of departure, and a change of captain filed if the master differs.</div>` : ''}
+    ${likely ? `<div class="vt-callout vt-callout-blue"><b>Looks finished.</b> The daily scan found evidence this job is done but not proof, so it is waiting for a tick.${t.close_evidence ? ' Evidence: ' + esc(t.close_evidence) : ''}</div>` : ''}
+    ${t.confirmed_by ? `<div class="vt-callout"><b>Confirmed</b> by ${esc(t.confirmed_by)}.</div>` : ''}
     <div class="vt-actions">
-      ${t.status !== 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoMarkDone('${esc(t.id)}')">Mark Done</button>` : ''}
+      ${likely && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoConfirm('${esc(t.id)}')">Confirm done</button><button type="button" class="vt-act" onclick="todoNotDone('${esc(t.id)}')">Not done</button>` : ''}
+      ${!likely && t.status !== 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoMarkDone('${esc(t.id)}')">Mark Done</button>` : ''}
       ${t.status === 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(t.id)}')">Reopen</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
     </div>
@@ -7157,8 +7312,11 @@ function showTodoDetail(id) {
       ${fact('Owner', t.owner)}${fact('Requested by', t.requested_by)}
       ${fact('Requested', t.requested_date ? fmtDate(t.requested_date) : '')}${fact('Due', t.due ? fmtDate(t.due) : 'No date')}
       ${fact('Priority', t.priority)}${fact('Status', t.status)}
+      ${fact('Kind', todoKindMeta(t).label)}${fact('Last mail', t.last_mail_at ? fmtDate(t.last_mail_at) : '')}
+      ${fact('Confirmed by', t.confirmed_by)}
       ${fact('Sheet row', t.sheet_row ? 'To Do row ' + t.sheet_row : '')}
     </div>
+    ${t.close_evidence ? `<h3 class="vt-h3">Why it looks finished</h3><p class="vt-para td-para">${esc(t.close_evidence)}</p>` : ''}
     ${t.last_action ? `<h3 class="vt-h3">Last action</h3><p class="vt-para td-para">${esc(t.last_action)}</p>` : ''}
     ${t.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para td-para">${esc(t.notes)}</p>` : ''}
     <p class="vt-note" style="margin-top:12px;">Mark Done here writes Status and a Last action line to the To Do tab of the Google Sheet. Anything else (task wording, dates, owner) is edited in the sheet and shows here after the next sync.</p>`;
@@ -7203,6 +7361,19 @@ async function todoMarkDone(id, ev) {
   if (!confirm('Mark ' + t.todo_id + ' as Done in the sheet?')) return;
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done' }, t.todo_id + ' marked Done');
+}
+// Anyone signed in may confirm a Likely done row. Roscoe, 18 Nov 2026.
+async function todoConfirm(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done', note: 'confirmed in the app' }, t.todo_id + ' confirmed done');
+}
+async function todoNotDone(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Open', note: 'not finished, put back on the list in the app' }, t.todo_id + ' put back on the list');
 }
 async function todoReopen(id, ev) {
   if (ev) ev.stopPropagation();
@@ -7532,7 +7703,7 @@ function dbRenderUrgent(todayStr) {
   });
 
   // High priority To Do items past their due date, and crew changes due today or overdue
-  todoOpen().filter(t => t.due && t.due <= todayStr && (t.priority === 'High' || todoIsCrewChange(t)))
+  todoActive().filter(t => t.due && t.due <= todayStr && (t.priority === 'High' || todoIsCrewChange(t)))
     .sort((a, b) => a.due.localeCompare(b.due) || a.todo_id.localeCompare(b.todo_id))
     .forEach(t => {
       const d = daysBetween(t.due, todayStr);
