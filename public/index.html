@@ -1208,6 +1208,19 @@
   .up-cert-approx { background: #fff1e3; color: #9a5a12; }
   .up-cert-tbc { background: var(--gray-100); color: var(--gray-700); }
   @media (max-width: 700px) { .up-detail { white-space: normal; } .up-date { min-width: 62px; } }
+  .up-v { border-bottom: 1px solid var(--gray-100); }
+  .up-v .up-row { border-bottom: 0; }
+  .up-visits { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--gray-100); color: var(--gray-700); white-space: nowrap; }
+  .up-stays { font-size: 11px; color: var(--gray-600); margin-top: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .up-caret { font-size: 16px; color: var(--gray-500); transition: transform 0.15s ease; }
+  .up-v.open .up-caret { transform: rotate(90deg); }
+  .up-kids { display: none; padding: 2px 16px 8px 102px; background: var(--gray-50); }
+  .up-v.open .up-kids { display: block; }
+  .up-kid { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 12px; color: var(--gray-700); cursor: pointer; border-top: 1px solid var(--gray-100); }
+  .up-kid:hover { color: var(--navy); }
+  .up-kid-date { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 66px; }
+  .up-kid-port { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 700px) { .up-kids { padding-left: 16px; } .up-stays { white-space: normal; } }
 
   /* To Do (the sheet's To Do tab) */
   .td-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); border-left: 3px solid #bcd6f0; cursor: pointer; }
@@ -7036,36 +7049,107 @@ function listsChip(r, todayStr) {
 }
 
 // ---------- Dashboard: Upcoming (expected arrivals and departures) ----------
+// One line per vessel, not one line per movement. A vessel that comes and goes several
+// times shows her next date on the line and the rest of her ins and outs beside it;
+// clicking the line opens the individual movements, each with its own detail panel.
+const upOpenVessels = new Set();
+function toggleUpVessel(key) {
+  if (upOpenVessels.has(key)) upOpenVessels.delete(key); else upOpenVessels.add(key);
+  const el = document.getElementById('upv-' + key);
+  if (el) el.classList.toggle('open', upOpenVessels.has(key));
+}
+// Pair each arrival with the departure that follows it, so one visit reads as one window.
+function upcomingStays(rows) {
+  const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '');
+  const stays = [];
+  let open = null;
+  rows.filter(r => r.expected_date).sort(byDate).forEach(r => {
+    if (r.movement_type === 'Departure') {
+      if (open) { open.out = r; stays.push(open); open = null; } else stays.push({ out: r });
+    } else {
+      if (open) stays.push(open);
+      open = { in: r };
+    }
+  });
+  if (open) stays.push(open);
+  rows.filter(r => !r.expected_date).forEach(r => stays.push(r.movement_type === 'Departure' ? { out: r } : { in: r }));
+  return stays;
+}
+function stayLabel(s) {
+  const a = s.in && s.in.expected_date, d = s.out && s.out.expected_date;
+  if (a && d) return a === d ? fmtShort(a) : fmtShort(a) + ' to ' + fmtShort(d);
+  if (a) return fmtShort(a);
+  if (d) return 'out ' + fmtShort(d);
+  return s.in ? 'Arrival, no date' : 'Departure, no date';
+}
 function upcomingHtml(todayStr) {
   const list = expectedOpen();
   if (!list.length) return '<div class="db-empty">Nothing expected. Add a row to the Expected tab of the Google Sheet and it shows here after the next sync.</div>';
   const soonEnd = addDays(todayStr, 14);
-  const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '') || String(a.vessel_name).localeCompare(String(b.vessel_name));
+  const vessels = new Map();
+  list.forEach(r => {
+    const k = r.key || vtKey(r.vessel_name);
+    if (!vessels.has(k)) vessels.set(k, { key: k, name: r.vessel_name, rows: [] });
+    vessels.get(k).rows.push(r);
+  });
+  const cards = [...vessels.values()].map(v => {
+    const dated = v.rows.filter(r => r.expected_date).map(r => r.expected_date).sort();
+    v.next = dated.length ? dated[0] : '';
+    v.stays = upcomingStays(v.rows);
+    const first = v.rows.find(r => r.port) || v.rows[0];
+    v.type = [first.vessel_type, first.loa].filter(Boolean).join(' ');
+    v.port = first.port || '';
+    v.contact = first.contact || '';
+    v.cert = expCertainty(v.rows.slice().sort((a, b) => (a.expected_date || '').localeCompare(b.expected_date || ''))[0]);
+    const order = { urgent: 0, todo: 1, later: 2, done: 3, na: 4 };
+    const states = v.rows.filter(r => r.movement_type === 'Arrival').map(r => listsState(r, todayStr)).filter(Boolean)
+      .sort((a, b) => (order[a.code] ?? 9) - (order[b.code] ?? 9));
+    v.lists = states[0] ? `<span class="ls-chip ls-${states[0].code}" title="Crew and guest lists added to the clearance systems">${states[0].label}</span>` : '';
+    return v;
+  });
+  const byNext = (a, b) => (a.next || '').localeCompare(b.next || '') || String(a.name).localeCompare(String(b.name));
   const groups = [
-    ['Past the expected date, no arrival logged', list.filter(r => r.expected_date && r.expected_date < todayStr).sort(byDate), 'up-group-late'],
-    ['Next 14 days', list.filter(r => r.expected_date && r.expected_date >= todayStr && r.expected_date <= soonEnd).sort(byDate), ''],
-    ['Later', list.filter(r => r.expected_date && r.expected_date > soonEnd).sort(byDate), ''],
-    ['Date to be confirmed', list.filter(r => !r.expected_date).sort(byDate), '']
+    ['Past the expected date, no arrival logged', cards.filter(v => v.next && v.next < todayStr).sort(byNext), 'up-group-late'],
+    ['Next 14 days', cards.filter(v => v.next && v.next >= todayStr && v.next <= soonEnd).sort(byNext), ''],
+    ['Later', cards.filter(v => v.next && v.next > soonEnd).sort(byNext), ''],
+    ['Date to be confirmed', cards.filter(v => !v.next).sort(byNext), '']
   ];
-  const row = r => {
-    const cert = expCertainty(r), dep = r.movement_type === 'Departure';
-    const days = r.expected_date ? daysBetween(todayStr, r.expected_date) : null;
-    const when = r.expected_date
-      ? `${cert === 'Approx' ? '~ ' : ''}${esc(fmtShort(r.expected_date))}<small>${days === 0 ? 'today' : days > 0 ? 'in ' + days + ' d' : Math.abs(days) + ' d ago'}${r.expected_date.slice(0, 4) !== todayStr.slice(0, 4) ? ' · ' + r.expected_date.slice(0, 4) : ''}</small>`
+  const kid = r => {
+    const dep = r.movement_type === 'Departure';
+    return `<div class="up-kid${dep ? ' up-dep' : ''}" title="Open the details" onclick="event.stopPropagation();showExpectedDetail('${esc(r.id)}')">
+      <span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span>
+      <span class="up-kid-date">${r.expected_date ? esc(fmtShort(r.expected_date)) + (r.expected_date.slice(0, 4) !== todayStr.slice(0, 4) ? ' ' + r.expected_date.slice(0, 4) : '') : 'No date'}</span>
+      <span class="up-kid-port">${esc(r.port || '')}</span>
+      <span class="up-cert up-cert-${expCertainty(r).toLowerCase()}">${expCertainty(r)}</span>
+    </div>`;
+  };
+  const card = v => {
+    const days = v.next ? daysBetween(todayStr, v.next) : null;
+    const when = v.next
+      ? `${v.cert === 'Approx' ? '~ ' : ''}${esc(fmtShort(v.next))}<small>${days === 0 ? 'today' : days > 0 ? 'in ' + days + ' d' : Math.abs(days) + ' d ago'}${v.next.slice(0, 4) !== todayStr.slice(0, 4) ? ' · ' + v.next.slice(0, 4) : ''}</small>`
       : 'No date';
-    return `<div class="up-row${dep ? ' up-dep' : ''}" title="Open the details" onclick="showExpectedDetail('${esc(r.id)}')">
-      <div class="up-date">${when}</div>
-      <div class="up-main">
-        <div class="ag-title"><span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span> <span class="ag-vessel">${esc(r.vessel_name)}</span> ${listsChip(r, todayStr)}</div>
-        <div class="up-detail">${esc([[r.vessel_type, r.loa].filter(Boolean).join(' '), r.port, r.contact].filter(Boolean).join(' · '))}</div>
+    const labels = v.stays.map(stayLabel);
+    const shownLabels = labels.slice(0, 4).map(esc).join(' · ') + (labels.length > 4 ? ' · +' + (labels.length - 4) + ' more' : '');
+    const detail = esc([v.type, v.port, v.contact].filter(Boolean).join(' · '));
+    return `<div class="up-v${upOpenVessels.has(v.key) ? ' open' : ''}" id="upv-${esc(v.key)}">
+      <div class="up-row" title="Open her movements" onclick="toggleUpVessel('${esc(v.key)}')">
+        <div class="up-date">${when}</div>
+        <div class="up-main">
+          <div class="ag-title"><span class="ag-vessel">${esc(v.name)}</span> ${v.lists} ${v.stays.length > 1 ? `<span class="up-visits">${v.stays.length} visits</span>` : ''}</div>
+          <div class="up-detail">${detail}</div>
+          <div class="up-stays">${shownLabels}</div>
+        </div>
+        <span class="up-cert up-cert-${v.cert.toLowerCase()}">${v.cert}</span>
+        <span class="up-caret">${'›'}</span>
       </div>
-      <span class="up-cert up-cert-${cert.toLowerCase()}">${cert}</span>
+      <div class="up-kids">${v.rows.slice().sort((a, b) => (a.expected_date || '~').localeCompare(b.expected_date || '~')).map(kid).join('')}</div>
     </div>`;
   };
   const shown = groups.filter(g => g[1].length);
   return (groups[1][1].length ? '' : '<div class="ag-none">Nothing expected in the next 14 days.</div>') +
-    shown.map(g => `<div class="up-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(row).join('')).join('');
+    shown.map(g => `<div class="up-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(card).join('')).join('');
 }
+
 function showExpectedDetail(id) {
   const r = vtExpected.find(x => x.id === id);
   if (!r) return showToast('Expected movement not found');
