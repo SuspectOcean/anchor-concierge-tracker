@@ -7060,7 +7060,9 @@ function toggleUpVessel(key) {
 }
 // Pair each arrival with the departure that follows it, so one visit reads as one window.
 function upcomingStays(rows) {
-  const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '');
+  // Same day in and out: the arrival is read first, so a touch and go pairs into one window.
+  const rank = r => r.movement_type === 'Departure' ? 1 : 0;
+  const byDate = (a, b) => (a.expected_date || '').localeCompare(b.expected_date || '') || rank(a) - rank(b);
   const stays = [];
   let open = null;
   rows.filter(r => r.expected_date).sort(byDate).forEach(r => {
@@ -7142,7 +7144,7 @@ function upcomingHtml(todayStr) {
         <span class="up-cert up-cert-${v.cert.toLowerCase()}">${v.cert}</span>
         <span class="up-caret">${'›'}</span>
       </div>
-      <div class="up-kids">${v.rows.slice().sort((a, b) => (a.expected_date || '~').localeCompare(b.expected_date || '~')).map(kid).join('')}</div>
+      <div class="up-kids">${v.rows.slice().sort((a, b) => (a.expected_date || '~').localeCompare(b.expected_date || '~') || (a.movement_type === 'Departure' ? 1 : 0) - (b.movement_type === 'Departure' ? 1 : 0)).map(kid).join('')}</div>
     </div>`;
   };
   const shown = groups.filter(g => g[1].length);
