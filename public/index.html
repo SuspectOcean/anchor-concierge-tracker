@@ -5865,7 +5865,7 @@ function vtTimelineHtml(dayStr) {
       const d = cur ? visitDays(cur, realToday) : null;
       const one = r.visits.length === 1 ? r.visits[0] : null;
       const expSrc = one && ((one.arrival && one.arrival.expected && one.arrival) || (one.departure && one.departure.expected && one.departure));
-      const click = expSrc ? `showExpectedDetail('${esc(expSrc.id)}')` : `showVesselDetail('${esc(r.key)}')`;
+      const click = expSrc ? `showExpectedDetail('${esc(expectedRef(expSrc))}')` : `showVesselDetail('${esc(r.key)}')`;
       const windows = r.visits.map(windowLabel).filter(Boolean).join(', ');
       body += `<tr class="vt-tl-row" title="${esc(windows)}" onclick="${click}"><td class="vt-tl-name">${esc(r.vessel)}${r.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">\u2605</span>' : ''}${r.visits.length > 1 ? ` <span class="vt-tl-visits">${r.visits.length}</span>` : ''}</td><td class="vt-tl-num">${d == null || r.status === 'expected' ? '' : d}</td>${cells}</tr>`;
     });
@@ -5997,7 +5997,7 @@ function showVesselDetail(key) {
   const openTodos = todos.filter(t => t.status !== 'Done' && t.status !== 'Cancelled').length;
   const todoRows = todos.map(t => {
     const st = todoState(t, today), stChip = t.status === 'Done' ? 'td-st-done' : t.status === 'Waiting on client' ? 'td-st-wait' : '';
-    return `<tr class="vt-click${t.status === 'Done' ? ' ag-done' : ''}" onclick="showTodoDetail('${esc(t.id)}')">
+    return `<tr class="vt-click${t.status === 'Done' ? ' ag-done' : ''}" onclick="showTodoDetail('${esc(todoRef(t))}')">
       <td>${esc(t.todo_id)}</td><td>${t.due ? esc(fmtDate(t.due)) + (t.status !== 'Done' && st.code === 'late' ? ' <span class="td-st" style="background:#fee2e2;color:#b91c1c;">' + Math.abs(st.days) + ' d late</span>' : '') : ''}</td>
       <td class="td-title">${esc(String(t.task || '').slice(0, 140))}${String(t.task || '').length > 140 ? '…' : ''}</td><td>${esc(t.owner || '')}</td>
       <td>${esc(t.priority || '')}</td><td><span class="td-st ${stChip}">${esc(t.status || 'Open')}</span></td></tr>`;
@@ -6237,7 +6237,7 @@ function naActsHtml(act) {
     <button type="button" class="na-btn" title="Change the job" ${call(`todoEdit('${id}',event)`)}>Edit</button>
   </div>`;
   if (k === 'lists') return `<div class="na-acts">
-    ${tick(`naDone('lists','${id}',event)`, 'Lists are in the clearance systems')}
+    ${tick(`naDone('lists','${id}',event)`, 'Mark the crew and guest lists as added to the systems')}
     <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival" ${call(`naNotNeeded('${id}',event)`)}>Not needed</button>
     <button type="button" class="na-btn" title="Open the expected arrival" ${call(`naEdit('lists','${id}',event)`)}>Edit</button>
   </div>`;
@@ -6246,7 +6246,7 @@ function naActsHtml(act) {
 // Writing "Not needed" to the sheet is a real change, so it is asked for first.
 async function naNotNeeded(id, ev) {
   if (ev) ev.stopPropagation();
-  const r = vtExpected.find(x => x.id === id); if (!r) return;
+  const r = expectedByRef(id); if (!r) return rowGone('arrival');
   if (!(await uiConfirm('No crew and guest lists needed for ' + (r.vessel_name || 'this arrival') + '?', {
     detail: 'Writes "Not needed" to the Expected tab of the sheet and takes the row out of Needs action.',
     ok: 'Not needed', cancel: 'Keep it on the list'
@@ -6257,9 +6257,10 @@ async function naDone(kind, id, ev) {
   if (ev) ev.stopPropagation();
   if (kind === 'todo') return todoMarkDone(id, null);
   if (kind === 'lists') {
-    const r = vtExpected.find(x => x.id === id); if (!r) return;
-    if (!(await uiConfirm('Crew and guest lists done for ' + (r.vessel_name || 'this arrival') + '?', {
-      detail: 'Writes "Done" to the Expected tab of the sheet. The row leaves Needs action.', ok: 'Lists done', cancel: 'Not yet'
+    const r = expectedByRef(id); if (!r) return rowGone('arrival');
+    if (!(await uiConfirm('Crew and guest lists added for ' + (r.vessel_name || 'this arrival') + '?', {
+      detail: 'Marks the crew and guest lists as added to eSeaClear or SailClear for this arrival, and takes the row off Needs action.',
+      ok: 'Yes, they are added', cancel: 'Not yet'
     }))) return;
     return listsMark(id, 'Done', null);
   }
@@ -6273,7 +6274,7 @@ async function naDone(kind, id, ev) {
 function naEdit(kind, id, ev) {
   if (ev) ev.stopPropagation();
   if (kind === 'todo') return todoEdit(id, null);
-  if (kind === 'lists') return showExpectedDetail(id);
+  if (kind === 'lists') { const r = expectedByRef(id); return r ? showExpectedDetail(r.id) : rowGone('arrival'); }
   closeModal('vesselDetailModal');
   return openEditEntry(id);
 }
@@ -7172,7 +7173,7 @@ function agendaItems(fromStr, toStr) {
       date: t.due, time: '', kind: 'todo', svKind: todoKind(t), svCls: km.cls, svLabel: km.label,
       badge: km.label + (t.priority === 'High' ? ' · High' : ''), vessel: t.vessel_name || 'General',
       detail: [t.todo_id, String(t.task || '').slice(0, 110) + (String(t.task || '').length > 110 ? '…' : ''), t.owner].filter(Boolean).join(' · '),
-      status: '', warn: t.priority === 'High' || todoIsCrewChange(t), click: `showTodoDetail('${esc(t.id)}')`
+      status: '', warn: t.priority === 'High' || todoIsCrewChange(t), click: `showTodoDetail('${esc(todoRef(t))}')`
     });
   });
   items.sort((a, b) => a.date.localeCompare(b.date) || (a.time || '99:99').localeCompare(b.time || '99:99') || String(a.vessel).localeCompare(String(b.vessel)));
@@ -7263,7 +7264,7 @@ const LISTS_TODO_DAYS = 7, LISTS_URGENT_DAYS = 3;
 function listsState(r, todayStr) {
   if (!r || r.movement_type !== 'Arrival') return null;
   const s = String(r.lists_status || '').trim().toLowerCase();
-  if (s.startsWith('done')) return { code: 'done', label: 'Lists done' };
+  if (s.startsWith('done')) return { code: 'done', label: 'Lists added' };
   if (s.startsWith('not')) return { code: 'na', label: 'Lists not needed' };
   const days = r.expected_date ? daysBetween(todayStr, r.expected_date) : null;
   if (days != null && days <= LISTS_URGENT_DAYS) return { code: 'urgent', label: 'Lists urgent', days };
@@ -7350,7 +7351,7 @@ function upcomingHtml(todayStr) {
   ];
   const kid = r => {
     const dep = r.movement_type === 'Departure';
-    return `<div class="up-kid${dep ? ' up-dep' : ''}" title="Open the details" onclick="event.stopPropagation();showExpectedDetail('${esc(r.id)}')">
+    return `<div class="up-kid${dep ? ' up-dep' : ''}" title="Open the details" onclick="event.stopPropagation();showExpectedDetail('${esc(expectedRef(r))}')">
       <span class="db-movement-badge ${dep ? 'badge-departing' : 'badge-arriving'}">${dep ? 'Departure' : 'Arrival'}</span>
       <span class="up-kid-date">${r.expected_date ? esc(fmtShort(r.expected_date)) + (r.expected_date.slice(0, 4) !== todayStr.slice(0, 4) ? ' ' + r.expected_date.slice(0, 4) : '') : 'No date'}</span>
       <span class="up-kid-port">${esc(r.port || '')}</span>
@@ -7385,8 +7386,8 @@ function upcomingHtml(todayStr) {
 }
 
 function showExpectedDetail(id) {
-  const r = vtExpected.find(x => x.id === id);
-  if (!r) return showToast('Expected movement not found');
+  const r = expectedByRef(id);
+  if (!r) return rowGone('arrival');
   const today = antiguaToday();
   const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
   const cert = expCertainty(r);
@@ -7419,8 +7420,8 @@ function showExpectedDetail(id) {
 }
 // Starts a new entry for an expected vessel, dated for the expected day when there is one.
 function newEntryForExpected(id) {
-  const r = vtExpected.find(x => x.id === id);
-  if (!r) return;
+  const r = expectedByRef(id);
+  if (!r) return rowGone('arrival');
   if (editingEntryId) exitEditMode();
   showView('form');
   const sel = document.getElementById('vesselSelect');
@@ -7428,6 +7429,31 @@ function newEntryForExpected(id) {
   if (opt) sel.value = opt.value;
   else showToast(r.vessel_name + ' is not in the vessel list yet. Press + Add next to Vessel.');
   if (r.expected_date) document.getElementById('serviceDate').value = r.expected_date;
+}
+
+// ---------- Finding a row again after a sync ----------
+// sheet-sync deletes and reinserts todo_items and expected_movements, so every row's
+// uuid changes on each run. A button rendered before a sync and pressed after it would
+// look up a uuid that no longer exists. So buttons carry the sheet's own key instead:
+// the To Do id for a task, and vessel + movement + date for an expected arrival.
+function todoRef(t) { return t.todo_id || t.id; }
+function todoByRef(ref) {
+  const r = String(ref || '');
+  return vtTodo.find(x => x.id === r) || vtTodo.find(x => x.todo_id === r) || null;
+}
+function expectedRef(r) {
+  return [r.vessel_name || '', r.movement_type || '', r.expected_date || '']
+    .join('|').toLowerCase().replace(/[^a-z0-9|-]+/g, '');
+}
+function expectedByRef(ref) {
+  const r = String(ref || '');
+  return vtExpected.find(x => x.id === r) || vtExpected.find(x => expectedRef(x) === r) || null;
+}
+// Never fail silently: if the row really has gone, say so and redraw from what is there now.
+function rowGone(what) {
+  showToast('That ' + what + ' has changed since the page loaded. Refreshing the list.');
+  loadVesselTracking().then(renderDashboard).catch(() => {});
+  return null;
 }
 
 // ---------- To Do (the sheet's "To Do" tab, synced into todo_items) ----------
@@ -7510,7 +7536,7 @@ function todoRowHtml(t, todayStr) {
     : 'No date<small>open</small>';
   const pri = String(t.priority || 'Normal');
   const cls = st.code === 'late' ? ' td-late' : st.code === 'today' ? ' td-today' : '';
-  return `<div class="td-row${cls}${wait ? ' td-wait' : ''}" title="Open the details" onclick="showTodoDetail('${esc(t.id)}')">
+  return `<div class="td-row${cls}${wait ? ' td-wait' : ''}" title="Open the details" onclick="showTodoDetail('${esc(todoRef(t))}')">
     <div class="td-date">${when}</div>
     <div class="td-main">
       <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> ${wait ? '<span class="td-st td-st-wait">Waiting on client</span>' : ''}${todoIsCrewChange(t) ? ' <span class="td-st td-st-crew">Crew change</span>' : ''} <span class="td-id">${esc(t.todo_id)}</span></div>
@@ -7518,20 +7544,20 @@ function todoRowHtml(t, todayStr) {
       <div class="td-meta">${esc([t.owner ? 'Owner ' + t.owner : '', t.requested_by ? 'For ' + t.requested_by : ''].filter(Boolean).join(' · '))}</div>
     </div>
     ${pri !== 'Normal' ? `<span class="td-pri td-pri-${pri.toLowerCase()}">${esc(pri)}</span>` : ''}
-    ${naActsHtml({ kind: 'todo', id: t.id })}
+    ${naActsHtml({ kind: 'todo', id: todoRef(t) })}
   </div>`;
 }
 function todoLikelyRowHtml(t) {
   const km = todoKindMeta(t);
   return `<div class="td-likely-row">
-    <div class="td-likely-main" onclick="showTodoDetail('${esc(t.id)}')" style="cursor:pointer;">
+    <div class="td-likely-main" onclick="showTodoDetail('${esc(todoRef(t))}')" style="cursor:pointer;">
       <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> <span class="db-cal-pip ${km.cls}" style="display:inline-block;margin:0;">${esc(km.label)}</span> <span class="td-id">${esc(t.todo_id)}</span></div>
       <div class="td-task">${esc(String(t.task || '').slice(0, 150))}${String(t.task || '').length > 150 ? '…' : ''}</div>
       ${t.close_evidence ? `<div class="td-ev"><b>Looks finished:</b> ${esc(t.close_evidence)}</div>` : ''}
     </div>
     ${canWriteUser() ? `<div class="td-likely-acts">
-      <button type="button" class="td-confirm" title="Confirm this is finished and close it in the sheet" onclick="todoConfirm('${esc(t.id)}', event)">Confirm</button>
-      <button type="button" class="td-reject" title="Not finished, put it back on the open list" onclick="todoNotDone('${esc(t.id)}', event)">Not done</button>
+      <button type="button" class="td-confirm" title="Confirm this is finished and close it in the sheet" onclick="todoConfirm('${esc(todoRef(t))}', event)">Confirm</button>
+      <button type="button" class="td-reject" title="Not finished, put it back on the open list" onclick="todoNotDone('${esc(todoRef(t))}', event)">Not done</button>
     </div>` : ''}
   </div>`;
 }
@@ -7608,8 +7634,8 @@ function renderTodoPanel(todayStr) {
   bodyEl.innerHTML = html;
 }
 function showTodoDetail(id) {
-  const t = vtTodo.find(x => x.id === id);
-  if (!t) return showToast('To Do item not found');
+  const t = todoByRef(id);
+  if (!t) return rowGone('job');
   const today = antiguaToday();
   const st = todoState(t, today);
   const fact = (label, value) => value == null || value === '' ? '' : `<div class="vt-fact"><span>${label}</span><b>${esc(value)}</b></div>`;
@@ -7624,12 +7650,12 @@ function showTodoDetail(id) {
     ${likely ? `<div class="vt-callout vt-callout-blue"><b>Looks finished.</b> The daily scan found evidence this job is done but not proof, so it is waiting for a tick.${t.close_evidence ? ' Evidence: ' + esc(t.close_evidence) : ''}</div>` : ''}
     ${t.confirmed_by ? `<div class="vt-callout"><b>Confirmed</b> by ${esc(t.confirmed_by)}.</div>` : ''}
     <div class="vt-actions">
-      ${likely && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoConfirm('${esc(t.id)}')">Confirm done</button><button type="button" class="vt-act" onclick="todoNotDone('${esc(t.id)}')">Not done</button>` : ''}
-      ${!likely && t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act vt-act-green" onclick="todoMarkDone('${esc(t.id)}')">${ic('check')} Mark Done</button>` : ''}
-      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoSnooze('${esc(t.id)}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
-      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoCancel('${esc(t.id)}')">Cancel job</button>` : ''}
-      ${canWriteUser() ? `<button type="button" class="vt-act" onclick="todoEdit('${esc(t.id)}')">Edit</button>` : ''}
-      ${(t.status === 'Done' || t.status === 'Cancelled') && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(t.id)}')">Reopen</button>` : ''}
+      ${likely && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoConfirm('${esc(todoRef(t))}')">Confirm done</button><button type="button" class="vt-act" onclick="todoNotDone('${esc(todoRef(t))}')">Not done</button>` : ''}
+      ${!likely && t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act vt-act-green" onclick="todoMarkDone('${esc(todoRef(t))}')">${ic('check')} Mark Done</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoSnooze('${esc(todoRef(t))}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoCancel('${esc(todoRef(t))}')">Cancel job</button>` : ''}
+      ${canWriteUser() ? `<button type="button" class="vt-act" onclick="todoEdit('${esc(todoRef(t))}')">Edit</button>` : ''}
+      ${(t.status === 'Done' || t.status === 'Cancelled') && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(todoRef(t))}')">Reopen</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
     </div>
     <h3 class="vt-h3">Task</h3><p class="vt-para td-para">${esc(t.task || '')}</p>
@@ -7682,7 +7708,7 @@ async function sheetWrite(payload, label) {
 }
 async function todoMarkDone(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   if (!(await uiConfirm('Mark ' + t.todo_id + ' as done?', {
     detail: String(t.task || '') + '\n\nStatus goes to Done in the To Do tab of the sheet, with a dated Last action line. It leaves Needs action everywhere in the app and stays on the vessel record.',
     ok: 'Mark done', cancel: 'Leave it open'
@@ -7693,7 +7719,7 @@ async function todoMarkDone(id, ev) {
 // Cancelled: the job is not happening. Kept on the vessel record, out of every live list.
 async function todoCancel(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   const r = await uiDialog({
     title: 'Cancel ' + t.todo_id + '?', detail: String(t.task || ''),
     fields: [{ key: 'why', label: 'Why it is cancelled (optional)', placeholder: 'Charter dropped, client stood it down…' }],
@@ -7707,7 +7733,7 @@ async function todoCancel(id, ev) {
 // Snooze: pushes the due date back. The sheet is the master, so the scan and the brief move with it.
 async function todoSnooze(id, days, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   const from = t.due || antiguaToday();
   const to = addDays(from < antiguaToday() ? antiguaToday() : from, days || TODO_SNOOZE_DAYS);
   closeModal('vesselDetailModal');
@@ -7717,7 +7743,7 @@ async function todoSnooze(id, days, ev) {
 // Edit: changes the job itself in the sheet. Blank fields are left as they are.
 async function todoEdit(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   const r = await uiDialog({
     title: 'Edit ' + t.todo_id, wide: true,
     detail: (t.vessel_name || 'General') + ' · written straight into the To Do tab of the sheet.',
@@ -7750,19 +7776,19 @@ async function todoEdit(id, ev) {
 // Anyone signed in may confirm a Likely done row. Roscoe, 18 Nov 2026.
 async function todoConfirm(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done', note: 'confirmed in the app' }, t.todo_id + ' confirmed done');
 }
 async function todoNotDone(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Open', note: 'not finished, put back on the list in the app' }, t.todo_id + ' put back on the list');
 }
 async function todoReopen(id, ev) {
   if (ev) ev.stopPropagation();
-  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const t = todoByRef(id); if (!t) return rowGone('job');
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Open', note: 'reopened in the app' }, t.todo_id + ' reopened');
 }
@@ -7781,7 +7807,7 @@ async function changeReopen(id, ev) {
 }
 async function listsMark(id, value, ev, note) {
   if (ev) ev.stopPropagation();
-  const r = vtExpected.find(x => x.id === id); if (!r) return;
+  const r = expectedByRef(id); if (!r) return rowGone('arrival');
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'lists_status', vessel: r.vessel_name, movement: r.movement_type, expected_date: r.expected_date || '', value: value + (note ? ' (' + note + ')' : '') },
     r.vessel_name + ' crew and guest lists: ' + value.toLowerCase());
@@ -8083,7 +8109,7 @@ function dbRenderUrgent(todayStr) {
   listsTodos(todayStr).forEach(x => {
     const d = x.st.days, urgent = x.st.code === 'urgent';
     const when = d < 0 ? 'Expected ' + fmtShort(x.r.expected_date) + ' (' + Math.abs(d) + ' d ago)' : 'Arrives ' + fmtShort(x.r.expected_date) + (d === 0 ? ' (today)' : d === 1 ? ' (tomorrow)' : ' (in ' + d + ' d)');
-    urgents.push({ vessel: x.r.vessel_name, desc: 'Crew and guest lists to add to the systems', deadline: (urgent ? 'Urgent · ' : 'To do · ') + when, icon: urgent ? 'alert!' : 'users', todo: !urgent, click: `showExpectedDetail('${esc(x.r.id)}')`, act: { kind: 'lists', id: x.r.id } });
+    urgents.push({ vessel: x.r.vessel_name, desc: 'Crew and guest lists to add to the systems', deadline: (urgent ? 'Urgent · ' : 'To do · ') + when, icon: urgent ? 'alert!' : 'users', todo: !urgent, click: `showExpectedDetail('${esc(expectedRef(x.r))}')`, act: { kind: 'lists', id: expectedRef(x.r) } });
     if (urgent) redCount++;
   });
 
@@ -8093,7 +8119,7 @@ function dbRenderUrgent(todayStr) {
     .forEach(t => {
       const d = daysBetween(t.due, todayStr);
       const crew = todoIsCrewChange(t);
-      urgents.push({ vessel: t.vessel_name || 'General', desc: (crew ? 'Crew change: ' : '') + String(t.task || '').slice(0, 70) + (String(t.task || '').length > 70 ? '…' : ''), deadline: (crew ? 'Immigration · ' : 'High · ') + t.todo_id + (d === 0 ? ' · due today' : ' · due ' + fmtShort(t.due) + ' (' + d + ' d late)'), icon: crew ? 'users' : 'alert!', click: `showTodoDetail('${esc(t.id)}')`, act: { kind: 'todo', id: t.id } });
+      urgents.push({ vessel: t.vessel_name || 'General', desc: (crew ? 'Crew change: ' : '') + String(t.task || '').slice(0, 70) + (String(t.task || '').length > 70 ? '…' : ''), deadline: (crew ? 'Immigration · ' : 'High · ') + t.todo_id + (d === 0 ? ' · due today' : ' · due ' + fmtShort(t.due) + ' (' + d + ' d late)'), icon: crew ? 'users' : 'alert!', click: `showTodoDetail('${esc(todoRef(t))}')`, act: { kind: 'todo', id: todoRef(t) } });
       redCount++;
     });
 
