@@ -587,6 +587,8 @@
   .db-cal-pip.urgent { background:#ffebee; color:#c62828; font-weight:700; }
   .db-cal-cell:hover, .db-cal-weekcol:hover { border-color: var(--gray-300); }
   .db-cal-cell.past { opacity:0.8; }
+  .db-cal-here { margin-top:3px; font-size:9px; color:var(--gray-500); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .db-cal-here b { font-weight:700; color:var(--gray-600); }
   @media (max-width:600px){ .db-cal-grid .pip-word { display:none; } .db-cal-grid .db-cal-pip { padding:1px 2px; font-size:9px; } }
   .db-cal-cell.today .db-cal-daynum { color: var(--teal); }
   .db-cal-day { border:1px solid var(--gray-200); border-radius:8px; overflow:hidden; }
@@ -604,7 +606,7 @@
   .db-cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:10px; color:var(--gray-600); }
   .db-cal-legend i { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:middle; }
   .db-cal-legend .lg-arr{background:#166534;} .db-cal-legend .lg-dep{background:#b91c1c;} .db-cal-legend .lg-exp{background:#fff;box-shadow:0 0 0 1.5px #166534 inset;} .db-cal-legend .lg-service{background:#2e7d32;} .db-cal-legend .lg-transfer{background:#f9a825;} .db-cal-legend .lg-todo{background:#4f46e5;} .db-cal-legend .lg-urgent{background:#c62828;}
-  .db-cal-legend .lg-clear{background:#7dd3fc;} .db-cal-legend .lg-prov{background:#bef264;} .db-cal-legend .lg-ship{background:#fdba74;} .db-cal-legend .lg-marina{background:#a5b4fc;} .db-cal-legend .lg-crew{background:#f0abfc;} .db-cal-legend .lg-tfr{background:#fcd34d;} .db-cal-legend .lg-admin{background:#cbd5e1;}
+  .db-cal-legend .lg-clear{background:#7dd3fc;} .db-cal-legend .lg-prov{background:#bef264;} .db-cal-legend .lg-ship{background:#fdba74;} .db-cal-legend .lg-marina{background:#a5b4fc;} .db-cal-legend .lg-crew{background:#f0abfc;} .db-cal-legend .lg-tfr{background:#fcd34d;} .db-cal-legend .lg-admin{background:#cbd5e1;} .db-cal-legend .lg-tender{background:#67e8f9;}
   @media (max-width:600px){ .db-cal-cell{min-height:52px;} .db-cal-week{grid-template-columns:1fr;} .db-cal-weekcol{min-height:auto;} }
 
   /* ═══════════════════════════════════════════
@@ -697,6 +699,28 @@
   .db-urgent-vessel { font-size: 12px; font-weight: 700; color: var(--navy); }
   .db-urgent-desc { font-size: 11px; color: var(--gray-700); margin: 2px 0; }
   .db-urgent-deadline { font-size: 11px; color: #dc2626; font-weight: 700; }
+  /* Row controls on Needs action: tick box to close it, then Snooze, Cancel, Edit. */
+  .na-acts { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .na-tick {
+    width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #86b8a0; background: #fff;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+    color: #15803d; transition: background 0.12s, border-color 0.12s;
+  }
+  .na-tick .ico { width: 15px; height: 15px; opacity: 0.22; }
+  .na-tick:hover { background: #dcfce7; border-color: #15803d; }
+  .na-tick:hover .ico { opacity: 1; }
+  .na-tick[disabled] { opacity: .45; cursor: wait; }
+  .na-btn {
+    font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 12px; cursor: pointer;
+    white-space: nowrap; border: 1px solid var(--gray-300); background: #fff; color: var(--gray-700);
+  }
+  .na-btn:hover { background: var(--gray-50); color: var(--navy); }
+  .na-btn[disabled] { opacity: .45; cursor: wait; }
+  .na-btn.na-snooze { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+  .na-btn.na-snooze:hover { background: #dbeafe; }
+  .na-btn.na-cancel { border-color: #e7e5e4; background: #fafaf9; color: #78716c; }
+  .na-btn.na-cancel:hover { background: #f5f5f4; color: #44403c; }
+  @media (max-width: 640px) { .na-acts { width: 100%; margin: 6px 0 0; justify-content: flex-end; } .db-urgent-item { flex-wrap: wrap; } }
 
   /* ═══════════════════════════════════════════
      DASHBOARD — Movements
@@ -1167,7 +1191,9 @@
   .ui-dlg-box h3 { font-size: 17px; font-weight: 700; color: var(--navy); margin: 0 0 6px; }
   .ui-dlg-box p { font-size: 13px; color: var(--gray-700); line-height: 1.5; margin: 0 0 4px; }
   .ui-dlg-box label { display: block; margin-top: 12px; }
-  .ui-dlg-box input { width: 100%; margin-top: 4px; }
+  .ui-dlg-box input, .ui-dlg-box textarea, .ui-dlg-box select { width: 100%; margin-top: 4px; }
+  .ui-dlg-box textarea { min-height: 76px; resize: vertical; font-family: inherit; }
+  .ui-dlg-box.ui-dlg-wide { max-width: 560px; }
   .ui-dlg-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
   .ui-dlg-actions button { border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--gray-300); background: #fff; color: var(--navy); }
   .ui-dlg-actions .ui-ok { background: var(--teal); border-color: var(--teal); color: #fff; }
@@ -1260,6 +1286,7 @@
   .db-cal-pip.sv-crew     { background:#fae8ff; color:#86198f; }
   .db-cal-pip.sv-transfer { background:#fff8e1; color:#a16207; }
   .db-cal-pip.sv-admin    { background:#f1f5f9; color:#475569; }
+  .db-cal-pip.sv-tender   { background:#cffafe; color:#155e75; }
   /* Key under the calendar */
   .db-cal-key { display:flex; flex-wrap:wrap; gap:6px 10px; padding:8px 12px 2px; }
   .db-cal-key span { font-size:10px; padding:1px 6px; border-radius:4px; }
@@ -2251,18 +2278,12 @@
             <span><i class="lg-arr"></i>Arrival</span>
             <span><i class="lg-dep"></i>Departure</span>
             <span><i class="lg-exp"></i>Expected or intended</span>
-            <span><i class="lg-service"></i>Job</span>
-            <span><i class="lg-transfer"></i>Transfer</span>
+            <span><i class="lg-prov"></i>Provisions</span>
+            <span><i class="lg-tender"></i>Tender on or off</span>
             <span><i class="lg-urgent"></i>Needs action</span>
           </div>
           <div class="db-cal-legend" style="margin-top:4px;">
-            <span><i class="lg-clear"></i>Clearance</span>
-            <span><i class="lg-prov"></i>Provisioning</span>
-            <span><i class="lg-ship"></i>Shipping</span>
-            <span><i class="lg-marina"></i>Marina</span>
-            <span><i class="lg-crew"></i>Crew</span>
-            <span><i class="lg-tfr"></i>Transfer</span>
-            <span><i class="lg-admin"></i>Admin</span>
+            <span>Movements of the day only. Clearance, crew changes, marina and transfers are in the agenda, the To Do panel and the vessel record.</span>
           </div>
         </div>
       </div>
@@ -2667,21 +2688,21 @@ function uiDialog(o) {
   return new Promise(resolve => {
     const wrap = document.createElement('div');
     wrap.className = 'ui-dlg';
-    wrap.innerHTML = `<div class="ui-dlg-box" role="dialog" aria-modal="true">
+    wrap.innerHTML = `<div class="ui-dlg-box${o.wide ? ' ui-dlg-wide' : ''}" role="dialog" aria-modal="true">
       <h3>${esc(o.title)}</h3>${o.detail ? `<p>${esc(o.detail)}</p>` : ''}
-      ${(o.fields || []).map((f, i) => `<label>${esc(f.label)}<input type="${f.type || 'text'}" data-key="${esc(f.key)}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}"></label>`).join('')}
+      ${(o.fields || []).map(f => `<label>${esc(f.label)}${uiField(f)}</label>`).join('')}
       <div class="ui-dlg-actions"><button type="button" class="ui-cancel">${esc(o.cancel || 'Cancel')}</button><button type="button" class="ui-ok${o.danger ? ' ui-danger' : ''}">${esc(o.ok || 'OK')}</button></div></div>`;
     const done = result => { uiDlgCancel = null; wrap.remove(); resolve(result); };
     const accept = () => {
       if (!o.fields) return done(true);
       const out = {};
-      wrap.querySelectorAll('input[data-key]').forEach(inp => { out[inp.dataset.key] = inp.value.trim(); });
+      wrap.querySelectorAll('[data-key]').forEach(inp => { out[inp.dataset.key] = String(inp.value == null ? '' : inp.value).trim(); });
       done(out);
     };
     wrap.querySelector('.ui-cancel').onclick = () => done(null);
     wrap.querySelector('.ui-ok').onclick = accept;
     wrap.addEventListener('mousedown', e => { if (e.target === wrap) done(null); });
-    wrap.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); accept(); } });
+    wrap.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); accept(); } });
     uiDlgCancel = () => done(null);
     document.body.appendChild(wrap);
     const first = wrap.querySelector('input') || wrap.querySelector(o.danger ? '.ui-cancel' : '.ui-ok');
@@ -2689,6 +2710,16 @@ function uiDialog(o) {
   });
 }
 function uiConfirm(title, o) { return uiDialog(Object.assign({ title }, o || {})).then(r => !!r); }
+// One field of a dialog: a line of text, a date, a box of text, or a list to choose from.
+function uiField(f) {
+  const key = esc(f.key), val = f.value == null ? '' : String(f.value);
+  if (f.type === 'textarea') return `<textarea data-key="${key}" rows="${f.rows || 3}" placeholder="${esc(f.placeholder || '')}">${esc(val)}</textarea>`;
+  if (f.type === 'select') return `<select data-key="${key}">${(f.options || []).map(o => {
+    const v = typeof o === 'string' ? o : o.value;
+    return `<option value="${esc(v)}"${v === val ? ' selected' : ''}>${esc(typeof o === 'string' ? o : (o.label || o.value))}</option>`;
+  }).join('')}</select>`;
+  return `<input type="${esc(f.type || 'text')}" data-key="${key}" value="${esc(val)}" placeholder="${esc(f.placeholder || '')}">`;
+}
 // Stops a second click while a save is in flight, and shows that it is working.
 async function busy(btn, label, fn) {
   if (!btn) return fn();
@@ -6094,6 +6125,7 @@ function showEntryDetail(entryId) {
     ${why}
     <div class="vt-actions">
       ${canWrite && !done ? `<button type="button" class="vt-act vt-act-green" onclick="quickSetStatus('${esc(e.entryId)}','completed')">${ic('check')} Mark completed</button>` : ''}
+      ${canWrite && !done ? `<button type="button" class="vt-act" onclick="entrySnooze('${esc(e.entryId)}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
       ${canWrite && !done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','cancelled')">Cancel job</button>` : ''}
       ${canWrite && done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','pending')">Reopen</button>` : ''}
       ${canWrite ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');openEditEntry('${esc(e.entryId)}')">Edit</button>` : ''}
@@ -6125,11 +6157,12 @@ async function recDeleteEntry(entryId) {
   if (!allEntries.some(e => e.entryId === entryId)) { recStack.pop(); if (recStack.length) recBack(true); else closeModal('vesselDetailModal'); }
 }
 // One-click resolve from the entry record.
-async function quickSetStatus(entryId, status) {
+async function quickSetStatus(entryId, status, ev, asked) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
   if (!canWriteUser()) return showToast('Your role is read-only');
   const e = allEntries.find(x => x.entryId === entryId);
   if (!e) return;
-  if (status === 'cancelled' && !(await uiConfirm('Cancel ' + entryId + '?', { detail: 'It stays in the log, marked cancelled. It can be reopened later.', ok: 'Cancel job', cancel: 'Keep job', danger: true }))) return;
+  if (!asked && status === 'cancelled' && !(await uiConfirm('Cancel ' + entryId + '?', { detail: 'It stays in the log, marked cancelled. It can be reopened later.', ok: 'Cancel job', cancel: 'Keep job', danger: true }))) return;
   const who = currentUser.full_name || currentUser.email;
   const change = { status, work_completed: status === 'completed' ? 'Yes' : '', last_edited_by: who, last_edited_at: new Date().toISOString() };
   try {
@@ -6140,7 +6173,7 @@ async function quickSetStatus(entryId, status) {
     await logAudit({ entry_id: entryId, action: 'status_change', changed_fields: ['status', 'work_completed'], new_values: { status, work_completed: change.work_completed }, performed_by: currentUser.id, performed_by_name: who });
     e.status = status; e.workCompleted = change.work_completed; e.lastEditedBy = who; e.lastEditedAt = change.last_edited_at;
     refreshViews();
-    showEntryDetail(entryId);
+    if (!document.getElementById('vesselDetailModal').classList.contains('hidden')) showEntryDetail(entryId);
     showToast(entryId + (status === 'completed' ? ' marked completed' : status === 'cancelled' ? ' cancelled' : ' reopened'));
     updateSyncBadge(true);
   } catch (err) {
@@ -6148,6 +6181,91 @@ async function quickSetStatus(entryId, status) {
     showToast('Could not update: ' + err.message);
     updateSyncBadge(false);
   }
+}
+
+// Snooze a job: push its service date back. Same effect everywhere, since every list,
+// the calendar and the overdue test all read service_date.
+async function entrySnooze(entryId, days, ev) {
+  if (ev) ev.stopPropagation();
+  if (!canWriteUser()) return showToast('Your role is read-only');
+  const e = allEntries.find(x => x.entryId === entryId);
+  if (!e) return;
+  const today = antiguaToday();
+  const from = e.serviceDate && e.serviceDate > today ? e.serviceDate : today;
+  const to = addDays(from, days || TODO_SNOOZE_DAYS);
+  const who = currentUser.full_name || currentUser.email;
+  try {
+    updateSyncBadge(true, 'Syncing');
+    const change = { service_date: to, last_edited_by: who, last_edited_at: new Date().toISOString() };
+    const { data, error } = await sb.from('entries').update(change).eq('entry_id', entryId).select('entry_id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('The database did not accept the change');
+    await logAudit({ entry_id: entryId, action: 'update', changed_fields: ['service_date'], old_values: { service_date: e.serviceDate || null }, new_values: { service_date: to }, performed_by: currentUser.id, performed_by_name: who });
+    e.serviceDate = to; e.lastEditedBy = who; e.lastEditedAt = change.last_edited_at;
+    refreshViews();
+    showToast(entryId + ' moved to ' + fmtShort(to));
+    updateSyncBadge(true);
+  } catch (err) {
+    console.error('Snooze error:', err);
+    showToast('Could not move it: ' + err.message);
+    updateSyncBadge(false);
+  }
+}
+
+// ---------- One set of row controls for everything in Needs action ----------
+// Three kinds of row end up in that panel and each closes somewhere different:
+//   entry  a job in this app's own log        -> entries table
+//   todo   a row on the sheet's To Do tab     -> sheet-write, the sheet stays the master
+//   lists  crew and guest lists for an arrival-> sheet-write, Expected tab
+// The tick box closes the row, the buttons move it, drop it, or open it for changes.
+const NA_EDITABLE = { entry: 1, todo: 1, lists: 1 };
+function naActsHtml(act) {
+  if (!act || !canWriteUser()) return '';
+  const k = act.kind, id = esc(act.id);
+  const call = (fn) => `onclick="${fn}"`;
+  const tick = (fn, title) => `<button type="button" class="na-tick" title="${title}" ${call(fn)}>${ic('check')}</button>`;
+  if (k === 'entry') return `<div class="na-acts">
+    ${tick(`naDone('entry','${id}',event)`, 'Mark this job completed')}
+    <button type="button" class="na-btn na-snooze" title="Push it back ${TODO_SNOOZE_DAYS} days" ${call(`entrySnooze('${id}',${TODO_SNOOZE_DAYS},event)`)}>Snooze</button>
+    <button type="button" class="na-btn na-cancel" title="This job is not happening" ${call(`quickSetStatus('${id}','cancelled',event)`)}>Cancel</button>
+    <button type="button" class="na-btn" title="Change the job" ${call(`naEdit('entry','${id}',event)`)}>Edit</button>
+  </div>`;
+  if (k === 'todo') return `<div class="na-acts">
+    ${tick(`todoMarkDone('${id}',event)`, 'Mark this job done in the sheet')}
+    <button type="button" class="na-btn na-snooze" title="Push the due date back ${TODO_SNOOZE_DAYS} days" ${call(`todoSnooze('${id}',${TODO_SNOOZE_DAYS},event)`)}>Snooze</button>
+    <button type="button" class="na-btn na-cancel" title="This job is not happening" ${call(`todoCancel('${id}',event)`)}>Cancel</button>
+    <button type="button" class="na-btn" title="Change the job" ${call(`todoEdit('${id}',event)`)}>Edit</button>
+  </div>`;
+  if (k === 'lists') return `<div class="na-acts">
+    ${tick(`naDone('lists','${id}',event)`, 'Lists are in the clearance systems')}
+    <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival" ${call(`listsMark('${id}','Not needed',event)`)}>Not needed</button>
+    <button type="button" class="na-btn" title="Open the expected arrival" ${call(`naEdit('lists','${id}',event)`)}>Edit</button>
+  </div>`;
+  return '';
+}
+async function naDone(kind, id, ev) {
+  if (ev) ev.stopPropagation();
+  if (kind === 'todo') return todoMarkDone(id, null);
+  if (kind === 'lists') {
+    const r = vtExpected.find(x => x.id === id); if (!r) return;
+    if (!(await uiConfirm('Crew and guest lists done for ' + (r.vessel_name || 'this arrival') + '?', {
+      detail: 'Writes "Done" to the Expected tab of the sheet. The row leaves Needs action.', ok: 'Lists done', cancel: 'Not yet'
+    }))) return;
+    return listsMark(id, 'Done', null);
+  }
+  const e = allEntries.find(x => x.entryId === id); if (!e) return;
+  if (!(await uiConfirm('Mark ' + id + ' completed?', {
+    detail: (svcLabel(e) || 'This job') + (e.serviceDate ? ' on ' + fmtDate(e.serviceDate) : '') + '. It leaves Needs action and shows as completed in the log, the calendar and the vessel record.',
+    ok: 'Mark completed', cancel: 'Leave it open'
+  }))) return;
+  return quickSetStatus(id, 'completed', null, true);
+}
+function naEdit(kind, id, ev) {
+  if (ev) ev.stopPropagation();
+  if (kind === 'todo') return todoEdit(id, null);
+  if (kind === 'lists') return showExpectedDetail(id);
+  closeModal('vesselDetailModal');
+  return openEditEntry(id);
 }
 
 // Makes it obvious the form is editing an existing entry, not creating one.
@@ -6484,8 +6602,38 @@ let dbCalView = 'month';
 let dbCalCursor = parseYMD(antiguaToday());
 function dbCalEsc(x){ return (x==null?'':String(x)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function dbCalDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+// ---------- What belongs on the calendar ----------
+// Ross, 23 Nov 2026: the calendar answers what is moving. Which boats are here and
+// which are not, provisioning days, and tenders going on and off the big boats.
+// Everything else (clearance, crew changes, marina, shipping, transfers, admin) is
+// off it and still shows in the agenda, the To Do panel and the vessel record.
+const CAL_PROV_RE = /provision|galley|ship'?s stores|fresh fish|produce|butcher|beverage|wine order|dry goods|phytosanitar|plant protection|food order|grocer/i;
+const CAL_TENDER_RE = /\btender|\brib\b|chase boat|jet ski|seabob|water toy/i;
+// The lifting itself.
+const CAL_LIFT_RE = /\b(un)?load(ing|ed|s)?\b|off.?load|\bcrane|craning|\blift(ing|ed|s)?\b|\bsplash|\bhoist|put in the water|\bdavit/i;
+// Or coming off, or going on, a ship that carried her.
+const CAL_OFFSHIP_RE = /\b(off|on|ex)\s+(the\s+)?(mv|m\/v|ms|m\/s|mother\s?ship)\b|mother\s?ship/i;
+// Yard work on a tender is not a tender movement, however much lifting it involves.
+const CAL_YARD_RE = /haul\s?-?\s?out|hauled|dry storage|antifoul|bottom paint|\bpolish|\bwash\b|relaunch|yard quote/i;
+function calItemText(i){ return [i.vessel, i.badge, i.detail, i.svLabel].filter(Boolean).join(' '); }
+// A tender going on or off a bigger vessel counts as a movement of the day. Her trip to
+// the yard, her antifoul and her wash and polish do not.
+function calIsTenderOps(text){
+  if (!CAL_TENDER_RE.test(text) || CAL_YARD_RE.test(text)) return false;
+  return CAL_LIFT_RE.test(text) || CAL_OFFSHIP_RE.test(text);
+}
+function calTagFor(i){
+  if (i.kind === 'move' || i.kind === 'intended') return 'move';
+  if (i.kind === 'todo' && i.svKind === 'crew') return '';      // crew movements stay off
+  const text = calItemText(i);
+  if (calIsTenderOps(text)) return 'tender';
+  if (i.kind === 'todo') return i.svKind === 'provisioning' ? 'prov' : '';
+  return CAL_PROV_RE.test(text) ? 'prov' : '';
+}
 function dbCalClass(i){
   if (i.warn || i.status === 'overdue') return 'urgent';
+  if (i.calTag === 'tender') return 'sv-tender';
+  if (i.calTag === 'prov') return 'sv-prov';
   if (i.kind === 'move') {
     const b = String(i.badge || '').toLowerCase(), exp = b.startsWith('expected');
     if (b.includes('arriv')) return exp ? 'exp-arr' : 'arr';
@@ -6499,15 +6647,41 @@ function dbCalClass(i){
 // All items between two dates, grouped by day. One pass, shared with the agenda.
 function dbCalRange(fromStr, toStr){
   const by = {};
-  agendaItems(fromStr, toStr).forEach(i => { (by[i.date] = by[i.date] || []).push(i); });
-  // Movements and jobs first in each day cell; To Do items after, so the 3 pips a month cell shows are the vessel events
-  const rank = i => i.kind === 'todo' ? (i.warn ? 1 : 2) : 0;
+  calItems(fromStr, toStr).shown.forEach(i => { (by[i.date] = by[i.date] || []).push(i); });
+  // Arrivals and departures first in each day cell, then provisions and tenders,
+  // so the three pips a month cell has room for are the ones that matter most.
+  const rank = i => i.calTag === 'move' ? 0 : 1;
   Object.values(by).forEach(list => list.sort((a, b) => rank(a) - rank(b)));
   return by;
 }
+// Who is in Antigua on each day of the range. Arrivals and departures mark the edges of
+// a stay; this fills in the days between, so a cell says how many boats are here.
+function calInPortByDay(fromStr, toStr){
+  const visits = vtVisits();
+  const out = {};
+  for (let d = fromStr; d <= toStr; d = addDays(d, 1)) {
+    out[d] = visits.filter(v => visitStatus(v, d) === 'current').map(v => v.vessel);
+  }
+  return out;
+}
+function calHereHtml(names){
+  if (!names || !names.length) return '';
+  const title = names.slice(0, 10).join(', ') + (names.length > 10 ? ' and ' + (names.length - 10) + ' more' : '');
+  return `<div class="db-cal-here" title="In Antigua on this day: ${dbCalEsc(title)}"><b>${names.length}</b> here</div>`;
+}
+// One pass over a date range, split into what the calendar shows and what it leaves out.
+function calItems(fromStr, toStr){
+  const shown = [], rest = [];
+  agendaItems(fromStr, toStr).forEach(i => {
+    i.calTag = calTagFor(i);
+    (i.calTag ? shown : rest).push(i);
+  });
+  return { shown, rest };
+}
 function dbCalPip(i){
   const cls = dbCalClass(i);
-  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep') : i.kind === 'todo' ? (i.svLabel || 'To do') : '';
+  const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep')
+    : i.calTag === 'tender' ? 'Tender' : i.calTag === 'prov' ? 'Provisions' : i.kind === 'todo' ? (i.svLabel || 'To do') : '';
   const label = (i.time ? i.time + ' ' : '') + (i.vessel || i.badge || '');
   const pre = word ? `<span class="pip-word">${word} · </span>` : '';
   return `<div class="db-cal-pip ${cls}" title="${dbCalEsc(i.badge + ' · ' + (i.vessel || '') + (i.detail ? ' · ' + i.detail : ''))}">${pre}${dbCalEsc(label)}</div>`;
@@ -6534,6 +6708,8 @@ function dbCalOpenDay(ds){
 }
 const DB_CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DB_CAL_DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let dbCalRestOpen = false;
+function toggleCalRest(){ dbCalRestOpen = !dbCalRestOpen; dbCalRender(); }
 function dbCalRender(){
   const body = document.getElementById('db-cal-body');
   if (!body) return;
@@ -6549,7 +6725,9 @@ function dbCalRenderMonth(body){
   const firstDay = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const mm = String(m+1).padStart(2,'0');
-  const by = dbCalRange(`${y}-${mm}-01`, `${y}-${mm}-${String(daysInMonth).padStart(2,'0')}`);
+  const from = `${y}-${mm}-01`, to = `${y}-${mm}-${String(daysInMonth).padStart(2,'0')}`;
+  const by = dbCalRange(from, to);
+  const here = calInPortByDay(from, to);
   let html = '<div class="db-cal-grid">';
   DB_CAL_DOW.forEach(d => html += `<div class="db-cal-dow">${d}</div>`);
   for (let i = 0; i < firstDay; i++) html += '<div class="db-cal-cell empty"></div>';
@@ -6560,6 +6738,7 @@ function dbCalRenderMonth(body){
     html += `<div class="${cls.join(' ')}" onclick="dbCalOpenDay('${ds}')"><div class="db-cal-daynum">${day}</div>`;
     items.slice(0, 3).forEach(e => html += dbCalPip(e));
     if (items.length > 3) html += `<div class="db-cal-more">+${items.length - 3} more</div>`;
+    html += calHereHtml(here[ds]);
     html += '</div>';
   }
   html += '</div>';
@@ -6572,6 +6751,7 @@ function dbCalRenderWeek(body){
   dbCalSetTitle(`${start.getDate()} ${DB_CAL_MONTHS[start.getMonth()]} to ${end.getDate()} ${DB_CAL_MONTHS[end.getMonth()]} ${end.getFullYear()}`);
   const todayStr = antiguaToday();
   const by = dbCalRange(dbCalDateStr(start), dbCalDateStr(end));
+  const here = calInPortByDay(dbCalDateStr(start), dbCalDateStr(end));
   let html = '<div class="db-cal-week">';
   for (let i = 0; i < 7; i++){
     const d = new Date(start); d.setDate(start.getDate() + i);
@@ -6579,8 +6759,9 @@ function dbCalRenderWeek(body){
     const items = by[ds] || [];
     html += `<div class="db-cal-weekcol ${ds === todayStr ? 'today' : ''}" onclick="dbCalOpenDay('${ds}')">`;
     html += `<div class="db-cal-weekhead">${DB_CAL_DOW[i]} ${d.getDate()}</div>`;
-    if (!items.length) html += '<div class="db-cal-empty">Nothing</div>';
+    if (!items.length) html += '<div class="db-cal-empty">Nothing moving</div>';
     items.forEach(e => html += dbCalPip(e));
+    html += calHereHtml(here[ds]);
     html += '</div>';
   }
   html += '</div>';
@@ -6591,20 +6772,25 @@ function dbCalRenderDay(body){
   const ds = dbCalDateStr(d);
   const dowFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   dbCalSetTitle(`${dowFull[d.getDay()]}, ${DB_CAL_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`);
-  const items = agendaItems(ds, ds);
+  const split = calItems(ds, ds);
+  const items = split.shown, rest = split.rest;
   const todayStr = antiguaToday();
   const rel = daysBetween(todayStr, ds);
   const canWrite = typeof canWriteUser === 'function' ? canWriteUser() : true;
   body.innerHTML = `<div class="db-cal-day">
     <div class="wk-day-head">
       <span class="wk-day-rel${rel === 0 ? ' today' : ''}">${wkRelLabel(rel)}</span>
-      <span class="wk-day-n" style="margin-left:0;">${items.length ? items.length + (items.length === 1 ? ' item' : ' items') : ''}</span>
+      <span class="wk-day-n" style="margin-left:0;">${[items.length ? items.length + (items.length === 1 ? ' movement' : ' movements') : '', vtInPort(ds).length + ' in Antigua'].filter(Boolean).join(' · ')}</span>
       <span class="wk-day-act">
         ${canWrite ? `<button type="button" onclick="wkNewEntry('${ds}')">+ Entry on this day</button>` : ''}
         <button type="button" onclick="dbCalSetView('month')">Back to month</button>
       </span>
     </div>
-    ${items.length ? items.map(agendaRowHtml).join('') : '<div class="ag-none">Nothing logged for this day.</div>'}
+    ${items.length ? items.map(agendaRowHtml).join('') : '<div class="ag-none">Nothing moving on this day.</div>'}
+    ${rest.length ? `<div class="td-dormant-head" onclick="toggleCalRest()">
+        <span>${dbCalRestOpen ? '▾' : '▸'} Other jobs on this day (${rest.length})</span>
+        <span>${dbCalRestOpen ? 'hide' : 'show'}</span>
+      </div>` + (dbCalRestOpen ? `<div class="td-dormant">${rest.map(agendaRowHtml).join('')}</div>` : '') : ''}
   </div>`;
 }
 
@@ -7263,6 +7449,10 @@ function todoKind(t) {
   return 'other';
 }
 function todoKindMeta(t) { return TODO_KINDS[todoKind(t)] || TODO_KINDS.other; }
+// Snooze and the sheet's own dropdowns, kept in one place.
+const TODO_SNOOZE_DAYS = 2;
+const TODO_PRIORITIES = ['High', 'Normal', 'Low'];
+const TODO_STATUSES = ['Open', 'Waiting on client', 'Likely done', 'Done', 'Cancelled'];
 function todoState(t, todayStr) {
   if (!t.due) return { code: 'nodate', days: null };
   const days = daysBetween(todayStr, t.due);
@@ -7312,7 +7502,7 @@ function todoRowHtml(t, todayStr) {
       <div class="td-meta">${esc([t.owner ? 'Owner ' + t.owner : '', t.requested_by ? 'For ' + t.requested_by : ''].filter(Boolean).join(' · '))}</div>
     </div>
     ${pri !== 'Normal' ? `<span class="td-pri td-pri-${pri.toLowerCase()}">${esc(pri)}</span>` : ''}
-    ${canWriteUser() ? `<button type="button" class="td-act" title="Mark Done in the sheet" onclick="todoMarkDone('${esc(t.id)}', event)">Done</button>` : ''}
+    ${naActsHtml({ kind: 'todo', id: t.id })}
   </div>`;
 }
 function todoLikelyRowHtml(t) {
@@ -7419,8 +7609,11 @@ function showTodoDetail(id) {
     ${t.confirmed_by ? `<div class="vt-callout"><b>Confirmed</b> by ${esc(t.confirmed_by)}.</div>` : ''}
     <div class="vt-actions">
       ${likely && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoConfirm('${esc(t.id)}')">Confirm done</button><button type="button" class="vt-act" onclick="todoNotDone('${esc(t.id)}')">Not done</button>` : ''}
-      ${!likely && t.status !== 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoMarkDone('${esc(t.id)}')">Mark Done</button>` : ''}
-      ${t.status === 'Done' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(t.id)}')">Reopen</button>` : ''}
+      ${!likely && t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act vt-act-green" onclick="todoMarkDone('${esc(t.id)}')">${ic('check')} Mark Done</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoSnooze('${esc(t.id)}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoCancel('${esc(t.id)}')">Cancel job</button>` : ''}
+      ${canWriteUser() ? `<button type="button" class="vt-act" onclick="todoEdit('${esc(t.id)}')">Edit</button>` : ''}
+      ${(t.status === 'Done' || t.status === 'Cancelled') && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(t.id)}')">Reopen</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
     </div>
     <h3 class="vt-h3">Task</h3><p class="vt-para td-para">${esc(t.task || '')}</p>
@@ -7435,7 +7628,7 @@ function showTodoDetail(id) {
     ${t.close_evidence ? `<h3 class="vt-h3">Why it looks finished</h3><p class="vt-para td-para">${esc(t.close_evidence)}</p>` : ''}
     ${t.last_action ? `<h3 class="vt-h3">Last action</h3><p class="vt-para td-para">${esc(t.last_action)}</p>` : ''}
     ${t.notes ? `<h3 class="vt-h3">Notes</h3><p class="vt-para td-para">${esc(t.notes)}</p>` : ''}
-    <p class="vt-note" style="margin-top:12px;">Mark Done here writes Status and a Last action line to the To Do tab of the Google Sheet. Anything else (task wording, dates, owner) is edited in the sheet and shows here after the next sync.</p>`;
+    <p class="vt-note" style="margin-top:12px;">Every button here writes straight to the To Do tab of the Google Sheet, with a dated Last action line saying what changed and who changed it. Snooze moves the due date on by ${TODO_SNOOZE_DAYS} days, so the daily scan and the brief move with it. The sheet stays the master copy.</p>`;
   document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
@@ -7448,7 +7641,7 @@ async function sheetWrite(payload, label) {
   if (!canWriteUser()) return showToast('Your account cannot change the sheet');
   if (sheetWriteBusy) return showToast('One moment, a change is still being written');
   sheetWriteBusy = true;
-  document.querySelectorAll('.td-act').forEach(b => { b.disabled = true; });
+  document.querySelectorAll('.td-act, .na-btn, .na-tick, .td-confirm, .td-reject').forEach(b => { b.disabled = true; });
   showToast((label || 'Writing to the sheet') + '…');
   try {
     const { data, error } = await sb.functions.invoke('sheet-write', { body: payload });
@@ -7468,15 +7661,75 @@ async function sheetWrite(payload, label) {
     return false;
   } finally {
     sheetWriteBusy = false;
-    document.querySelectorAll('.td-act').forEach(b => { b.disabled = false; });
+    document.querySelectorAll('.td-act, .na-btn, .na-tick, .td-confirm, .td-reject').forEach(b => { b.disabled = false; });
   }
 }
 async function todoMarkDone(id, ev) {
   if (ev) ev.stopPropagation();
   const t = vtTodo.find(x => x.id === id); if (!t) return;
-  if (!confirm('Mark ' + t.todo_id + ' as Done in the sheet?')) return;
+  if (!(await uiConfirm('Mark ' + t.todo_id + ' as done?', {
+    detail: String(t.task || '') + '\n\nStatus goes to Done in the To Do tab of the sheet, with a dated Last action line. It leaves Needs action everywhere in the app and stays on the vessel record.',
+    ok: 'Mark done', cancel: 'Leave it open'
+  }))) return;
   closeModal('vesselDetailModal');
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done' }, t.todo_id + ' marked Done');
+}
+// Cancelled: the job is not happening. Kept on the vessel record, out of every live list.
+async function todoCancel(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const r = await uiDialog({
+    title: 'Cancel ' + t.todo_id + '?', detail: String(t.task || ''),
+    fields: [{ key: 'why', label: 'Why it is cancelled (optional)', placeholder: 'Charter dropped, client stood it down…' }],
+    ok: 'Cancel the job', cancel: 'Keep it', danger: true
+  });
+  if (!r) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Cancelled', note: r.why ? 'cancelled in the app: ' + r.why : 'cancelled in the app' },
+    t.todo_id + ' cancelled');
+}
+// Snooze: pushes the due date back. The sheet is the master, so the scan and the brief move with it.
+async function todoSnooze(id, days, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const from = t.due || antiguaToday();
+  const to = addDays(from < antiguaToday() ? antiguaToday() : from, days || TODO_SNOOZE_DAYS);
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_edit', id: t.todo_id, due: to, note: 'snoozed in the app to ' + to },
+    t.todo_id + ' snoozed to ' + fmtShort(to));
+}
+// Edit: changes the job itself in the sheet. Blank fields are left as they are.
+async function todoEdit(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = vtTodo.find(x => x.id === id); if (!t) return;
+  const r = await uiDialog({
+    title: 'Edit ' + t.todo_id, wide: true,
+    detail: (t.vessel_name || 'General') + ' · written straight into the To Do tab of the sheet.',
+    fields: [
+      { key: 'task', label: 'Task', type: 'textarea', rows: 3, value: t.task || '' },
+      { key: 'owner', label: 'Owner', value: t.owner || '', placeholder: 'Who is doing it' },
+      { key: 'due', label: 'Due', type: 'date', value: t.due || '' },
+      { key: 'priority', label: 'Priority', type: 'select', value: t.priority || 'Normal', options: TODO_PRIORITIES },
+      { key: 'status', label: 'Status', type: 'select', value: t.status || 'Open', options: TODO_STATUSES },
+      { key: 'notes', label: 'Notes', type: 'textarea', rows: 2, value: t.notes || '' }
+    ],
+    ok: 'Save to the sheet'
+  });
+  if (!r) return;
+  if (!r.task) return showToast('A task needs some wording');
+  const payload = { action: 'todo_edit', id: t.todo_id };
+  const changed = [];
+  const put = (key, was, now, label) => { if (String(now || '') !== String(was || '')) { payload[key] = now || ''; changed.push(label); } };
+  put('task', t.task, r.task, 'task');
+  put('owner', t.owner, r.owner, 'owner');
+  put('due', t.due, r.due, 'due date');
+  put('priority', t.priority, r.priority, 'priority');
+  put('status', t.status, r.status, 'status');
+  put('notes', t.notes, r.notes, 'notes');
+  if (!changed.length) return showToast('Nothing changed');
+  payload.note = 'edited in the app: ' + changed.join(', ') + ' changed';
+  closeModal('vesselDetailModal');
+  await sheetWrite(payload, t.todo_id + ' updated');
 }
 // Anyone signed in may confirm a Likely done row. Roscoe, 18 Nov 2026.
 async function todoConfirm(id, ev) {
@@ -7785,7 +8038,7 @@ function dbRenderUrgent(todayStr) {
 
   jobs.filter(e => isTransferEntry(e) && !e.transferDriverId && open(e) && (e.serviceDate === todayStr || e.serviceDate === tomorrow)).forEach(e => {
     const when = (e.serviceDate === todayStr ? 'Today' : 'Tomorrow') + ((e.transferPickupTime || '') ? ' ' + e.transferPickupTime.slice(0, 5) : '');
-    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'No driver assigned: ' + (e.serviceType || 'transfer'), deadline: when, icon: 'car' });
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: 'No driver assigned: ' + (e.serviceType || 'transfer'), deadline: when, icon: 'car', act: { kind: 'entry', id: e.entryId } });
     addedIds.add(e.entryId);
   });
 
@@ -7795,17 +8048,17 @@ function dbRenderUrgent(todayStr) {
       const pr = e.priority || 'normal';
       const icon = pr === 'critical' ? 'alert!' : (pr === 'high' ? 'alert' : 'clock');
       const days = daysBetween(e.serviceDate, todayStr);
-      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: svcLabel(e) || 'Service', deadline: 'Overdue since ' + fmtShort(e.serviceDate) + ' (' + days + ' d)', icon });
+      urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: svcLabel(e) || 'Service', deadline: 'Overdue since ' + fmtShort(e.serviceDate) + ' (' + days + ' d)', icon, act: { kind: 'entry', id: e.entryId } });
       addedIds.add(e.entryId);
     });
 
   jobs.filter(e => !addedIds.has(e.entryId) && (e.priority || 'normal') === 'critical' && open(e) && e.serviceDate >= todayStr).forEach(e => {
-    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + (e.serviceType ? ': ' + e.serviceType : ''), deadline: 'Critical · ' + fmtShort(e.serviceDate), icon: 'alert!' });
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: (e.category || 'Service') + (e.serviceType ? ': ' + e.serviceType : ''), deadline: 'Critical · ' + fmtShort(e.serviceDate), icon: 'alert!', act: { kind: 'entry', id: e.entryId } });
     addedIds.add(e.entryId);
   });
 
   jobs.filter(e => !addedIds.has(e.entryId) && e.serviceDate === todayStr && open(e) && e.specialNotes && e.specialNotes.toLowerCase().includes('urgent')).forEach(e => {
-    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: 'alert' });
+    urgents.push({ entryId: e.entryId, vessel: e.vessel, desc: e.specialNotes.substring(0, 55) + (e.specialNotes.length > 55 ? '…' : ''), deadline: 'Flagged', icon: 'alert', act: { kind: 'entry', id: e.entryId } });
     addedIds.add(e.entryId);
   });
 
@@ -7814,7 +8067,7 @@ function dbRenderUrgent(todayStr) {
   listsTodos(todayStr).forEach(x => {
     const d = x.st.days, urgent = x.st.code === 'urgent';
     const when = d < 0 ? 'Expected ' + fmtShort(x.r.expected_date) + ' (' + Math.abs(d) + ' d ago)' : 'Arrives ' + fmtShort(x.r.expected_date) + (d === 0 ? ' (today)' : d === 1 ? ' (tomorrow)' : ' (in ' + d + ' d)');
-    urgents.push({ vessel: x.r.vessel_name, desc: 'Crew and guest lists to add to the systems', deadline: (urgent ? 'Urgent · ' : 'To do · ') + when, icon: urgent ? 'alert!' : 'users', todo: !urgent, click: `showExpectedDetail('${esc(x.r.id)}')` });
+    urgents.push({ vessel: x.r.vessel_name, desc: 'Crew and guest lists to add to the systems', deadline: (urgent ? 'Urgent · ' : 'To do · ') + when, icon: urgent ? 'alert!' : 'users', todo: !urgent, click: `showExpectedDetail('${esc(x.r.id)}')`, act: { kind: 'lists', id: x.r.id } });
     if (urgent) redCount++;
   });
 
@@ -7824,7 +8077,7 @@ function dbRenderUrgent(todayStr) {
     .forEach(t => {
       const d = daysBetween(t.due, todayStr);
       const crew = todoIsCrewChange(t);
-      urgents.push({ vessel: t.vessel_name || 'General', desc: (crew ? 'Crew change: ' : '') + String(t.task || '').slice(0, 70) + (String(t.task || '').length > 70 ? '…' : ''), deadline: (crew ? 'Immigration · ' : 'High · ') + t.todo_id + (d === 0 ? ' · due today' : ' · due ' + fmtShort(t.due) + ' (' + d + ' d late)'), icon: crew ? 'users' : 'alert!', click: `showTodoDetail('${esc(t.id)}')` });
+      urgents.push({ vessel: t.vessel_name || 'General', desc: (crew ? 'Crew change: ' : '') + String(t.task || '').slice(0, 70) + (String(t.task || '').length > 70 ? '…' : ''), deadline: (crew ? 'Immigration · ' : 'High · ') + t.todo_id + (d === 0 ? ' · due today' : ' · due ' + fmtShort(t.due) + ' (' + d + ' d late)'), icon: crew ? 'users' : 'alert!', click: `showTodoDetail('${esc(t.id)}')`, act: { kind: 'todo', id: t.id } });
       redCount++;
     });
 
@@ -7834,7 +8087,7 @@ function dbRenderUrgent(todayStr) {
   if (!panel || !countEl || !itemsEl) return urgents.length;
   countEl.textContent = urgents.length;
   if (!urgents.length) {
-    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver, crew and guest lists due for arrivals, and high priority To Do items past their date show here.</div>';
+    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver, crew and guest lists due for arrivals, and high priority To Do items past their date show here. Tick one off and it closes everywhere in the app.</div>';
     panel.style.borderColor = '#bbf7d0';
     panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
     panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
@@ -7849,11 +8102,12 @@ function dbRenderUrgent(todayStr) {
   itemsEl.innerHTML = urgents.map(u => `
     <div class="db-urgent-item${u.todo ? ' db-todo-item' : ''}" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
       <div class="db-urgent-icon${u.icon.endsWith('!') ? ' tone-red' : ''}">${ic(u.icon.replace('!', ''))}</div>
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="db-urgent-vessel">${esc(u.vessel)}</div>
         <div class="db-urgent-desc">${esc(u.desc)}</div>
         <div class="db-urgent-deadline">${esc(u.deadline)}</div>
       </div>
+      ${naActsHtml(u.act)}
     </div>`).join('');
   return redCount;
 }
