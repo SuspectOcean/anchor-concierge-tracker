@@ -1316,7 +1316,7 @@
   .td-collapsed { display:none; }
   /* Dormant */
   .td-dormant-head { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; margin-top:10px; background:var(--gray-100); border-radius:6px; cursor:pointer; font-size:12px; color:var(--gray-600); }
-  .td-dormant .td-row { opacity:.72; }
+  .td-dormant .td-row, .td-dormant .ag-row { opacity:.72; }
   .td-para { white-space: pre-wrap; }
   .td-act { margin-left: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 14px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #15803d; cursor: pointer; white-space: nowrap; }
   .td-act:hover { background: #dcfce7; }
@@ -6238,10 +6238,20 @@ function naActsHtml(act) {
   </div>`;
   if (k === 'lists') return `<div class="na-acts">
     ${tick(`naDone('lists','${id}',event)`, 'Lists are in the clearance systems')}
-    <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival" ${call(`listsMark('${id}','Not needed',event)`)}>Not needed</button>
+    <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival" ${call(`naNotNeeded('${id}',event)`)}>Not needed</button>
     <button type="button" class="na-btn" title="Open the expected arrival" ${call(`naEdit('lists','${id}',event)`)}>Edit</button>
   </div>`;
   return '';
+}
+// Writing "Not needed" to the sheet is a real change, so it is asked for first.
+async function naNotNeeded(id, ev) {
+  if (ev) ev.stopPropagation();
+  const r = vtExpected.find(x => x.id === id); if (!r) return;
+  if (!(await uiConfirm('No crew and guest lists needed for ' + (r.vessel_name || 'this arrival') + '?', {
+    detail: 'Writes "Not needed" to the Expected tab of the sheet and takes the row out of Needs action.',
+    ok: 'Not needed', cancel: 'Keep it on the list'
+  }))) return;
+  return listsMark(id, 'Not needed', null);
 }
 async function naDone(kind, id, ev) {
   if (ev) ev.stopPropagation();
@@ -6660,7 +6670,13 @@ function calInPortByDay(fromStr, toStr){
   const visits = vtVisits();
   const out = {};
   for (let d = fromStr; d <= toStr; d = addDays(d, 1)) {
-    out[d] = visits.filter(v => visitStatus(v, d) === 'current').map(v => v.vessel);
+    const seen = new Set(), names = [];
+    visits.filter(v => visitStatus(v, d) === 'current').forEach(v => {
+      const k = v.key || vtKey(v.vessel);
+      if (seen.has(k)) return;              // one line per vessel, not one per visit
+      seen.add(k); names.push(v.vessel);
+    });
+    out[d] = names;
   }
   return out;
 }
