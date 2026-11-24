@@ -7745,27 +7745,33 @@ let sheetWriteBusy = false;
 // mirrors the change in its own copy so the row goes at once, and reconciles quietly after.
 // Returns the way back, so a write the sheet refuses can be undone on screen.
 function applyLocalWrite(p) {
-  let target = null, fields = [];
+  let target = null, targets = [], fields = [];
   if (p.action === 'todo_status') {
     target = vtTodo.find(x => x.todo_id === p.id); fields = ['status'];
   } else if (p.action === 'todo_edit') {
     target = vtTodo.find(x => x.todo_id === p.id);
     fields = ['task', 'owner', 'due', 'priority', 'status', 'notes'].filter(k => k in p);
-  } else if (p.action === 'lists_status') {
-    target = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
+  } else if (p.action === 'lists_status' || p.action === 'lists_status_row') {
+    targets = expectedTargets(p);
     fields = ['lists_status'];
   } else if (p.action === 'change_status') {
     target = vtChanges.find(x => x.change_id === p.id); fields = ['status'];
   }
-  if (!target) return () => {};
-  const was = {};
-  fields.forEach(k => { was[k] = target[k]; });
-  fields.forEach(k => {
-    if (k === 'lists_status') target[k] = p.value;
-    else if (k === 'status') target[k] = p.status;
-    else target[k] = p[k] || null;
-  });
-  return () => { fields.forEach(k => { target[k] = was[k]; }); };
+  if (target) targets = [target];
+  if (!targets.length) return () => {};
+  const was = targets.map(t => { const o = {}; fields.forEach(k => { o[k] = t[k]; }); return o; });
+  targets.forEach(t => fields.forEach(k => {
+    if (k === 'lists_status') t[k] = p.value;
+    else if (k === 'status') t[k] = p.status;
+    else t[k] = p[k] || null;
+  }));
+  return () => { targets.forEach((t, i) => fields.forEach(k => { t[k] = was[i][k]; })); };
+}
+// Every row the write covers. A row number names exactly one; the older match can still hit
+// more than one if the sheet grows a duplicate again, and all of them are kept in step.
+function expectedTargets(p) {
+  if (p.action === 'lists_status_row') return vtExpected.filter(x => x.sheet_row === p.row);
+  return vtExpected.filter(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
 }
 // A write reaches the sheet at once, but the sheet's own sync back into the app's copy can
 // take a couple of minutes. Until it lands, every reload would show the old value and put the
@@ -7782,9 +7788,9 @@ function writeLanded(p) {
     return ['task', 'owner', 'due', 'priority', 'status', 'notes'].filter(k => k in p)
       .every(k => String(t[k] == null ? '' : t[k]) === String(p[k] == null ? '' : p[k]));
   }
-  if (p.action === 'lists_status') {
-    const r = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
-    return !r || (r.lists_status || '') === p.value;
+  if (p.action === 'lists_status' || p.action === 'lists_status_row') {
+    const rows = expectedTargets(p);
+    return !rows.length || rows.every(r => (r.lists_status || '') === p.value);
   }
   if (p.action === 'change_status') {
     const c = vtChanges.find(x => x.change_id === p.id); return !c || c.status === p.status;
@@ -7969,8 +7975,13 @@ async function listsMark(id, value, ev, note) {
   if (ev) ev.stopPropagation();
   const r = expectedByRef(id); if (!r) return rowGone('arrival');
   closeModal('vesselDetailModal');
-  await sheetWrite({ action: 'lists_status', vessel: r.vessel_name, movement: r.movement_type, expected_date: r.expected_date || '', value: value + (note ? ' (' + note + ')' : '') },
-    r.vessel_name + ' crew and guest lists: ' + value.toLowerCase());
+  // Name the row rather than letting the script search for it. Two rows for one arrival used
+  // to mean the script wrote to the first and the app showed the second, so the tick did nothing.
+  const written = value + (note ? ' (' + note + ')' : '');
+  const payload = r.sheet_row
+    ? { action: 'lists_status_row', row: r.sheet_row, vessel: r.vessel_name, value: written }
+    : { action: 'lists_status', vessel: r.vessel_name, movement: r.movement_type, expected_date: r.expected_date || '', value: written };
+  await sheetWrite(payload, r.vessel_name + ' crew and guest lists: ' + value.toLowerCase());
 }
 
 // ---------- Automatic checks against the clearance systems ----------
