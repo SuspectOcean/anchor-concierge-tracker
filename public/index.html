@@ -7739,64 +7739,79 @@ function showTodoDetail(id) {
 // The sheet stays the master. sheet-write asks the Apps Script to change one cell group,
 // the script pushes a fresh copy, then the app reloads what it shows.
 let sheetWriteBusy = false;
-// Which row the last press came from, so only that one greys out while it is written.
-let naBusyRow = null;
-document.addEventListener('mousedown', e => {
-  const b = e.target && e.target.closest && e.target.closest('.na-btn, .na-tick, .td-act, .td-confirm, .td-reject, .vt-act');
-  naBusyRow = b ? b.closest('.db-urgent-item, .td-row, .td-likely') : null;
-}, true);
-
 // The sheet is the master, but it is slow to come back: the script writes the cell, then pushes
 // a sync, and only then does the app's own copy catch up. Waiting for all of that left the page
 // dead for half a minute on one tick. So the app asks for the write without the sync wait,
 // mirrors the change in its own copy so the row goes at once, and reconciles quietly after.
+// Returns the way back, so a write the sheet refuses can be undone on screen.
 function applyLocalWrite(p) {
+  let target = null, fields = [];
   if (p.action === 'todo_status') {
-    const t = vtTodo.find(x => x.todo_id === p.id); if (t) t.status = p.status;
+    target = vtTodo.find(x => x.todo_id === p.id); fields = ['status'];
   } else if (p.action === 'todo_edit') {
-    const t = vtTodo.find(x => x.todo_id === p.id);
-    if (t) ['task', 'owner', 'due', 'priority', 'status', 'notes'].forEach(k => { if (k in p) t[k] = p[k] || null; });
+    target = vtTodo.find(x => x.todo_id === p.id);
+    fields = ['task', 'owner', 'due', 'priority', 'status', 'notes'].filter(k => k in p);
   } else if (p.action === 'lists_status') {
-    const r = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
-    if (r) r.lists_status = p.value;
+    target = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
+    fields = ['lists_status'];
   } else if (p.action === 'change_status') {
-    const c = vtChanges.find(x => x.change_id === p.id); if (c) c.status = p.status;
+    target = vtChanges.find(x => x.change_id === p.id); fields = ['status'];
   }
+  if (!target) return () => {};
+  const was = {};
+  fields.forEach(k => { was[k] = target[k]; });
+  fields.forEach(k => {
+    if (k === 'lists_status') target[k] = p.value;
+    else if (k === 'status') target[k] = p.status;
+    else target[k] = p[k] || null;
+  });
+  return () => { fields.forEach(k => { target[k] = was[k]; }); };
 }
 let sheetReconcileTimer = null;
 function scheduleSheetReconcile(ms) {
   clearTimeout(sheetReconcileTimer);
   sheetReconcileTimer = setTimeout(() => {
     loadVesselTracking().then(renderDashboard).catch(() => {});
-  }, ms || 30000);
+  }, ms || 20000);
 }
-async function sheetWrite(payload, label) {
-  if (!canWriteUser()) return showToast('Your account cannot change the sheet');
-  if (sheetWriteBusy) return showToast('One moment, a change is still being written');
+// Writes go one after another, never at the same time: two syncs racing in the sheet script
+// could leave the app's copy half built. A second press is queued, not refused, so several
+// rows can be cleared in a row without waiting for each one.
+let sheetWriteChain = Promise.resolve();
+// Click and done. The row comes off the list straight away and the sheet is written behind it.
+// If the sheet refuses, the row goes back where it was and says why. Writes still go one at a
+// time so two syncs never race, but the screen never waits for them.
+function sheetWrite(payload, label) {
+  if (!canWriteUser()) return Promise.resolve(showToast('Your account cannot change the sheet'));
+  const undo = applyLocalWrite(payload);
+  renderDashboard();
+  showToast(label || 'Done');
+  const run = sheetWriteChain.then(() => sheetWriteNow(payload, label, undo));
+  sheetWriteChain = run.catch(() => {});
+  return run;
+}
+async function sheetWriteNow(payload, label, undo) {
   sheetWriteBusy = true;
-  const row = naBusyRow;
-  if (row) row.classList.add('na-busy');
-  showToast((label || 'Writing to the sheet') + '…');
   try {
     const { data, error } = await sb.functions.invoke('sheet-write', { body: { ...payload, wait: false } });
     const reply = data || {};
     if (error || !reply.ok) {
       let msg = error ? error.message : (reply.error || 'the sheet did not accept the change');
       try { if (error && error.context) { const j = await error.context.json(); if (j && j.error) msg = j.error; } } catch (_) {}
-      showToast('Not saved: ' + msg);
+      undo();
+      renderDashboard();
+      showToast('Put back, not saved: ' + msg);
       return false;
     }
-    applyLocalWrite(payload);
-    renderDashboard();
-    showToast(label || 'Saved');
-    scheduleSheetReconcile();   // the sheet has it; pick up its own copy once the sync lands
+    scheduleSheetReconcile();   // the sheet has it; pick up its own copy once its sync lands
     return true;
   } catch (e) {
-    showToast('Not saved: ' + e.message);
+    undo();
+    renderDashboard();
+    showToast('Put back, not saved: ' + e.message);
     return false;
   } finally {
     sheetWriteBusy = false;
-    if (row) row.classList.remove('na-busy');
   }
 }
 async function todoMarkDone(id, ev) {
