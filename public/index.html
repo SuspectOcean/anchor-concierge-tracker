@@ -731,6 +731,18 @@
   .db-urgent-item { flex-wrap: wrap; }
   .na-acts { flex-wrap: wrap; justify-content: flex-end; }
   @media (max-width: 640px) { .na-acts { width: 100%; margin: 6px 0 0; } }
+  /* Needs action grouped by vessel: her name with a count, opening to her own jobs. */
+  .na-group { border-bottom: 1px solid #fecaca; }
+  .na-group:last-child { border-bottom: none; }
+  .na-group-head { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; }
+  .na-group-head:hover { background: #fee2e2; }
+  .na-count { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--gray-200); color: var(--gray-700); flex-shrink: 0; }
+  .na-count-red { background: #dc2626; color: #fff; }
+  .na-chev { font-size: 10px; color: var(--gray-500); width: 9px; flex-shrink: 0; }
+  .na-group-body { background: #fff; }
+  .na-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 14px 7px 40px; border-top: 1px solid var(--gray-100); cursor: pointer; }
+  .na-sub:hover { background: var(--gray-50); }
+  .na-sub-text { flex: 1 1 168px; min-width: 168px; }
 
   /* ═══════════════════════════════════════════
      DASHBOARD — Movements
@@ -801,6 +813,25 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Team / Charges / What's Next
   ═══════════════════════════════════════════ */
+  /* Someone else changed the sheet or the app: say so, leave the screen where it is. */
+  .chg-bar {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 900;
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px;
+    background: var(--navy); color: #fff; box-shadow: 0 6px 24px rgba(0,0,0,0.25); font-size: 12px;
+    max-width: calc(100vw - 32px);
+  }
+  .chg-bar.hidden { display: none; }
+  .chg-bar b { font-weight: 700; }
+  .chg-bar button {
+    font-size: 11px; font-weight: 700; padding: 5px 11px; border-radius: 14px; cursor: pointer;
+    border: none; background: var(--teal, #14b8a6); color: #fff;
+  }
+  .chg-bar button:hover { filter: brightness(1.08); }
+  .chg-bar .chg-x { background: transparent; color: #cbd5e1; padding: 5px 6px; font-size: 14px; }
+  .db-gap { padding: 9px 14px; border-top: 1px solid var(--gray-200); background: #fffbeb; display: flex; flex-direction: column; gap: 2px; }
+  .db-gap b { font-size: 11px; color: #b45309; }
+  .db-gap span { font-size: 11px; color: var(--gray-700); }
+  .db-gap small { font-size: 10px; color: var(--gray-500); }
   .db-team-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--gray-100); }
   .db-team-row:last-child { border-bottom: none; }
   .db-team-name { font-size: 12px; font-weight: 600; color: var(--navy); min-width: 90px; }
@@ -2335,7 +2366,7 @@
           <div class="db-panel-header">
             <i data-ic="list" class="ph-ic"></i>
             <div>
-              <div class="db-panel-title">To Do</div>
+              <div class="db-panel-title">Jobs</div>
               <div class="db-panel-sub" id="td-sub">Open requests, quotes and replies owed, from the To Do tab of the Google Sheet</div>
             </div>
             <span class="db-urgent-count" id="td-count" style="background:var(--navy);margin-left:auto;">0</span>
@@ -2371,18 +2402,6 @@
 
       <!-- RIGHT: sidebar -->
       <div>
-        <div class="db-panel db-urgent-panel" id="db-urgent-panel" data-db-panel="urgent">
-          <div class="db-panel-header">
-            <i data-ic="alert" class="ph-ic"></i>
-            <span class="db-urgent-title">Needs action</span>
-            <span class="db-urgent-count" id="db-urgent-count" style="margin-left:6px;">0</span>
-            <a href="javascript:void(0)" class="db-panel-link" onclick="showView('log')">Service Log &rarr;</a>
-          </div>
-          <div class="db-urgent-items" id="db-urgent-items">
-            <div class="db-empty">Nothing needs action</div>
-          </div>
-        </div>
-
         <div class="db-panel" data-db-panel="crew-alerts">
           <div class="db-panel-header">
             <i data-ic="idcard" class="ph-ic"></i>
@@ -2816,6 +2835,8 @@ function viewVisible(name) {
 // Re-draw whatever is on screen after data changed.
 function refreshViews() {
   vtInvalidate();
+  // A background reload fills the caches but leaves the screen alone; the bar invites the redraw.
+  if (quietLoad) return;
   renderLog();
   if (viewVisible('dashboard')) renderDashboard();
   if (viewVisible('movements')) renderMovementsList();
@@ -2849,6 +2870,7 @@ async function syncNow() {
   try {
     await Promise.all([loadEntries(), loadVessels(), loadVesselTracking()]);
     refreshViews();
+    changeKinds.clear(); renderChangeBar();   // a manual sync is already the refresh
   } catch (e) { console.error('Reload after sync failed:', e); }
   btns.forEach(b => { b.disabled = false; const s = b.querySelector('.ico'); if (s) s.classList.remove('spin'); });
   labels.forEach(([id, text]) => { const el = document.getElementById(id); if (el) el.textContent = text; });
@@ -2864,6 +2886,7 @@ async function refreshAll() {
   try {
     await Promise.all([loadEntries(), loadVessels(), loadVesselTracking()]);
     refreshViews();
+    changeKinds.clear(); renderChangeBar();
     showToast('Up to date');
   } catch (err) {
     showToast('Could not refresh: ' + (err.message || err));
@@ -3592,22 +3615,78 @@ function subscribeToChanges() {
   realtimeSubscribed = true;
 
   sb.channel('entries-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => { loadEntries(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => { quietly(loadEntries, 'app'); })
     .subscribe();
 
   sb.channel('vessels-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, () => { loadVessels(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'vessels' }, () => { quietly(loadVessels, 'app'); })
     .subscribe();
 
   // A new row here means the sheet has just synced: pull the fresh copy.
   sb.channel('sheet-sync')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sync_runs' }, async () => {
-      await loadVessels();
-      await loadVesselTracking();
-      refreshViews();
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sync_runs' }, () => {
+      quietly(async () => { await loadVessels(); await loadVesselTracking(); }, 'sheet');
     })
     .subscribe();
+
+  // Realtime drops quietly on a sleeping laptop or a weak connection, so the app also
+  // asks every 90 seconds whether the sheet has synced since the copy on screen.
+  setInterval(changeWatch, 90000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) changeWatch(); });
 }
+
+// ---------- "Something changed" bar ----------
+// The screen never moves underneath someone mid job. The new data is fetched and held,
+// the bar says what changed, and the screen redraws only when Refresh is pressed.
+let quietLoad = false;
+const changeKinds = new Set();
+
+async function quietly(fn, kind) {
+  quietLoad = true;
+  try { await fn(); } catch (e) { console.warn('Background reload failed:', e && e.message); }
+  finally { quietLoad = false; }
+  changeKinds.add(kind);
+  renderChangeBar();
+}
+
+async function changeWatch() {
+  if (document.hidden || !currentUser) return;
+  try {
+    const { data, error } = await sb.from('sync_runs').select('id').order('id', { ascending: false }).limit(1);
+    if (error || !data || !data[0]) return;
+    const latest = data[0].id;
+    if (vtLastSync && latest > vtLastSync.id && !changeKinds.has('sheet')) {
+      quietly(async () => { await loadVessels(); await loadVesselTracking(); }, 'sheet');
+    }
+  } catch (e) { /* offline: the badge already says so */ }
+}
+
+function renderChangeBar() {
+  let bar = document.getElementById('changeBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'changeBar';
+    bar.className = 'chg-bar hidden';
+    document.body.appendChild(bar);
+  }
+  if (!changeKinds.size) { bar.className = 'chg-bar hidden'; bar.innerHTML = ''; return; }
+  const sheet = changeKinds.has('sheet'), app = changeKinds.has('app');
+  const what = sheet && app ? 'The sheet and the app have changed'
+    : sheet ? 'The Google Sheet has changed'
+    : 'Someone has changed something in the app';
+  bar.className = 'chg-bar';
+  bar.innerHTML = `<b>${what}</b><span>since you opened this screen.</span>
+    <button type="button" onclick="changeBarRefresh()">Refresh</button>
+    <button type="button" class="chg-x" title="Keep this screen as it is" onclick="changeBarDismiss()">&times;</button>`;
+}
+
+function changeBarRefresh() {
+  changeKinds.clear();
+  renderChangeBar();
+  refreshViews();
+  showToast('Up to date');
+}
+function changeBarDismiss() { changeKinds.clear(); renderChangeBar(); }
 
 function updateSyncBadge(online, status) {
   const badge = document.getElementById('syncBadge');
@@ -5693,7 +5772,11 @@ function visitStatus(v, dayStr) {
   if (v.start && v.start > dayStr) return 'expected';
   if (v.end && v.end <= dayStr) return 'departed';
   if (v.superseded) return 'unknown';
-  if (!v.start) return 'current';
+  // A departure on file with no arrival is not proof the vessel is here. Ross's rule runs the
+  // same way round for arrivals: a vessel counts as in port only once her arrival is logged.
+  // Past dates on the Expected tab never become arrivals, so an expected departure left over
+  // from a visit nobody logged used to put a vessel that had already sailed into "in port now".
+  if (!v.start) return 'unknown';
   if (v.start >= seasonStartFor(dayStr)) return 'current';
   // An older arrival still counts when it was logged in this season's Movements tab on purpose
   // (for example a vessel that arrived in the summer and is still here).
@@ -5708,6 +5791,17 @@ function visitDays(v, dayStr) {
   return Math.max(0, daysBetween(v.start, end));
 }
 function byVesselName(a, b) { return String(a.vessel).localeCompare(String(b.vessel), undefined, { sensitivity: 'base' }); }
+
+// Departures on file for a vessel with no arrival logged. Not in port, but worth seeing:
+// each one is either a vessel that sailed without the arrival ever being recorded, or an
+// arrival still to be logged. Only the ones whose departure has not already passed.
+function vtNoArrival(dayStr) {
+  const seen = new Set();
+  return vtVisits().filter(v => !v.start && v.end && v.end > dayStr && !v.superseded)
+    .filter(v => { if (seen.has(v.key)) return false; seen.add(v.key); return true; })
+    .sort(byVesselName)
+    .map(v => ({ vessel: v.vessel, key: v.key, leaves: v.end }));
+}
 
 function vtInPort(dayStr) {
   return vtVisits().filter(v => visitStatus(v, dayStr) === 'current').sort(byVesselName).map(v => ({
@@ -5815,8 +5909,13 @@ function vtTimelineHtml(dayStr) {
   const inWindow = v => {
     const st = visitStatus(v, realToday);
     const a = v.start || v.end;
-    const b = st === 'current' ? (v.arrival && v.arrival.intendedDeparture > realToday ? v.arrival.intendedDeparture : realToday) : (v.end || v.start);
-    return a <= last && b >= first;
+    const b = st === 'current'
+      ? (v.arrival && v.arrival.intendedDeparture > realToday ? v.arrival.intendedDeparture : realToday)
+      : (v.end || v.start);
+    // A visit can end before it starts only when one half is missing; use the wider span so
+    // the window test never silently drops a row the dashboard is counting.
+    const lo = a < b ? a : b, hi = a < b ? b : a;
+    return lo <= last && hi >= first;
   };
   const vesselRows = new Map();
   vtVisits().filter(inWindow).forEach(v => {
@@ -6702,6 +6801,7 @@ function dbCalRange(fromStr, toStr){
   // Arrivals and departures first in each day cell, then provisions and tenders,
   // so the three pips a month cell has room for are the ones that matter most.
   const rank = i => i.calTag === 'move' ? 0 : 1;
+  Object.keys(by).forEach(d => { by[d] = calGroupShips(by[d], d); });
   Object.values(by).forEach(list => list.sort((a, b) => rank(a) - rank(b)));
   return by;
 }
@@ -6735,7 +6835,54 @@ function calItems(fromStr, toStr){
   });
   return { shown, rest };
 }
+// Vessels shipped in on the same heavy lift ship on the same day are one event, not five.
+// The tile carries the ship's name and how many she is bringing; it opens to the list.
+// A row with no ship named in column N of the Expected tab is left showing on its own.
+function calGroupShips(list, day){
+  const ships = {};
+  const out = [];
+  list.forEach(i => {
+    const ship = (i.ship || '').trim();
+    if (!ship || i.kind !== 'move' || !/arriv/i.test(String(i.badge || ''))) { out.push(i); return; }
+    if (!ships[ship]) {
+      ships[ship] = { date: day, time: '', kind: 'ship', calTag: 'move', badge: 'Ship arrival', vessel: ship, ship, names: [], status: '', click: `showShipDay('${esc(ship)}','${esc(day)}')` };
+      out.push(ships[ship]);
+    }
+    ships[ship].names.push(i.vessel);
+  });
+  Object.values(ships).forEach(g => {
+    g.detail = 'Discharging ' + g.names.length + ': ' + g.names.join(', ');
+    g.count = g.names.length;
+  });
+  // One vessel on a ship reads better as the vessel herself, with the ship in the detail.
+  return out.map(i => {
+    if (i.kind !== 'ship' || i.count > 1) return i;
+    const only = list.find(x => x.ship === i.ship && x.vessel === i.names[0]);
+    return only ? Object.assign({}, only, { detail: [only.detail, 'On ' + i.ship].filter(Boolean).join(' · ') }) : i;
+  });
+}
+
+// Everything one ship is landing on one day.
+function showShipDay(ship, day){
+  const rows = vtExpected.filter(r => (r.shipped_on || '') === ship && r.expected_date === day && r.movement_type === 'Arrival');
+  document.getElementById('vesselDetailTitle').innerHTML = esc(ship) + ` <span class="vt-chip vt-chip-expected">Discharging ${rows.length}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    <p class="vt-para">${esc(fmtDate(day))} at ${esc(rows.map(r => r.port).filter(Boolean)[0] || 'St Johns')}. ${rows.length} vessel${rows.length === 1 ? '' : 's'} coming off this ship.</p>
+    ${rows.map(r => `
+      <div class="db-urgent-item" style="background:#fff;border-color:var(--gray-200);" onclick="showExpectedDetail('${esc(expectedRef(r))}')">
+        <div class="db-urgent-text">
+          <div class="db-urgent-vessel">${esc(r.vessel_name)}</div>
+          <div class="db-urgent-desc">${esc([r.vessel_type, r.loa, r.contact].filter(Boolean).join(' · '))}</div>
+        </div>
+      </div>`).join('')}
+    <p class="vt-note" style="margin-top:12px;">Grouped by column N "Shipped on" of the Expected tab. A row with no ship named shows on its own in the calendar.</p>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
+}
+
 function dbCalPip(i){
+  if (i.kind === 'ship') {
+    return `<div class="db-cal-pip sv-ship" title="${dbCalEsc(i.vessel + ' · ' + i.detail)}" onclick="event.stopPropagation();showShipDay('${esc(i.ship)}','${esc(i.date)}')"><span class="pip-word">Ship · </span>${dbCalEsc(i.vessel)} <b>${i.count}</b></div>`;
+  }
   const cls = dbCalClass(i);
   const word = cls === 'arr' ? 'Arr' : cls === 'dep' ? 'Dep' : cls === 'exp-arr' ? 'Exp arr' : cls === 'exp-dep' ? (i.kind === 'intended' ? 'Int dep' : 'Exp dep')
     : i.calTag === 'tender' ? 'Tender' : i.calTag === 'prov' ? 'Provisions' : i.kind === 'todo' ? (i.svLabel || 'To do') : '';
@@ -7178,6 +7325,7 @@ function agendaItems(fromStr, toStr) {
       date: m.date, time: m.time, kind: 'move', badge: m.expected ? 'Expected ' + String(m.type || '').toLowerCase() : (m.type || 'Movement'), vessel: m.vessel,
       detail: m.expected ? [m.port, 'Date ' + expCertainty(m.raw).toLowerCase(), m.raw.contact, ['urgent', 'todo'].includes((listsState(m.raw, antiguaToday()) || {}).code) ? 'Crew and guest lists to do' : ''].filter(Boolean).join(' · ') : [mvFromTo(m) || m.notes, people, m.src === 'sheet' ? m.portal : ''].filter(Boolean).join(' · '),
       status: '', click: mvClick(m),
+      ship: m.expected && m.raw ? (m.raw.shipped_on || '') : '',
       warn: m.expected && (listsState(m.raw, antiguaToday()) || {}).code === 'urgent'
     });
   });
@@ -7301,8 +7449,24 @@ async function dbRenderMapSection(inPort) {
 // Column M of the sheet's Expected tab: "To do", "Done" or "Not needed". Empty counts as to do.
 // A to-do from 7 days before the expected arrival, urgent from 3 days before.
 const LISTS_TODO_DAYS = 7, LISTS_URGENT_DAYS = 3;
+// A crew and guest list is for people clearing in aboard a vessel. A pallet of provisions,
+// a crate of spares, an air shipment or a tender riding in on a ship has no crew to list, so
+// those rows never raise the job. Ross's standing rule: cargo and tender arrivals, not needed.
+// "delivery" and "launch" are deliberately not here: a new build's type reads
+// "Motor yacht (new build, delivery 24 Nov)" and she arrives with her crew aboard.
+const LISTS_CARGO_RE = /\b(provision(s|ing)?|shipment|shipping|spares?|parts?|cargo|container|crate|pallet|freight|package|parcel|courier|hazmat|sails?|equipment|fedex|dhl|awb)\b/i;
+const LISTS_NO_CREW_RE = /\b(tender|chase ?boat|rib|dinghy|jet ?ski|seabob|toy)\b/i;
+function listsApplies(r) {
+  if (!r) return false;
+  if (r.shipped_on) return false;                       // she arrives as freight, nobody aboard
+  const text = [r.vessel_name, r.vessel_type].filter(Boolean).join(' ');
+  if (LISTS_CARGO_RE.test(text)) return false;
+  if (LISTS_NO_CREW_RE.test(text)) return false;
+  return true;
+}
 function listsState(r, todayStr) {
   if (!r || r.movement_type !== 'Arrival') return null;
+  if (!listsApplies(r)) return { code: 'na', label: 'No lists needed' };
   const s = String(r.lists_status || '').trim().toLowerCase();
   if (s.startsWith('done')) return { code: 'done', label: 'Lists added' };
   if (s.startsWith('not')) return { code: 'na', label: 'Lists not needed' };
@@ -7549,8 +7713,9 @@ function todoState(t, todayStr) {
   if (days <= 6) return { code: 'week', days };
   return { code: 'later', days };
 }
-let todoRange = uiGet('todo', 'week');   // due | today | week | all
+let todoRange = uiGet('todo', 'now');   // due | today | week | all
 const TODO_RANGES = [
+  { id: 'now', label: 'Needs action' },
   { id: 'due', label: 'Overdue' },
   { id: 'today', label: 'Today and tomorrow' },
   { id: 'week', label: 'This week' },
@@ -7623,11 +7788,17 @@ function renderTodoPanel(todayStr) {
     ? `${active.length} live${late ? ', ' + late + ' past the due date' : ''}${likely.length ? ', ' + likely.length + ' to confirm' : ''}${dormant.length ? ', ' + dormant.length + ' dormant' : ''}${held.length ? ', ' + held.length + ' on hold' : ''}. From the To Do tab of the Google Sheet.`
     : 'Open requests, quotes and replies owed, from the To Do tab of the Google Sheet';
   tabsEl.innerHTML = TODO_RANGES.map(r => {
-    const n = active.filter(t => todoInRange(t, todayStr, r.id)).length;
+    const n = r.id === 'now' ? naBuild(todayStr).urgents.length : active.filter(t => todoInRange(t, todayStr, r.id)).length;
     return `<button type="button" class="${r.id === todoRange ? 'active' : ''}" onclick="setTodoRange('${r.id}')">${r.label}<span class="ag-count">${n}</span></button>`;
   }).join('')
     + `<button type="button" class="${todoGroupBy === 'vessel' ? 'active' : ''}" style="margin-left:auto;" title="Group by vessel instead of by date" onclick="setTodoGroup('${todoGroupBy === 'vessel' ? 'date' : 'vessel'}')">By vessel</button>`;
 
+  if (todoRange === 'now') {
+    const red = naRenderInto(bodyEl, todayStr);
+    if (countEl) { countEl.textContent = naBuild(todayStr).urgents.length; countEl.style.background = red ? '#dc2626' : 'var(--navy)'; }
+    if (subEl) subEl.textContent = 'Overdue jobs, transfers with no driver, crew and guest lists due, and high priority To Do items past their date. Tick one off and it closes everywhere.';
+    return;
+  }
   if (!vtTodo.length) { bodyEl.innerHTML = '<div class="db-empty">No To Do rows synced yet. The To Do tab of the Google Sheet shows here after the next sync.</div>'; return; }
 
   const byDue = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || ({ High: 0, Normal: 1, Low: 2 }[a.priority] ?? 1) - ({ High: 0, Normal: 1, Low: 2 }[b.priority] ?? 1) || String(a.vessel_name).localeCompare(String(b.vessel_name)) || a.todo_id.localeCompare(b.todo_id);
@@ -8242,7 +8413,10 @@ function dbRenderKPI(movements, urgentCount, inPort) {
 
 // Needs action: every overdue job (whatever its date), plus today's and tomorrow's
 // transfers with no driver, critical jobs, and anything flagged "urgent" in its notes.
-function dbRenderUrgent(todayStr) {
+// Builds the live action list. One list, rendered in one place: the Needs action tab of
+// the Jobs panel. It used to be drawn twice, in the sidebar and again below, which is why
+// the same job stared back at you from two panels.
+function naBuild(todayStr) {
   const urgents = [];
   const addedIds = new Set();
   const tomorrow = addDays(todayStr, 1);
@@ -8294,35 +8468,30 @@ function dbRenderUrgent(todayStr) {
       redCount++;
     });
 
-  const panel = document.getElementById('db-urgent-panel');
-  const countEl = document.getElementById('db-urgent-count');
-  const itemsEl = document.getElementById('db-urgent-items');
-  if (!panel || !countEl || !itemsEl) return urgents.length;
-  countEl.textContent = urgents.length;
+  return { urgents, redCount };
+}
+
+// The Needs action tab. Same rows, same controls, one home.
+function naRenderInto(el, todayStr) {
+  const { urgents, redCount } = naBuild(todayStr);
+  if (!el) return redCount;
   if (!urgents.length) {
-    itemsEl.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver, crew and guest lists due for arrivals, and high priority To Do items past their date show here. Tick one off and it closes everywhere in the app.</div>';
-    panel.style.borderColor = '#bbf7d0';
-    panel.querySelector('.db-panel-header').style.background = '#f0fdf4';
-    panel.querySelector('.db-panel-header').style.borderColor = '#bbf7d0';
-    countEl.style.background = '#15803d';
+    el.innerHTML = '<div class="db-empty" style="padding:16px;">All clear. Overdue jobs, transfers with no driver, crew and guest lists due for arrivals, and high priority To Do items past their date show here. Tick one off and it closes everywhere in the app.</div>';
     return 0;
   }
-  const red = redCount > 0;
-  panel.style.borderColor = red ? '#fca5a5' : '#fcd34d';
-  panel.querySelector('.db-panel-header').style.background = red ? '#fff5f5' : '#fffbeb';
-  panel.querySelector('.db-panel-header').style.borderColor = red ? '#fca5a5' : '#fcd34d';
-  countEl.style.background = red ? '#dc2626' : '#d97706';
-  itemsEl.innerHTML = urgents.map(u => `
-    <div class="db-urgent-item${u.todo ? ' db-todo-item' : ''}" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
-      <div class="db-urgent-icon${u.icon.endsWith('!') ? ' tone-red' : ''}">${ic(u.icon.replace('!', ''))}</div>
-      <div class="db-urgent-text">
-        <div class="db-urgent-vessel">${esc(u.vessel)}</div>
-        <div class="db-urgent-desc">${esc(u.desc)}</div>
-        <div class="db-urgent-deadline">${esc(u.deadline)}</div>
-      </div>
-      ${naActsHtml(u.act)}
-    </div>`).join('');
+  const groups = [];
+  const byVessel = {};
+  urgents.forEach(u => {
+    const key = naVesselKey(u.vessel);
+    if (!byVessel[key]) { byVessel[key] = { key, vessel: u.vessel || 'General', items: [] }; groups.push(byVessel[key]); }
+    byVessel[key].items.push(u);
+  });
+  el.innerHTML = groups.map(g => g.items.length === 1 ? naRowHtml(g.items[0]) : naGroupHtml(g)).join('');
   return redCount;
+}
+
+function dbRenderUrgent(todayStr) {
+  return naBuild(todayStr).redCount;
 }
 
 // In port = an arrival on or before the chosen day with no departure on or before it.
@@ -8334,8 +8503,15 @@ function dbRenderInAntigua(dayStr) {
   if (!el) return inPort;
   if (countEl) countEl.textContent = inPort.length;
 
+  const gaps = vtNoArrival(dayStr);
+  const gapHtml = gaps.length ? `<div class="db-gap" title="A departure is on file for these vessels but no arrival, so they are not counted as in port">
+      <b>${gaps.length} with a departure on file and no arrival logged</b>
+      <span>${gaps.map(g => esc(g.vessel) + ' (leaves ' + esc(fmtShort(g.leaves)) + ')').join(' · ')}</span>
+      <small>Not counted as in port. Log the arrival under Movements if one of these is actually here.</small>
+    </div>` : '';
+
   if (!inPort.length) {
-    el.innerHTML = '<div class="db-empty">No vessels in port today. A vessel shows here once its arrival is in the Google Sheet or added under Movements.</div>';
+    el.innerHTML = '<div class="db-empty">No vessels in port today. A vessel shows here once its arrival is in the Google Sheet or added under Movements.</div>' + gapHtml;
     return inPort;
   }
 
@@ -8356,7 +8532,7 @@ function dbRenderInAntigua(dayStr) {
         </div>
         ${jobs ? `<span class="vt-chip vt-chip-expected" title="Open jobs for this vessel">${jobs} open job${jobs === 1 ? '' : 's'}</span>` : ''}
       </div>`;
-  }).join('');
+  }).join('') + gapHtml;
 
   return inPort;
 }
