@@ -7767,11 +7767,48 @@ function applyLocalWrite(p) {
   });
   return () => { fields.forEach(k => { target[k] = was[k]; }); };
 }
+// A write reaches the sheet at once, but the sheet's own sync back into the app's copy can
+// take a couple of minutes. Until it lands, every reload would show the old value and put the
+// row back on the list. So each write is held as pending and re-applied after every reload
+// until the sheet's copy agrees, or until it is plainly not coming.
+let pendingWrites = [];
+const PENDING_GIVE_UP_MS = 600000;
+function writeLanded(p) {
+  if (p.action === 'todo_status') {
+    const t = vtTodo.find(x => x.todo_id === p.id); return !t || t.status === p.status;
+  }
+  if (p.action === 'todo_edit') {
+    const t = vtTodo.find(x => x.todo_id === p.id); if (!t) return true;
+    return ['task', 'owner', 'due', 'priority', 'status', 'notes'].filter(k => k in p)
+      .every(k => String(t[k] == null ? '' : t[k]) === String(p[k] == null ? '' : p[k]));
+  }
+  if (p.action === 'lists_status') {
+    const r = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
+    return !r || (r.lists_status || '') === p.value;
+  }
+  if (p.action === 'change_status') {
+    const c = vtChanges.find(x => x.change_id === p.id); return !c || c.status === p.status;
+  }
+  return true;
+}
+function reconcileAfterLoad() {
+  const now = Date.now();
+  let waiting = false;
+  pendingWrites = pendingWrites.filter(w => {
+    if (writeLanded(w.p)) return false;                  // the sheet's copy has caught up
+    if (now - w.at > PENDING_GIVE_UP_MS) return false;   // it is not coming; show the truth
+    applyLocalWrite(w.p);                                // keep showing what was done
+    waiting = true;
+    return true;
+  });
+  renderDashboard();
+  if (waiting) scheduleSheetReconcile(30000);
+}
 let sheetReconcileTimer = null;
 function scheduleSheetReconcile(ms) {
   clearTimeout(sheetReconcileTimer);
   sheetReconcileTimer = setTimeout(() => {
-    loadVesselTracking().then(renderDashboard).catch(() => {});
+    loadVesselTracking().then(reconcileAfterLoad).catch(() => {});
   }, ms || 20000);
 }
 // Writes go one after another, never at the same time: two syncs racing in the sheet script
@@ -7803,6 +7840,7 @@ async function sheetWriteNow(payload, label, undo) {
       showToast('Put back, not saved: ' + msg);
       return false;
     }
+    pendingWrites.push({ p: payload, at: Date.now() });
     scheduleSheetReconcile();   // the sheet has it; pick up its own copy once its sync lands
     return true;
   } catch (e) {
