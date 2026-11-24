@@ -689,16 +689,19 @@
   .db-urgent-panel .db-panel-header { background: #fff5f5; border-color: #fca5a5; }
   .db-urgent-title { font-size: 11px; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.8px; }
   .db-urgent-count { background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-  .db-urgent-items { padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .db-urgent-items { padding: 6px 10px; display: flex; flex-direction: column; gap: 5px; }
   .db-urgent-item {
     background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px;
-    padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start;
+    padding: 7px 10px; display: flex; gap: 8px; align-items: flex-start;
     cursor: pointer; transition: background 0.15s, box-shadow 0.15s;
   }
+  /* The wording needs room. Below about 320px of panel the buttons take their own line
+     rather than squeezing the text to one word per line. */
+  .db-urgent-text { flex: 1 1 168px; min-width: 168px; }
   .db-urgent-item:hover { background: #fee2e2; box-shadow: 0 2px 8px rgba(220,38,38,0.15); }
   .db-urgent-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .db-urgent-vessel { font-size: 12px; font-weight: 700; color: var(--navy); }
-  .db-urgent-desc { font-size: 11px; color: var(--gray-700); margin: 2px 0; }
+  .db-urgent-vessel { font-size: 12px; font-weight: 700; color: var(--navy); line-height: 1.25; }
+  .db-urgent-desc { font-size: 11px; color: var(--gray-700); margin: 1px 0; line-height: 1.3; }
   .db-urgent-deadline { font-size: 11px; color: #dc2626; font-weight: 700; }
   /* Row controls on Needs action: tick box to close it, then Snooze, Cancel, Edit. */
   .na-acts { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
@@ -717,6 +720,8 @@
   }
   .na-btn:hover { background: var(--gray-50); color: var(--navy); }
   .na-btn[disabled] { opacity: .45; cursor: wait; }
+  /* Only the row being written waits, never the whole panel. */
+  .na-busy { opacity: .5; pointer-events: none; }
   .na-btn.na-snooze { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
   .na-btn.na-snooze:hover { background: #dbeafe; }
   .na-btn.na-hold { border-color: #e2e8f0; background: #f8fafc; color: #475569; }
@@ -7734,14 +7739,46 @@ function showTodoDetail(id) {
 // The sheet stays the master. sheet-write asks the Apps Script to change one cell group,
 // the script pushes a fresh copy, then the app reloads what it shows.
 let sheetWriteBusy = false;
+// Which row the last press came from, so only that one greys out while it is written.
+let naBusyRow = null;
+document.addEventListener('mousedown', e => {
+  const b = e.target && e.target.closest && e.target.closest('.na-btn, .na-tick, .td-act, .td-confirm, .td-reject, .vt-act');
+  naBusyRow = b ? b.closest('.db-urgent-item, .td-row, .td-likely') : null;
+}, true);
+
+// The sheet is the master, but it is slow to come back: the script writes the cell, then pushes
+// a sync, and only then does the app's own copy catch up. Waiting for all of that left the page
+// dead for half a minute on one tick. So the app asks for the write without the sync wait,
+// mirrors the change in its own copy so the row goes at once, and reconciles quietly after.
+function applyLocalWrite(p) {
+  if (p.action === 'todo_status') {
+    const t = vtTodo.find(x => x.todo_id === p.id); if (t) t.status = p.status;
+  } else if (p.action === 'todo_edit') {
+    const t = vtTodo.find(x => x.todo_id === p.id);
+    if (t) ['task', 'owner', 'due', 'priority', 'status', 'notes'].forEach(k => { if (k in p) t[k] = p[k] || null; });
+  } else if (p.action === 'lists_status') {
+    const r = vtExpected.find(x => (x.vessel_name || '') === p.vessel && (x.movement_type || '') === p.movement && (x.expected_date || '') === p.expected_date);
+    if (r) r.lists_status = p.value;
+  } else if (p.action === 'change_status') {
+    const c = vtChanges.find(x => x.change_id === p.id); if (c) c.status = p.status;
+  }
+}
+let sheetReconcileTimer = null;
+function scheduleSheetReconcile(ms) {
+  clearTimeout(sheetReconcileTimer);
+  sheetReconcileTimer = setTimeout(() => {
+    loadVesselTracking().then(renderDashboard).catch(() => {});
+  }, ms || 30000);
+}
 async function sheetWrite(payload, label) {
   if (!canWriteUser()) return showToast('Your account cannot change the sheet');
   if (sheetWriteBusy) return showToast('One moment, a change is still being written');
   sheetWriteBusy = true;
-  document.querySelectorAll('.td-act, .na-btn, .na-tick, .td-confirm, .td-reject').forEach(b => { b.disabled = true; });
+  const row = naBusyRow;
+  if (row) row.classList.add('na-busy');
   showToast((label || 'Writing to the sheet') + '…');
   try {
-    const { data, error } = await sb.functions.invoke('sheet-write', { body: payload });
+    const { data, error } = await sb.functions.invoke('sheet-write', { body: { ...payload, wait: false } });
     const reply = data || {};
     if (error || !reply.ok) {
       let msg = error ? error.message : (reply.error || 'the sheet did not accept the change');
@@ -7749,16 +7786,17 @@ async function sheetWrite(payload, label) {
       showToast('Not saved: ' + msg);
       return false;
     }
-    await loadVesselTracking();
+    applyLocalWrite(payload);
     renderDashboard();
-    showToast((label || 'Saved') + (reply.synced ? '' : ' (the app refreshes after the next sync)'));
+    showToast(label || 'Saved');
+    scheduleSheetReconcile();   // the sheet has it; pick up its own copy once the sync lands
     return true;
   } catch (e) {
     showToast('Not saved: ' + e.message);
     return false;
   } finally {
     sheetWriteBusy = false;
-    document.querySelectorAll('.td-act, .na-btn, .na-tick, .td-confirm, .td-reject').forEach(b => { b.disabled = false; });
+    if (row) row.classList.remove('na-busy');
   }
 }
 async function todoMarkDone(id, ev) {
@@ -8213,7 +8251,7 @@ function dbRenderUrgent(todayStr) {
   itemsEl.innerHTML = urgents.map(u => `
     <div class="db-urgent-item${u.todo ? ' db-todo-item' : ''}" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
       <div class="db-urgent-icon${u.icon.endsWith('!') ? ' tone-red' : ''}">${ic(u.icon.replace('!', ''))}</div>
-      <div style="flex:1;min-width:0;">
+      <div class="db-urgent-text">
         <div class="db-urgent-vessel">${esc(u.vessel)}</div>
         <div class="db-urgent-desc">${esc(u.desc)}</div>
         <div class="db-urgent-deadline">${esc(u.deadline)}</div>
