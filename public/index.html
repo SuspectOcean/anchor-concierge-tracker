@@ -655,7 +655,12 @@
   /* ═══════════════════════════════════════════
      DASHBOARD — Main/Sidebar Layout (lower)
   ═══════════════════════════════════════════ */
-  .db-layout { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
+  .db-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(330px, 1fr); gap: 12px; align-items: start; }
+  /* Long panels scroll inside themselves. The page was 11,000 pixels tall. */
+  #td-body { max-height: 68vh; overflow: auto; }
+  #db-in-antigua { max-height: 44vh; overflow: auto; }
+  #cc-body { max-height: 38vh; overflow: auto; }
+  #ag-body { max-height: 60vh; overflow: auto; }
   @media (max-width: 960px) { .db-layout { grid-template-columns: 1fr; } }
 
   /* ═══════════════════════════════════════════
@@ -2375,6 +2380,23 @@
           <div id="td-body"></div>
         </div>
 
+        
+              </div>
+
+      <!-- RIGHT: sidebar -->
+      <div>
+        <div class="db-panel" data-db-panel="in-antigua">
+          <div class="db-panel-header">
+            <i data-ic="pin" class="ph-ic"></i>
+            <div>
+              <div class="db-panel-title">In port now</div>
+              <div class="db-panel-sub">Click a vessel for its record, crew and jobs</div>
+            </div>
+            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
+          </div>
+          <div id="db-in-antigua"></div>
+        </div>
+
         <div class="db-panel" data-db-panel="crew-changes">
           <div class="db-panel-header">
             <i data-ic="idcard" class="ph-ic"></i>
@@ -2387,21 +2409,6 @@
           <div id="cc-body"></div>
         </div>
 
-        <div class="db-panel" data-db-panel="in-antigua">
-          <div class="db-panel-header">
-            <i data-ic="pin" class="ph-ic"></i>
-            <div>
-              <div class="db-panel-title">In port now</div>
-              <div class="db-panel-sub">Click a vessel for its record, crew and jobs</div>
-            </div>
-            <span class="db-urgent-count" id="db-antigua-count" style="background:var(--teal);margin-left:auto;">0</span>
-          </div>
-          <div id="db-in-antigua"></div>
-        </div>
-      </div>
-
-      <!-- RIGHT: sidebar -->
-      <div>
         <div class="db-panel" data-db-panel="crew-alerts">
           <div class="db-panel-header">
             <i data-ic="idcard" class="ph-ic"></i>
@@ -3632,7 +3639,29 @@ function subscribeToChanges() {
   // Realtime drops quietly on a sleeping laptop or a weak connection, so the app also
   // asks every 90 seconds whether the sheet has synced since the copy on screen.
   setInterval(changeWatch, 90000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) changeWatch(); });
+  setInterval(buildWatch, 120000);
+  buildWatch();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { changeWatch(); buildWatch(); } });
+}
+
+// ---------- New version of the app itself ----------
+// A deploy puts a new index.html on the server, but a browser happily keeps serving the old
+// one from cache, so people stare at a screen that cannot show the fix. The app checks the
+// served file for a build stamp different from its own and offers a proper reload.
+const BUILD_ID = '2026-11-24-a';
+let newBuildSeen = false;
+async function buildWatch() {
+  if (document.hidden || newBuildSeen) return;
+  try {
+    const res = await fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const txt = await res.text();
+    const m = txt.match(/BUILD_ID = '([^']+)'/);
+    if (m && m[1] !== BUILD_ID) { newBuildSeen = true; renderChangeBar(); }
+  } catch (e) { /* offline */ }
+}
+function reloadForNewBuild() {
+  location.replace(location.pathname + '?v=' + Date.now());
 }
 
 // ---------- "Something changed" bar ----------
@@ -3668,6 +3697,12 @@ function renderChangeBar() {
     bar.id = 'changeBar';
     bar.className = 'chg-bar hidden';
     document.body.appendChild(bar);
+  }
+  if (newBuildSeen) {
+    bar.className = 'chg-bar';
+    bar.innerHTML = `<b>A new version of the app is out.</b><span>Reload to get it.</span>
+      <button type="button" onclick="reloadForNewBuild()">Reload</button>`;
+    return;
   }
   if (!changeKinds.size) { bar.className = 'chg-bar hidden'; bar.innerHTML = ''; return; }
   const sheet = changeKinds.has('sheet'), app = changeKinds.has('app');
@@ -6854,25 +6889,28 @@ function calGroupShips(list, day){
     g.detail = 'Discharging ' + g.names.length + ': ' + g.names.join(', ');
     g.count = g.names.length;
   });
-  // One vessel on a ship reads better as the vessel herself, with the ship in the detail.
-  return out.map(i => {
-    if (i.kind !== 'ship' || i.count > 1) return i;
-    const only = list.find(x => x.ship === i.ship && x.vessel === i.names[0]);
-    return only ? Object.assign({}, only, { detail: [only.detail, 'On ' + i.ship].filter(Boolean).join(' · ') }) : i;
-  });
+  // The ship is the event, even when she is landing only one boat: the calendar shows who
+  // is docking, and the tile opens to what she is discharging.
+  return out;
 }
 
 // Everything one ship is landing on one day.
 function showShipDay(ship, day){
-  const rows = vtExpected.filter(r => (r.shipped_on || '') === ship && r.expected_date === day && r.movement_type === 'Arrival');
+  // Everything this ship is landing, not just the day that was clicked: a discharge often
+  // runs over two or three days and the whole call matters more than one cell of a calendar.
+  const all = vtExpected.filter(r => (r.shipped_on || '') === ship && r.movement_type === 'Arrival' && r.expected_date)
+    .sort((a2, b2) => String(a2.expected_date).localeCompare(String(b2.expected_date)));
+  const rows = all.filter(r => r.expected_date === day);
+  const days = [...new Set(all.map(r => r.expected_date))];
   document.getElementById('vesselDetailTitle').innerHTML = esc(ship) + ` <span class="vt-chip vt-chip-expected">Discharging ${rows.length}</span>`;
   document.getElementById('vesselDetailBody').innerHTML = `
-    <p class="vt-para">${esc(fmtDate(day))} at ${esc(rows.map(r => r.port).filter(Boolean)[0] || 'St Johns')}. ${rows.length} vessel${rows.length === 1 ? '' : 's'} coming off this ship.</p>
-    ${rows.map(r => `
+    <p class="vt-para">${esc(fmtDate(day))} at ${esc(rows.map(r => r.port).filter(Boolean)[0] || 'St Johns')}. ${rows.length} vessel${rows.length === 1 ? '' : 's'} coming off this ship${days.length > 1 ? ', ' + all.length + ' in all over ' + days.length + ' days' : ''}.</p>
+    ${all.map(r => `
       <div class="db-urgent-item" style="background:#fff;border-color:var(--gray-200);" onclick="showExpectedDetail('${esc(expectedRef(r))}')">
         <div class="db-urgent-text">
           <div class="db-urgent-vessel">${esc(r.vessel_name)}</div>
           <div class="db-urgent-desc">${esc([r.vessel_type, r.loa, r.contact].filter(Boolean).join(' · '))}</div>
+          <div class="db-urgent-deadline" style="color:${r.expected_date === day ? '#b45309' : 'var(--gray-500)'};">${esc(fmtShort(r.expected_date))}${r.expected_date === day ? ' · this day' : ''}</div>
         </div>
       </div>`).join('')}
     <p class="vt-note" style="margin-top:12px;">Grouped by column N "Shipped on" of the Expected tab. A row with no ship named shows on its own in the calendar.</p>`;
