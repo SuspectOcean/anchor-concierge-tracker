@@ -279,6 +279,7 @@
   .status-overdue { background: #ffeaea; color: #d32f2f; }
   .status-delayed { background: #fff0e0; color: #c05621; }
   .status-cancelled { background: var(--gray-100); color: var(--gray-600); }
+  .status-on-hold { background: #f1f5f9; color: #475569; }
   .status-invoiced { background: #f3e5f5; color: #7b1fa2; }
   .invoiced-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 11px; color: var(--gray-500); }
   .invoiced-check input { width: 14px; height: 14px; accent-color: #7b1fa2; cursor: pointer; }
@@ -711,16 +712,20 @@
   .na-tick:hover .ico { opacity: 1; }
   .na-tick[disabled] { opacity: .45; cursor: wait; }
   .na-btn {
-    font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 12px; cursor: pointer;
+    font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 12px; cursor: pointer;
     white-space: nowrap; border: 1px solid var(--gray-300); background: #fff; color: var(--gray-700);
   }
   .na-btn:hover { background: var(--gray-50); color: var(--navy); }
   .na-btn[disabled] { opacity: .45; cursor: wait; }
   .na-btn.na-snooze { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
   .na-btn.na-snooze:hover { background: #dbeafe; }
+  .na-btn.na-hold { border-color: #e2e8f0; background: #f8fafc; color: #475569; }
+  .na-btn.na-hold:hover { background: #f1f5f9; color: #334155; }
   .na-btn.na-cancel { border-color: #e7e5e4; background: #fafaf9; color: #78716c; }
   .na-btn.na-cancel:hover { background: #f5f5f4; color: #44403c; }
-  @media (max-width: 640px) { .na-acts { width: 100%; margin: 6px 0 0; justify-content: flex-end; } .db-urgent-item { flex-wrap: wrap; } }
+  .db-urgent-item { flex-wrap: wrap; }
+  .na-acts { flex-wrap: wrap; justify-content: flex-end; }
+  @media (max-width: 640px) { .na-acts { width: 100%; margin: 6px 0 0; } }
 
   /* ═══════════════════════════════════════════
      DASHBOARD — Movements
@@ -2731,7 +2736,9 @@ async function busy(btn, label, fn) {
 }
 
 // ---------- one wording for statuses and services everywhere ----------
-const STATUS_LABELS = { pending: 'Pending', upcoming: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting confirmation', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled' };
+const STATUS_LABELS = { pending: 'Pending', upcoming: 'Pending', scheduled: 'Scheduled', 'in-progress': 'In progress', 'awaiting-confirm': 'Awaiting confirmation', completed: 'Completed', overdue: 'Overdue', delayed: 'Delayed', cancelled: 'Cancelled', 'on-hold': 'On hold' };
+// Finished, dropped, or parked: all three are off the live lists.
+const NOT_LIVE = ['completed', 'cancelled', 'on-hold'];
 function statusLabel(st) { return STATUS_LABELS[st] || st || ''; }
 function statusBadge(st) { return `<span class="status-badge status-${esc(st)}">${esc(statusLabel(st))}</span>`; }
 function svcLabel(e) {
@@ -3842,6 +3849,7 @@ function computeStatus(entry) {
   if (entry.status === 'completed') return 'completed';
   if (entry.status === 'cancelled') return 'cancelled';
   // Explicit operational states persist regardless of date
+  if (entry.status === 'on-hold') return 'on-hold';
   if (entry.status === 'in-progress' || entry.status === 'awaiting-confirm' || entry.status === 'delayed') return entry.status;
   // Today in Antigua, whatever time zone the device is in
   const todayStr = antiguaToday();
@@ -5972,7 +5980,7 @@ function showVesselDetail(key) {
   // Services and transfers logged in the app for this vessel
   const jobs = allEntries.filter(e => e.category !== 'Vessel Movement' && vtKey(e.vessel) === key)
     .sort((a, b) => (b.serviceDate || '').localeCompare(a.serviceDate || ''));
-  const isOpen = e => !['completed', 'cancelled'].includes(computeStatus(e));
+  const isOpen = e => !NOT_LIVE.includes(computeStatus(e));
   const sums = {};
   const jobRow = e => {
     const st = computeStatus(e);
@@ -6113,11 +6121,11 @@ function showEntryDetail(entryId) {
 
   const why = st === 'overdue'
     ? `<div class="vt-callout vt-callout-red"><b>Overdue by ${late} day${late === 1 ? '' : 's'}.</b> The service date (${esc(fmtDate(e.serviceDate))}) has passed and the job is not marked completed or cancelled. If the work was done, press "Mark completed". If it never happened, press "Cancel job".</div>`
-    : (transfer && !driver && st !== 'completed' && st !== 'cancelled' ? '<div class="vt-callout vt-callout-red"><b>No driver assigned.</b> Press "Edit" to choose a driver.</div>' : '');
+    : (transfer && !driver && !NOT_LIVE.includes(st) ? '<div class="vt-callout vt-callout-red"><b>No driver assigned.</b> Press "Edit" to choose a driver.</div>' : '');
 
   const chargeRows = blocks.map((b, i) => `<tr><td>${esc(b.notes || ('Charge ' + (i + 1)))}</td><td>${Number(b.hours) > 0 && Number(b.rate) > 0 ? esc(b.hours) + ' h × ' + sym + Number(b.rate).toFixed(2) : ''}</td><td style="font-weight:600;">${money(sym, b.amount)}</td></tr>`).join('');
   const canWrite = canWriteUser();
-  const done = st === 'completed' || st === 'cancelled';
+  const done = NOT_LIVE.includes(st);
   const vKey = vtKey(e.vessel);
 
   document.getElementById('vesselDetailTitle').innerHTML = esc(e.vessel || 'No vessel') + ' · ' + esc(e.entryId) + ' ' + statusBadge(st);
@@ -6126,6 +6134,7 @@ function showEntryDetail(entryId) {
     <div class="vt-actions">
       ${canWrite && !done ? `<button type="button" class="vt-act vt-act-green" onclick="quickSetStatus('${esc(e.entryId)}','completed')">${ic('check')} Mark completed</button>` : ''}
       ${canWrite && !done ? `<button type="button" class="vt-act" onclick="entrySnooze('${esc(e.entryId)}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
+      ${canWrite && !done ? `<button type="button" class="vt-act" onclick="entryHold('${esc(e.entryId)}')">Not needed right now</button>` : ''}
       ${canWrite && !done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','cancelled')">Cancel job</button>` : ''}
       ${canWrite && done ? `<button type="button" class="vt-act" onclick="quickSetStatus('${esc(e.entryId)}','pending')">Reopen</button>` : ''}
       ${canWrite ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');openEditEntry('${esc(e.entryId)}')">Edit</button>` : ''}
@@ -6174,7 +6183,7 @@ async function quickSetStatus(entryId, status, ev, asked) {
     e.status = status; e.workCompleted = change.work_completed; e.lastEditedBy = who; e.lastEditedAt = change.last_edited_at;
     refreshViews();
     if (!document.getElementById('vesselDetailModal').classList.contains('hidden')) showEntryDetail(entryId);
-    showToast(entryId + (status === 'completed' ? ' marked completed' : status === 'cancelled' ? ' cancelled' : ' reopened'));
+    showToast(entryId + (status === 'completed' ? ' marked completed' : status === 'cancelled' ? ' cancelled' : status === 'on-hold' ? ' put on hold' : ' reopened'));
     updateSyncBadge(true);
   } catch (err) {
     console.error('Status change error:', err);
@@ -6212,6 +6221,19 @@ async function entrySnooze(entryId, days, ev) {
   }
 }
 
+// Not needed right now: the job stays in the log, off every live list, until it is reopened.
+async function entryHold(entryId, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  if (!canWriteUser()) return showToast('Your role is read-only');
+  const e = allEntries.find(x => x.entryId === entryId);
+  if (!e) return;
+  if (!(await uiConfirm('Not needed right now?', {
+    detail: (svcLabel(e) || entryId) + ' goes on hold. It keeps its date and stays in the log, but leaves Needs action and the open job counts until you reopen it.',
+    ok: 'Put it on hold', cancel: 'Keep it live'
+  }))) return;
+  return quickSetStatus(entryId, 'on-hold', null, true);
+}
+
 // ---------- One set of row controls for everything in Needs action ----------
 // Three kinds of row end up in that panel and each closes somewhere different:
 //   entry  a job in this app's own log        -> entries table
@@ -6227,23 +6249,36 @@ function naActsHtml(act) {
   if (k === 'entry') return `<div class="na-acts">
     ${tick(`naDone('entry','${id}',event)`, 'Mark this job completed')}
     <button type="button" class="na-btn na-snooze" title="Push it back ${TODO_SNOOZE_DAYS} days" ${call(`entrySnooze('${id}',${TODO_SNOOZE_DAYS},event)`)}>Snooze</button>
+    <button type="button" class="na-btn na-hold" title="Not needed right now: park it with no date" ${call(`entryHold('${id}',event)`)}>Not now</button>
     <button type="button" class="na-btn na-cancel" title="This job is not happening" ${call(`quickSetStatus('${id}','cancelled',event)`)}>Cancel</button>
     <button type="button" class="na-btn" title="Change the job" ${call(`naEdit('entry','${id}',event)`)}>Edit</button>
   </div>`;
   if (k === 'todo') return `<div class="na-acts">
     ${tick(`todoMarkDone('${id}',event)`, 'Mark this job done in the sheet')}
     <button type="button" class="na-btn na-snooze" title="Push the due date back ${TODO_SNOOZE_DAYS} days" ${call(`todoSnooze('${id}',${TODO_SNOOZE_DAYS},event)`)}>Snooze</button>
+    <button type="button" class="na-btn na-hold" title="Not needed right now: park it with no date" ${call(`todoHold('${id}',event)`)}>Not now</button>
     <button type="button" class="na-btn na-cancel" title="This job is not happening" ${call(`todoCancel('${id}',event)`)}>Cancel</button>
     <button type="button" class="na-btn" title="Change the job" ${call(`todoEdit('${id}',event)`)}>Edit</button>
   </div>`;
   if (k === 'lists') return `<div class="na-acts">
     ${tick(`naDone('lists','${id}',event)`, 'Mark the crew and guest lists as added to the systems')}
-    <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival" ${call(`naNotNeeded('${id}',event)`)}>Not needed</button>
+    <button type="button" class="na-btn na-hold" title="Not needed right now: park it with no date" ${call(`naListsHold('${id}',event)`)}>Not now</button>
+    <button type="button" class="na-btn na-cancel" title="No lists needed for this arrival at all" ${call(`naNotNeeded('${id}',event)`)}>Not needed</button>
     <button type="button" class="na-btn" title="Open the expected arrival" ${call(`naEdit('lists','${id}',event)`)}>Edit</button>
   </div>`;
   return '';
 }
 // Writing "Not needed" to the sheet is a real change, so it is asked for first.
+// Parks the crew and guest list job for an arrival: nothing to do on it right now.
+async function naListsHold(id, ev) {
+  if (ev) ev.stopPropagation();
+  const r = expectedByRef(id); if (!r) return rowGone('arrival');
+  if (!(await uiConfirm('Crew and guest lists not needed right now for ' + (r.vessel_name || 'this arrival') + '?', {
+    detail: 'Parks the lists job with no date. It leaves Needs action and comes back only when someone puts it back.',
+    ok: 'Put it on hold', cancel: 'Keep it live'
+  }))) return;
+  return listsMark(id, 'On hold', null);
+}
 async function naNotNeeded(id, ev) {
   if (ev) ev.stopPropagation();
   const r = expectedByRef(id); if (!r) return rowGone('arrival');
@@ -7161,7 +7196,7 @@ function agendaItems(fromStr, toStr) {
       items.push({
         date: e.serviceDate, time: (e.serviceTime || '').slice(0, 5), kind: 'service', badge: e.category || 'Service', vessel: e.vessel,
         detail: [e.serviceType, e.staffMember, e.description].filter(Boolean).join(' · '),
-        status: st, warn: (e.priority === 'critical' || e.priority === 'high') && st !== 'completed' && st !== 'cancelled',
+        status: st, warn: (e.priority === 'critical' || e.priority === 'high') && !NOT_LIVE.includes(st),
         click: `showEntryDetail('${esc(e.entryId)}')`
       });
     }
@@ -7184,7 +7219,7 @@ const AG_KIND_CLS = { move: 'ag-move', intended: 'ag-intended', transfer: 'ag-tr
 const AG_MOVE_CLS = { Arrival: 'badge-arriving', Departure: 'badge-departing', Relocation: 'badge-relocation', 'Expected arrival': 'badge-arriving', 'Expected departure': 'badge-departing' };
 function agendaRowHtml(i) {
   return `
-      <div class="ag-row ${AG_KIND_CLS[i.kind] || ''}${i.status === 'completed' || i.status === 'cancelled' ? ' ag-done' : ''}" onclick="${i.click}">
+      <div class="ag-row ${AG_KIND_CLS[i.kind] || ''}${NOT_LIVE.includes(i.status) ? ' ag-done' : ''}" onclick="${i.click}">
         <div class="ag-time">${esc(i.time || '')}</div>
         <div class="ag-main">
           <div class="ag-title"><span class="db-movement-badge ${i.kind === 'move' ? (AG_MOVE_CLS[i.badge] || 'badge-inport') : 'ag-badge-' + i.kind}">${esc(i.badge)}</span> <span class="ag-vessel">${esc(i.vessel || '')}</span>${i.warn ? ' <span class="ag-warn" title="Needs attention">●</span>' : ''}</div>
@@ -7266,6 +7301,7 @@ function listsState(r, todayStr) {
   const s = String(r.lists_status || '').trim().toLowerCase();
   if (s.startsWith('done')) return { code: 'done', label: 'Lists added' };
   if (s.startsWith('not')) return { code: 'na', label: 'Lists not needed' };
+  if (s.startsWith('on hold') || s.startsWith('hold')) return { code: 'hold', label: 'Lists on hold' };
   const days = r.expected_date ? daysBetween(todayStr, r.expected_date) : null;
   if (days != null && days <= LISTS_URGENT_DAYS) return { code: 'urgent', label: 'Lists urgent', days };
   if (days != null && days <= LISTS_TODO_DAYS) return { code: 'todo', label: 'Lists to do', days };
@@ -7399,8 +7435,8 @@ function showExpectedDetail(id) {
     ${late ? `<div class="vt-callout vt-callout-red"><b>The expected date has passed.</b> No arrival is logged for this vessel since the notice. If she is here, add the arrival to the Movements tab of the sheet. If plans changed, update the Expected tab.</div>` : ''}
     ${(() => { const ev = listsEvidence(r); const ls = listsState(r, today); return ev && ls && ls.code !== 'done' && ls.code !== 'na' ? `<div class="vt-callout vt-callout-blue"><b>Crew and guest lists found in the systems:</b> ${esc(ev.text)}. The app will mark the lists done.</div>` : ''; })()}
     <div class="vt-actions">
-      ${r.movement_type === 'Arrival' && canWriteUser() && (listsState(r, today) || {}).code !== 'done' ? `<button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'Done')">Lists done</button><button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'Not needed')">Lists not needed</button>` : ''}
-      ${r.movement_type === 'Arrival' && canWriteUser() && (listsState(r, today) || {}).code === 'done' ? `<button type="button" class="vt-act" onclick="listsMark('${esc(r.id)}', 'To do')">Reopen lists check</button>` : ''}
+      ${r.movement_type === 'Arrival' && canWriteUser() && (listsState(r, today) || {}).code !== 'done' ? `<button type="button" class="vt-act" onclick="listsMark('${esc(expectedRef(r))}', 'Done')">Lists added</button><button type="button" class="vt-act" onclick="naListsHold('${esc(expectedRef(r))}')">Lists not needed right now</button><button type="button" class="vt-act" onclick="listsMark('${esc(expectedRef(r))}', 'Not needed')">Lists not needed at all</button>` : ''}
+      ${r.movement_type === 'Arrival' && canWriteUser() && ['done', 'na', 'hold'].includes((listsState(r, today) || {}).code) ? `<button type="button" class="vt-act" onclick="listsMark('${esc(expectedRef(r))}', 'To do')">Put the lists back on the list</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record (past visits)</button>` : ''}
       ${canWriteUser() ? `<button type="button" class="vt-act" onclick="closeModal('vesselDetailModal');newEntryForExpected('${esc(r.id)}')">+ New entry for this vessel</button>` : ''}
     </div>
@@ -7458,7 +7494,11 @@ function rowGone(what) {
 
 // ---------- To Do (the sheet's "To Do" tab, synced into todo_items) ----------
 // Open = Open or Waiting on client. Done and Cancelled rows are kept for the vessel record only.
-function todoOpen() { return vtTodo.filter(t => t.status !== 'Done' && t.status !== 'Cancelled'); }
+function todoOpen() { return vtTodo.filter(t => t.status !== 'Done' && t.status !== 'Cancelled' && t.status !== 'On hold'); }
+// On hold: not needed right now. Parked by a person, no date on it, off every live list
+// until someone puts it back. Different from Dormant, which the app works out from the mail.
+function todoIsOnHold(t) { return t.status === 'On hold'; }
+function todoOnHold() { return vtTodo.filter(todoIsOnHold); }
 function todoIsCrewChange(t) { return /\bsign[- ]?(off|on)\b|immigration appointment|crew change|joining crew|crew and guest list/i.test(t.task || ''); }
 // Likely done: the daily scan found evidence the job is finished but not proof. Waits for a person to confirm.
 function todoIsLikely(t) { return t.status === 'Likely done'; }
@@ -7494,7 +7534,7 @@ function todoKindMeta(t) { return TODO_KINDS[todoKind(t)] || TODO_KINDS.other; }
 // Snooze and the sheet's own dropdowns, kept in one place.
 const TODO_SNOOZE_DAYS = 2;
 const TODO_PRIORITIES = ['High', 'Normal', 'Low'];
-const TODO_STATUSES = ['Open', 'Waiting on client', 'Likely done', 'Done', 'Cancelled'];
+const TODO_STATUSES = ['Open', 'Waiting on client', 'On hold', 'Likely done', 'Done', 'Cancelled'];
 function todoState(t, todayStr) {
   if (!t.due) return { code: 'nodate', days: null };
   const days = daysBetween(todayStr, t.due);
@@ -7531,6 +7571,7 @@ function todoInRange(t, todayStr, id) {
 function todoRowHtml(t, todayStr) {
   const st = todoState(t, todayStr);
   const wait = t.status === 'Waiting on client';
+  const held = todoIsOnHold(t);
   const when = t.due
     ? `${esc(fmtShort(t.due))}<small>${st.days === 0 ? 'today' : st.days === 1 ? 'tomorrow' : st.days > 0 ? 'in ' + st.days + ' d' : Math.abs(st.days) + ' d late'}</small>`
     : 'No date<small>open</small>';
@@ -7539,12 +7580,14 @@ function todoRowHtml(t, todayStr) {
   return `<div class="td-row${cls}${wait ? ' td-wait' : ''}" title="Open the details" onclick="showTodoDetail('${esc(todoRef(t))}')">
     <div class="td-date">${when}</div>
     <div class="td-main">
-      <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> ${wait ? '<span class="td-st td-st-wait">Waiting on client</span>' : ''}${todoIsCrewChange(t) ? ' <span class="td-st td-st-crew">Crew change</span>' : ''} <span class="td-id">${esc(t.todo_id)}</span></div>
+      <div class="ag-title"><span class="ag-vessel">${esc(t.vessel_name || 'General')}</span> ${held ? '<span class="td-st">On hold</span>' : ''}${wait ? '<span class="td-st td-st-wait">Waiting on client</span>' : ''}${todoIsCrewChange(t) ? ' <span class="td-st td-st-crew">Crew change</span>' : ''} <span class="td-id">${esc(t.todo_id)}</span></div>
       <div class="td-task">${esc(t.task || '')}</div>
       <div class="td-meta">${esc([t.owner ? 'Owner ' + t.owner : '', t.requested_by ? 'For ' + t.requested_by : ''].filter(Boolean).join(' · '))}</div>
     </div>
     ${pri !== 'Normal' ? `<span class="td-pri td-pri-${pri.toLowerCase()}">${esc(pri)}</span>` : ''}
-    ${naActsHtml({ kind: 'todo', id: todoRef(t) })}
+    ${held
+      ? (canWriteUser() ? `<div class="na-acts"><button type="button" class="na-btn" title="Put this job back on the live list" onclick="todoReopen('${esc(todoRef(t))}', event)">Put back</button></div>` : '')
+      : naActsHtml({ kind: 'todo', id: todoRef(t) })}
   </div>`;
 }
 function todoLikelyRowHtml(t) {
@@ -7561,16 +7604,18 @@ function todoLikelyRowHtml(t) {
     </div>` : ''}
   </div>`;
 }
+let todoHeldOpen = false;
+function toggleTodoHeld() { todoHeldOpen = !todoHeldOpen; renderTodoPanel(antiguaToday()); }
 function renderTodoPanel(todayStr) {
   const tabsEl = document.getElementById('td-tabs'), bodyEl = document.getElementById('td-body');
   const countEl = document.getElementById('td-count'), subEl = document.getElementById('td-sub');
   if (!tabsEl || !bodyEl) return;
   if (!TODO_RANGES.some(r => r.id === todoRange)) todoRange = 'week';
-  const active = todoActive(), likely = todoLikely(), dormant = todoDormant();
+  const active = todoActive(), likely = todoLikely(), dormant = todoDormant(), held = todoOnHold();
   const late = active.filter(t => todoState(t, todayStr).code === 'late').length;
   if (countEl) { countEl.textContent = active.length; countEl.style.background = late ? '#dc2626' : 'var(--navy)'; }
   if (subEl) subEl.textContent = vtTodo.length
-    ? `${active.length} live${late ? ', ' + late + ' past the due date' : ''}${likely.length ? ', ' + likely.length + ' to confirm' : ''}${dormant.length ? ', ' + dormant.length + ' dormant' : ''}. From the To Do tab of the Google Sheet.`
+    ? `${active.length} live${late ? ', ' + late + ' past the due date' : ''}${likely.length ? ', ' + likely.length + ' to confirm' : ''}${dormant.length ? ', ' + dormant.length + ' dormant' : ''}${held.length ? ', ' + held.length + ' on hold' : ''}. From the To Do tab of the Google Sheet.`
     : 'Open requests, quotes and replies owed, from the To Do tab of the Google Sheet';
   tabsEl.innerHTML = TODO_RANGES.map(r => {
     const n = active.filter(t => todoInRange(t, todayStr, r.id)).length;
@@ -7623,6 +7668,15 @@ function renderTodoPanel(todayStr) {
     html += groups.map(g => `<div class="td-group ${g[2]}"><span>${g[0]}</span><span>${g[1].length}</span></div>` + g[1].map(t => todoRowHtml(t, todayStr)).join('')).join('');
   }
 
+  // Parked by hand: not needed right now. Folded away above Dormant.
+  if (held.length) {
+    html += `<div class="td-dormant-head" onclick="toggleTodoHeld()">
+        <span>${todoHeldOpen ? '▾' : '▸'} On hold: not needed right now (${held.length})</span>
+        <span>${todoHeldOpen ? 'hide' : 'show'}</span>
+      </div>`
+      + (todoHeldOpen ? `<div class="td-dormant">${held.sort(byDue).map(t => todoRowHtml(t, todayStr)).join('')}</div>` : '');
+  }
+
   // Dormant last, folded away. Still open, just nothing has moved on them for three weeks.
   if (dormant.length) {
     html += `<div class="td-dormant-head" onclick="toggleTodoDormant()">
@@ -7652,10 +7706,11 @@ function showTodoDetail(id) {
     <div class="vt-actions">
       ${likely && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoConfirm('${esc(todoRef(t))}')">Confirm done</button><button type="button" class="vt-act" onclick="todoNotDone('${esc(todoRef(t))}')">Not done</button>` : ''}
       ${!likely && t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act vt-act-green" onclick="todoMarkDone('${esc(todoRef(t))}')">${ic('check')} Mark Done</button>` : ''}
-      ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoSnooze('${esc(todoRef(t))}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && t.status !== 'On hold' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoSnooze('${esc(todoRef(t))}', ${TODO_SNOOZE_DAYS})">Snooze ${TODO_SNOOZE_DAYS} days</button>` : ''}
+      ${t.status !== 'Done' && t.status !== 'Cancelled' && t.status !== 'On hold' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoHold('${esc(todoRef(t))}')">Not needed right now</button>` : ''}
       ${t.status !== 'Done' && t.status !== 'Cancelled' && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoCancel('${esc(todoRef(t))}')">Cancel job</button>` : ''}
       ${canWriteUser() ? `<button type="button" class="vt-act" onclick="todoEdit('${esc(todoRef(t))}')">Edit</button>` : ''}
-      ${(t.status === 'Done' || t.status === 'Cancelled') && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(todoRef(t))}')">Reopen</button>` : ''}
+      ${(t.status === 'Done' || t.status === 'Cancelled' || t.status === 'On hold') && canWriteUser() ? `<button type="button" class="vt-act" onclick="todoReopen('${esc(todoRef(t))}')">Put back on the list</button>` : ''}
       ${known ? `<button type="button" class="vt-act" onclick="showVesselDetail('${esc(key)}')">Vessel record</button>` : ''}
     </div>
     <h3 class="vt-h3">Task</h3><p class="vt-para td-para">${esc(t.task || '')}</p>
@@ -7717,6 +7772,20 @@ async function todoMarkDone(id, ev) {
   await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'Done' }, t.todo_id + ' marked Done');
 }
 // Cancelled: the job is not happening. Kept on the vessel record, out of every live list.
+// Not needed right now: parked with no date, nothing to chase, nothing on the calendar.
+async function todoHold(id, ev) {
+  if (ev) ev.stopPropagation();
+  const t = todoByRef(id); if (!t) return rowGone('job');
+  const r = await uiDialog({
+    title: 'Not needed right now?', detail: t.todo_id + ' · ' + String(t.task || ''),
+    fields: [{ key: 'why', label: 'Why it can wait (optional)', placeholder: 'Charter moved, waiting on the yard, no date yet…' }],
+    ok: 'Put it on hold', cancel: 'Keep it live'
+  });
+  if (!r) return;
+  closeModal('vesselDetailModal');
+  await sheetWrite({ action: 'todo_status', id: t.todo_id, status: 'On hold', note: r.why ? 'on hold in the app: ' + r.why : 'on hold in the app, not needed right now' },
+    t.todo_id + ' on hold');
+}
 async function todoCancel(id, ev) {
   if (ev) ev.stopPropagation();
   const t = todoByRef(id); if (!t) return rowGone('job');
@@ -8075,7 +8144,7 @@ function dbRenderUrgent(todayStr) {
   const urgents = [];
   const addedIds = new Set();
   const tomorrow = addDays(todayStr, 1);
-  const open = e => { const st = computeStatus(e); return st !== 'completed' && st !== 'cancelled'; };
+  const open = e => !NOT_LIVE.includes(computeStatus(e));
   const jobs = allEntries.filter(e => e.category !== 'Vessel Movement');
 
   jobs.filter(e => isTransferEntry(e) && !e.transferDriverId && open(e) && (e.serviceDate === todayStr || e.serviceDate === tomorrow)).forEach(e => {
@@ -8172,7 +8241,7 @@ function dbRenderInAntigua(dayStr) {
     const people = v.crewIn != null ? v.crewIn + ' crew' + (v.guestsIn ? ' · ' + v.guestsIn + ' guests' : '') : '';
     const since = v.since ? 'Since ' + fmtShort(v.since) + (v.days != null ? ' · ' + v.days + ' d' : '') : 'Arrival not on file';
     const leaving = v.intendedDeparture ? ' · intends to leave ' + fmtShort(v.intendedDeparture) : '';
-    const jobs = allEntries.filter(e => e.category !== 'Vessel Movement' && vtKey(e.vessel) === v.key && !['completed', 'cancelled'].includes(computeStatus(e))).length;
+    const jobs = allEntries.filter(e => e.category !== 'Vessel Movement' && vtKey(e.vessel) === v.key && !NOT_LIVE.includes(computeStatus(e))).length;
     return `
       <div class="db-vessel-card" onclick="showVesselDetail('${esc(v.key)}')">
         <div class="db-vessel-thumb">${ic('ship')}</div>
