@@ -913,18 +913,29 @@
   .vt-tl-nav { display: flex; gap: 4px; }
   .vt-tl-nav button { background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; color: var(--gray-700); }
   .vt-tl-nav button:hover { border-color: var(--teal); }
-  .vt-tl-wrap { overflow-x: auto; padding: 0 14px 14px; }
+  /* The grid scrolls inside its own frame: the date header stays put while the vessel list scrolls under it,
+     and the vessel name stays put while the days scroll sideways (phones). */
+  .vt-tl-wrap { overflow: auto; max-height: 62vh; margin: 0 14px 14px; border: 1px solid var(--gray-300); border-radius: 8px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .vt-tl thead th { position: sticky; top: 0; z-index: 2; background: var(--white); }
+  .vt-tl thead th.vt-tl-name { left: 0; z-index: 4; }
+  .vt-tl thead th.vt-today { background: #fff1e6; }
+  .vt-tl-group td { position: sticky; top: 34px; z-index: 3; }
   .vt-tl { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; font-size: 12px; table-layout: fixed; }
   .vt-tl th, .vt-tl td { border-bottom: 1px solid var(--gray-100); height: 26px; padding: 0; text-align: center; }
   .vt-tl th { font-size: 10px; font-weight: 600; color: var(--gray-600); height: 34px; }
   .vt-tl-day span { display: block; font-size: 9px; color: var(--gray-500); font-weight: 500; }
   .vt-tl-day.vt-we { color: var(--gray-500); }
-  .vt-tl .vt-tl-name { width: 170px; text-align: left; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--navy); position: sticky; left: 0; background: var(--white); z-index: 1; }
+  .vt-tl .vt-tl-name { width: 170px; box-shadow: 1px 0 0 var(--gray-200); text-align: left; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--navy); position: sticky; left: 0; background: var(--white); z-index: 1; }
   .vt-tl th.vt-tl-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); }
   .vt-legend { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--gray-500); margin-left: 6px; }
   .vt-tl .vt-tl-num { width: 44px; color: var(--gray-700); font-variant-numeric: tabular-nums; }
   .vt-tl-group td { text-align: left; padding: 6px 8px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #9a5a12; background: #fff7ee; height: auto; }
   .vt-tl-row { cursor: pointer; }
+  /* Grid: a firm rule between the vessel columns and the days, faint lines between days, a slightly firmer one at each Monday. */
+  .vt-tl th.vt-tl-num, .vt-tl td.vt-tl-num { border-right: 2px solid #94a3b8; }
+  .vt-tl th.vt-tl-day, .vt-tl-row td:not(.vt-tl-name):not(.vt-tl-num) { border-left: 1px solid #e1e6ed; }
+  .vt-tl th.vt-tl-day.vt-mon, .vt-tl-row td.vt-mon { border-left: 1px solid #b8c2cf; }
+  .vt-tl th { border-bottom: 2px solid #94a3b8; }
   .vt-tl-row:hover .vt-tl-name { color: var(--teal); }
   /* soft tints, not solid fills */
   .vt-stay { background: #e6f0fa; }
@@ -960,6 +971,9 @@
   .vt-table td, .vt-table th { white-space: nowrap; }
   .vt-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-100); }
   .vt-click { cursor: pointer; }
+  .vt-crew-cell { cursor: pointer; }
+  .vt-crew-cell b { color: var(--teal); text-decoration: underline dotted; }
+  .vt-nolist { font-size: 11px; color: var(--gray-400); font-style: italic; }
   .vt-click:hover td { background: var(--gray-50); }
   .vt-h3 { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.6px; margin: 16px 0 8px; }
   .vt-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
@@ -973,6 +987,14 @@
   .vt-sync-note { font-size: 12px; color: var(--gray-600); background: #eef4fb; border: 1px solid #cfe0f3; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; }
   .user-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 6px; }
   @media (max-width: 520px) { .vt-tl-keys { flex-basis: 100%; order: 3; } }
+  @media (max-width: 700px) {
+    .vt-tl-wrap { margin: 0 8px 10px; max-height: 58vh; }
+    .vt-tl { min-width: 0; width: auto; }
+    .vt-tl .vt-tl-name { width: 112px; max-width: 112px; padding: 0 6px; font-size: 11px; }
+    .vt-tl .vt-tl-num { width: 30px; }
+    .vt-tl th.vt-tl-day, .vt-tl-row td:not(.vt-tl-name):not(.vt-tl-num) { width: 26px; min-width: 26px; }
+    .vt-tl-group td { font-size: 9px; }
+  }
   /* phone width: stop wide tables pushing the page sideways */
   .db-layout { grid-template-columns: minmax(0, 1fr) 300px; }
   @media (max-width: 960px) { .db-layout { grid-template-columns: minmax(0, 1fr); } }
@@ -3655,7 +3677,7 @@ function subscribeToChanges() {
 // A deploy puts a new index.html on the server, but a browser happily keeps serving the old
 // one from cache, so people stare at a screen that cannot show the fix. The app checks the
 // served file for a build stamp different from its own and offers a proper reload.
-const BUILD_ID = '2026-11-24-b';
+const BUILD_ID = '2026-11-24-f';
 let newBuildSeen = false;
 async function buildWatch() {
   if (document.hidden || newBuildSeen) return;
@@ -5677,6 +5699,7 @@ async function loadVesselTracking() {
       fetchAll('crew_members', q => q.order('full_name').order('id'))
     ]);
     vtMovements = mov; vtSightings = sig; vtCrew = crew;
+    vtFillCrewFromLists();
     vtCrewPrivate = {};
     if (isAdminUser()) {
       try {
@@ -6008,7 +6031,7 @@ function vtTimelineHtml(dayStr) {
   let head = '<tr><th class="vt-tl-name">Vessel</th><th class="vt-tl-num">Days</th>';
   days.forEach(d => {
     const dt = parseYMD(d);
-    const cls = (d === realToday ? ' vt-today' : '') + (dt.getDay() === 0 || dt.getDay() === 6 ? ' vt-we' : '');
+    const cls = (d === realToday ? ' vt-today' : '') + (dt.getDay() === 0 || dt.getDay() === 6 ? ' vt-we' : '') + (dt.getDay() === 1 ? ' vt-mon' : '');
     head += `<th class="vt-tl-day${cls}" title="${esc(fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}"><span>${'SMTWTFS'[dt.getDay()]}</span>${dt.getDate()}</th>`;
   });
   head += '</tr>';
@@ -6040,6 +6063,7 @@ function vtTimelineHtml(dayStr) {
       days.forEach(day => {
         let [cls, mark] = dayCell(r, day);
         if (day === realToday) cls += ' vt-today';
+        if (parseYMD(day).getDay() === 1) cls += ' vt-mon';
         cells += `<td class="${cls}">${mark}</td>`;
       });
       const cur = r.visits.find(v => visitStatus(v, realToday) === 'current') || (r.status === 'departed' ? r.visits[r.visits.length - 1] : null);
@@ -6781,12 +6805,49 @@ function vtRenderClearanceLog() {
       <td><span class="db-movement-badge ${arr ? 'badge-arriving' : 'badge-departing'}">${esc(m.movement_type)}</span></td>
       <td>${esc(m.port || '')}</td>
       <td>${esc(arr ? (m.last_port || '') : (m.next_port || ''))}</td>
-      <td>${m.crew_count == null ? '' : m.crew_count}</td>
+      <td class="vt-crew-cell" title="${m.crew_count == null ? 'No crew list on file' : 'Show the crew'}" onclick="showMovementCrew('${esc(String(m.id))}', event)">${m.crew_count == null ? '<span class="vt-nolist">no list</span>' : '<b>' + m.crew_count + '</b>'}</td>
       <td>${m.guest_count == null ? '' : m.guest_count}</td>
       <td>${esc(m.captain_name || '')}</td>
       <td style="font-size:11px;color:var(--gray-600);">${esc(m.source_portal || '')} ${esc(m.reference || '')}</td>
     </tr>`;
   }).join('') || ('<tr><td colspan="10">' + (vtMovements.length ? emptyState('Nothing matches', 'No clearance fits the search. Try "All seasons".') : emptyState('No clearances yet', 'They appear here after the Google Sheet syncs.')) + '</td></tr>');
+}
+
+// A movement logged from a notice email carries no crew count, but the crew list for the same
+// vessel and day often is on file (Crew log). Fill the count and captain from it, so every table,
+// tile and panel shows the same number. Nothing is written back to the sheet.
+function vtCrewFor(m) {
+  const k = m.vessel_key || vtKey(m.vessel_name);
+  let rows = vtSightings.filter(s => s.vessel_key === k && s.sighting_date === m.movement_date && (!s.movement_type || !m.movement_type || s.movement_type === m.movement_type));
+  if (!rows.length && m.reference) rows = vtSightings.filter(s => s.vessel_key === k && s.reference === m.reference);
+  const seen = new Map();
+  rows.forEach(s => { const pk = s.person_key || s.full_name; if (pk && !seen.has(pk)) seen.set(pk, s); });
+  return [...seen.values()];
+}
+function vtFillCrewFromLists() {
+  vtMovements.forEach(m => {
+    if (m.crew_count != null && m.captain_name) return;
+    const list = vtCrewFor(m);
+    if (!list.length) return;
+    if (m.crew_count == null) { m.crew_count = list.length; m._crewFromList = true; }
+    if (!m.captain_name) { const c = list.find(s => /captain|master/i.test(s.role || '') || /captain|master/i.test(s.rank || '')); if (c) m.captain_name = c.full_name; }
+  });
+}
+// Who was aboard for one movement. Opens from the crew number in any movements table.
+function showMovementCrew(id, ev) {
+  if (ev) ev.stopPropagation();
+  const m = vtMovements.find(x => String(x.id) === String(id));
+  if (!m) return;
+  const list = vtCrewFor(m).sort((a, b) => (/captain|master/i.test(b.role || '') ? 1 : 0) - (/captain|master/i.test(a.role || '') ? 1 : 0) || String(a.full_name).localeCompare(String(b.full_name)));
+  document.getElementById('vesselDetailTitle').innerHTML = esc(m.vessel_name) + ` <span class="vt-chip vt-chip-expected">${esc(m.movement_type)} ${esc(fmtShort(m.movement_date))}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = list.length
+    ? `<p class="vt-para">${list.length} crew${m.reference ? ' on ' + esc(m.reference) : ''}. Open a name for that person's record.</p>
+       <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Name</th><th>Role</th><th>Rank</th><th>Nationality</th></tr></thead><tbody>${
+         list.map(s => `<tr class="vt-click" onclick="showCrewDetail('${esc(encodeURIComponent(s.person_key || ''))}')"><td style="font-weight:600;">${esc(s.full_name)}</td><td>${esc(s.role || '')}</td><td>${esc(s.rank || '')}</td><td>${esc(s.nationality || '')}</td></tr>`).join('')}</tbody></table></div>
+       <p class="vt-note" style="margin-top:10px;"><a href="#" onclick="event.preventDefault();showVesselDetail('${esc(m.vessel_key || vtKey(m.vessel_name))}')">Open ${esc(m.vessel_name)}</a></p>`
+    : `<p class="vt-para">No crew list on file for this ${esc(String(m.movement_type || 'movement').toLowerCase())}. It was logged from the ${esc(m.source_portal || 'clearance')} notice email${m.reference ? ' (' + esc(m.reference) + ')' : ''}, which gives the vessel, port and date only. The crew appear here once her crew list is in the Crew log.</p>
+       <p class="vt-note"><a href="#" onclick="event.preventDefault();showVesselDetail('${esc(m.vessel_key || vtKey(m.vessel_name))}')">Open ${esc(m.vessel_name)}</a></p>`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
 // ============================================
@@ -8636,6 +8697,60 @@ function naRenderInto(el, todayStr) {
   });
   el.innerHTML = groups.map(g => g.items.length === 1 ? naRowHtml(g.items[0]) : naGroupHtml(g)).join('');
   return redCount;
+}
+
+function naVesselKey(name) {
+  return String(name || 'General').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'general';
+}
+
+function naRowHtml(u) {
+  return `
+    <div class="db-urgent-item${u.todo ? ' db-todo-item' : ''}" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
+      <div class="db-urgent-icon${u.icon.endsWith('!') ? ' tone-red' : ''}">${ic(u.icon.replace('!', ''))}</div>
+      <div class="db-urgent-text">
+        <div class="db-urgent-vessel">${esc(u.vessel)}</div>
+        <div class="db-urgent-desc">${esc(u.desc)}</div>
+        <div class="db-urgent-deadline">${esc(u.deadline)}</div>
+      </div>
+      ${naActsHtml(u.act)}
+    </div>`;
+}
+
+// Which vessels are open stays in memory, so ticking a job off inside one does not shut it.
+const naOpenVessels = new Set();
+function naToggleVessel(key, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const k = String(key || '');
+  if (naOpenVessels.has(k)) naOpenVessels.delete(k); else naOpenVessels.add(k);
+  renderTodoPanel(antiguaToday());
+}
+
+function naGroupHtml(g) {
+  const open = naOpenVessels.has(g.key);
+  const red = g.items.some(i => i.icon.endsWith('!'));
+  const lead = g.items[0];
+  const rest = g.items.length - 1;
+  const summary = lead.deadline + ' · ' + rest + ' more job' + (rest === 1 ? '' : 's');
+  return `
+    <div class="na-group">
+      <div class="na-group-head" title="${open ? 'Hide' : 'Show'} the ${g.items.length} jobs on this vessel" onclick="naToggleVessel('${esc(g.key)}',event)">
+        <div class="db-urgent-icon${red ? ' tone-red' : ''}">${ic(lead.icon.replace('!', ''))}</div>
+        <div class="db-urgent-text">
+          <div class="db-urgent-vessel">${esc(g.vessel)}</div>
+          <div class="db-urgent-deadline">${esc(summary)}</div>
+        </div>
+        <span class="na-count${red ? ' na-count-red' : ''}">${g.items.length}</span>
+        <span class="na-chev">${open ? '&#9662;' : '&#9656;'}</span>
+      </div>
+      ${open ? '<div class="na-group-body">' + g.items.map(u => `
+        <div class="na-sub" title="${u.click ? 'Open the expected arrival' : 'Open this job to sort it out'}" onclick="${u.click || `showEntryDetail('${esc(u.entryId)}')`}">
+          <div class="na-sub-text">
+            <div class="db-urgent-desc">${esc(u.desc)}</div>
+            <div class="db-urgent-deadline">${esc(u.deadline)}</div>
+          </div>
+          ${naActsHtml(u.act)}
+        </div>`).join('') + '</div>' : ''}
+    </div>`;
 }
 
 function dbRenderUrgent(todayStr) {
