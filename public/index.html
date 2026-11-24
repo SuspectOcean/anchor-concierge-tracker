@@ -940,6 +940,8 @@
   /* soft tints, not solid fills */
   .vt-stay { background: #e6f0fa; }
   .vt-arr { background: #bcd6f0; color: #1d4f85; font-size: 10px; }
+  .vt-tl td.vt-cargo { color: #b45309; font-size: 13px; font-weight: 700; }
+  .vt-k.vt-cargo-k { background: #fff; border: 1px solid #fdba74; box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px #b45309; }
   .vt-dep { background: #fbdcbf; color: #9a5a12; font-size: 10px; }
   .vt-plan { background: repeating-linear-gradient(135deg, #f1f6fb, #f1f6fb 4px, #ffffff 4px, #ffffff 8px); }
   .vt-today { box-shadow: inset 0 0 0 999px rgba(253, 126, 20, 0.10); }
@@ -3677,7 +3679,7 @@ function subscribeToChanges() {
 // A deploy puts a new index.html on the server, but a browser happily keeps serving the old
 // one from cache, so people stare at a screen that cannot show the fix. The app checks the
 // served file for a build stamp different from its own and offers a proper reload.
-const BUILD_ID = '2026-11-24-f';
+const BUILD_ID = '2026-11-24-g';
 let newBuildSeen = false;
 async function buildWatch() {
   if (document.hidden || newBuildSeen) return;
@@ -5985,6 +5987,14 @@ function vtRenderActivity(dayStr) {
     <button type="button" class="vt-tiles-more" onclick="const t=document.getElementById('vtTiles');const o=t.classList.toggle('open');uiSet('tiles',o?'1':'0');this.textContent=o?'Fewer season numbers':'More season numbers';">${open ? 'Fewer season numbers' : 'More season numbers'}</button>` + vtTimelineHtml(dayStr);
 }
 
+// A row on the Expected tab that is goods for a yacht, not a yacht: provisions, parcels, crates,
+// containers, air shipments. Same test as the crew list rule, applied to the type and the name.
+function vtIsCargoVisit(v) {
+  const m = v.arrival || v.departure;
+  const raw = m && m.expected && m.raw;
+  if (!raw) return false;
+  return LISTS_CARGO_RE.test([raw.vessel_type, raw.vessel_name].join(' ')) || /air shipment|inflatable/i.test(raw.vessel_type || '');
+}
 function vtTlShift(n) { vtTlOffset = n === 0 ? 0 : vtTlOffset + n; renderDashboard(); }
 
 function vtTimelineHtml(dayStr) {
@@ -6010,9 +6020,25 @@ function vtTimelineHtml(dayStr) {
     return lo <= last && hi >= first;
   };
   const vesselRows = new Map();
-  vtVisits().filter(inWindow).forEach(v => {
+  // Provisions, parcels, containers and air shipments are not vessels. They go on their yacht's
+  // line as a delivery mark, not on a line of their own ("REVERIE provisions" sits on REVERIE).
+  const allVisits = vtVisits();
+  const boatNames = [...new Set(allVisits.filter(v => !vtIsCargoVisit(v)).map(v => v.vessel).filter(Boolean))]
+    .sort((a, b) => b.length - a.length);
+  const parentOf = name => {
+    const up = String(name || '').toUpperCase();
+    return boatNames.find(n => up.startsWith(n.toUpperCase() + ' ') && n.toUpperCase() !== up) || '';
+  };
+  allVisits.filter(inWindow).forEach(v => {
+    const parent = vtIsCargoVisit(v) ? parentOf(v.vessel) : '';
+    if (parent) {
+      const k = vtKey(parent);
+      if (!vesselRows.has(k)) vesselRows.set(k, { key: k, vessel: parent, visits: [], cargo: [] });
+      vesselRows.get(k).cargo.push(v);
+      return;
+    }
     const k = v.key || vtKey(v.vessel);
-    if (!vesselRows.has(k)) vesselRows.set(k, { key: k, vessel: v.vessel, visits: [] });
+    if (!vesselRows.has(k)) vesselRows.set(k, { key: k, vessel: v.vessel, visits: [], cargo: [] });
     vesselRows.get(k).visits.push(v);
   });
   const rows = [...vesselRows.values()].map(r => {
@@ -6040,6 +6066,7 @@ function vtTimelineHtml(dayStr) {
   if (!groups.length) body = `<tr><td colspan="${DAYS + 2}" class="db-empty">No vessel activity in this window</td></tr>`;
   // What a day looks like for this vessel: the first of her visits that covers it wins.
   const dayCell = (r, day) => {
+    const drop = (r.cargo || []).filter(c => (c.start || c.end) === day);
     for (const v of r.visits) {
       const st = visitStatus(v, realToday);
       const stayEnd = st === 'current' ? realToday : (v.end || v.start);
@@ -6047,8 +6074,9 @@ function vtTimelineHtml(dayStr) {
       if (v.start && day === v.start) return ['vt-arr', '\u25B8'];
       if (v.end && day === v.end && st !== 'expected') return ['vt-dep', '\u25C2'];
       if (v.start && day > v.start && day <= stayEnd) return ['vt-stay', ''];
-      if (planned && day > realToday && day <= planned) return [day === planned ? 'vt-plan vt-plan-end' : 'vt-plan', ''];
+      if (planned && day > realToday && day <= planned) return [day === planned ? 'vt-plan vt-plan-end' + (drop.length ? ' vt-cargo' : '') : 'vt-plan' + (drop.length ? ' vt-cargo' : ''), drop.length ? '\u25AA' : ''];
     }
+    if (drop.length) return ['vt-cargo', '\u25AA'];
     return ['', ''];
   };
   const windowLabel = v => {
@@ -6071,7 +6099,7 @@ function vtTimelineHtml(dayStr) {
       const one = r.visits.length === 1 ? r.visits[0] : null;
       const expSrc = one && ((one.arrival && one.arrival.expected && one.arrival) || (one.departure && one.departure.expected && one.departure));
       const click = expSrc ? `showExpectedDetail('${esc(expectedRef(expSrc))}')` : `showVesselDetail('${esc(r.key)}')`;
-      const windows = r.visits.map(windowLabel).filter(Boolean).join(', ');
+      const windows = r.visits.map(windowLabel).filter(Boolean).concat((r.cargo || []).map(c => c.vessel.replace(new RegExp('^' + r.vessel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*', 'i'), '') + ' ' + fmtShort(c.start || c.end))).join(', ');
       body += `<tr class="vt-tl-row" title="${esc(windows)}" onclick="${click}"><td class="vt-tl-name">${esc(r.vessel)}${r.returning ? ' <span class="vt-star" title="Seen in Antigua before this visit">\u2605</span>' : ''}${r.visits.length > 1 ? ` <span class="vt-tl-visits">${r.visits.length}</span>` : ''}</td><td class="vt-tl-num">${d == null || r.status === 'expected' ? '' : d}</td>${cells}</tr>`;
     });
   });
@@ -6079,7 +6107,7 @@ function vtTimelineHtml(dayStr) {
   return `
     <div class="vt-tl-bar">
       <div class="vt-tl-range">${esc(fmtShort(first))} to ${esc(fmtDate(last))}</div>
-      <div class="vt-tl-keys"><span><i class="vt-k vt-arr"></i>Arrival</span><span><i class="vt-k vt-stay"></i>In port</span><span><i class="vt-k vt-dep"></i>Departure</span><span><i class="vt-k vt-plan"></i>Intended stay</span><span><i class="vt-k vt-today"></i>Today</span><span><span class="vt-star">★</span> Seen in Antigua before</span></div>
+      <div class="vt-tl-keys"><span><i class="vt-k vt-arr"></i>Arrival</span><span><i class="vt-k vt-stay"></i>In port</span><span><i class="vt-k vt-dep"></i>Departure</span><span><i class="vt-k vt-plan"></i>Intended stay</span><span><i class="vt-k vt-today"></i>Today</span><span><i class="vt-k vt-cargo-k"></i>Delivery for the yacht</span><span><span class="vt-star">★</span> Seen in Antigua before</span></div>
       <div class="vt-tl-nav">
         <button type="button" onclick="vtTlShift(-14)" title="Earlier">&#8249;</button>
         <button type="button" onclick="vtTlShift(0)">Today</button>
