@@ -338,6 +338,7 @@
   .cal-entry-pip.invoiced { background: #f3e5f5; color: #7b1fa2; }
   .cal-entry-pip.transfer { background: #fff8e1; color: #f9a825; border: 1px solid #ffd54f; }
   .cal-entry-pip.movement { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; font-weight: 600; }
+  .cal-ship-bar { background:#9a3412; cursor:pointer; outline:1px solid #fdba74; }
   .cal-presence-bar { font-size: 9px; padding: 0 4px; border-radius: 3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; line-height: 15px; height: 15px; font-weight: 600; }
   .cal-more { font-size: 10px; color: var(--gray-500); font-weight: 600; margin-top: 2px; cursor: pointer; }
   .cal-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
@@ -833,6 +834,11 @@
   }
   .chg-bar button:hover { filter: brightness(1.08); }
   .chg-bar .chg-x { background: transparent; color: #cbd5e1; padding: 5px 6px; font-size: 14px; }
+  /* Statistics page: season tabs, muted zeros, a total that reads as one. */
+  .vt-season-tabs { margin: 0 0 10px; }
+  .vt-scope { font-size: 12px; color: var(--gray-600); margin: 0 0 12px; }
+  .vt-zero { color: var(--gray-300); }
+  .vt-table tr.vt-total td { font-weight: 700; border-top: 2px solid var(--navy); }
   .db-gap { padding: 9px 14px; border-top: 1px solid var(--gray-200); background: #fffbeb; display: flex; flex-direction: column; gap: 2px; }
   .db-gap b { font-size: 11px; color: #b45309; }
   .db-gap span { font-size: 11px; color: var(--gray-700); }
@@ -2063,6 +2069,7 @@
           <div class="cal-legend-item"><div class="cal-legend-dot completed"></div> Completed</div>
           <div class="cal-legend-item"><div class="cal-legend-dot overdue"></div> Overdue</div>
           <div class="cal-legend-item"><div class="cal-legend-dot cancelled"></div> Cancelled</div>
+          <div class="cal-legend-item"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#9a3412;margin-right:6px;"></span>Heavy lift ship</div>
           <div class="cal-legend-item"><i data-ic="arrive"></i>&nbsp;Arrival&nbsp;&nbsp;<i data-ic="depart"></i>&nbsp;Departure that day</div>
         </div>
       </div>
@@ -3648,7 +3655,7 @@ function subscribeToChanges() {
 // A deploy puts a new index.html on the server, but a browser happily keeps serving the old
 // one from cache, so people stare at a screen that cannot show the fix. The app checks the
 // served file for a build stamp different from its own and offers a proper reload.
-const BUILD_ID = '2026-11-24-a';
+const BUILD_ID = '2026-11-24-b';
 let newBuildSeen = false;
 async function buildWatch() {
   if (document.hidden || newBuildSeen) return;
@@ -4835,6 +4842,18 @@ function nextMonth() {
 
 function mvEmoji(type) { return ic(type === 'Arrival' ? 'arrive' : type === 'Departure' ? 'depart' : 'move') + ' '; }
 
+// Heavy lift ships discharging on a day, from column N "Shipped on" of the Expected tab.
+function calShipsOn(day) {
+  const m = {};
+  (vtExpected || []).forEach(r => {
+    const s = (r.shipped_on || '').trim();
+    if (!s || r.movement_type !== 'Arrival' || r.expected_date !== day) return;
+    if (/cancel|not ours/i.test(r.status || '')) return;
+    (m[s] = m[s] || []).push(r.vessel_name);
+  });
+  return m;
+}
+
 function renderCalendar() {
   vtInvalidate();
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -4872,6 +4891,11 @@ function renderCalendar() {
 
     html += `<div class="${classes.join(' ')}" onclick="showDayDetail('${dateStr}')">`;
     html += `<div class="cal-day">${day}</div>`;
+
+    const dayShips = calShipsOn(dateStr);
+    Object.keys(dayShips).forEach(sn => {
+      html += `<div class="cal-presence-bar cal-ship-bar" title="${esc(sn + ' discharging ' + dayShips[sn].join(', '))}" onclick="event.stopPropagation();showShipDay('${esc(sn)}','${dateStr}')">Ship · ${esc(sn)} (${dayShips[sn].length})</div>`;
+    });
 
     if (presentVessels.length > 0) {
       const maxBars = 3;
@@ -4948,6 +4972,11 @@ function showDayDetail(dateStr) {
   `;
 
   const listEl = document.getElementById('dayDetailList');
+  const dayShips = calShipsOn(dateStr);
+  const shipHtml = Object.keys(dayShips).map(sn => `<div style="background:#ffedd5;border:1px solid #fdba74;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;" onclick="closeDayDetail();showShipDay('${esc(sn)}','${esc(dateStr)}')">
+      <div style="font-size:12px;font-weight:700;color:#9a3412;">Ship · ${esc(sn)} discharging ${dayShips[sn].length}</div>
+      <div style="font-size:12px;color:#7c2d12;margin-top:4px;">${esc(dayShips[sn].join(', '))}</div>
+    </div>`).join('');
   let presenceHtml = '';
   if (presentVessels.length > 0) {
     presenceHtml = `<div style="background:var(--gray-50);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
@@ -4965,11 +4994,11 @@ function showDayDetail(dateStr) {
   }
 
   if (dayEntries.length === 0 && presentVessels.length === 0) {
-    listEl.innerHTML = emptyState('Nothing on this day', 'No vessels in port and no jobs logged.');
+    listEl.innerHTML = shipHtml || emptyState('Nothing on this day', 'No vessels in port and no jobs logged.');
   } else {
     const statusColors = { upcoming: 'var(--blue)', pending: '#3b5bdb', scheduled: 'var(--blue)', 'in-progress': '#856404', 'awaiting-confirm': '#7b1fa2', completed: 'var(--green)', overdue: '#d32f2f', delayed: '#c05621', cancelled: 'var(--gray-600)' };
     const bgColors = { upcoming: '#e8f0ff', pending: '#f0f4ff', scheduled: '#e8f0ff', 'in-progress': '#fff3cd', 'awaiting-confirm': '#f3e5f5', completed: 'var(--green-light)', overdue: '#ffeaea', delayed: '#fff0e0', cancelled: 'var(--gray-100)' };
-    listEl.innerHTML = presenceHtml + dayEntries.map(e => {
+    listEl.innerHTML = shipHtml + presenceHtml + dayEntries.map(e => {
       const cs = computeStatus(e);
       const isTransfer = isTransferEntry(e);
       const driver = isTransfer && e.transferDriverId ? allDrivers.find(dr => dr.id === e.transferDriverId) : null;
@@ -5510,6 +5539,11 @@ let vtTab = 'vessels';
 // Applies to every .log-table (vessel almanac, crew almanac, vessel and crew records, service log).
 // Tables that already sort through sortHead() keep that; the others get sorting done on the rows in place.
 function tblCellValue(td) {
+  // A cell can carry its own sort key, so Oct to Sep sorts as a season and not as the alphabet.
+  if (td.dataset && td.dataset.sort !== undefined && td.dataset.sort !== '') {
+    const k = Number(td.dataset.sort);
+    return Number.isNaN(k) ? td.dataset.sort.toLowerCase() : k;
+  }
   const t = (td.textContent || '').trim();
   if (t === '' || t === '—' || t === '-') return null;
   const n = t.replace(/[,$€£]|EC\$/g, '');
@@ -6584,30 +6618,65 @@ function vtRenderCrewAlmanac() {
   </tr>`).join('') || ('<tr><td colspan="8">' + emptyState('No crew match', 'Try a shorter search or choose "All crew".') + '</td></tr>');
 }
 
+// Vessel types and flags arrive spelled a dozen ways. These fold the variants together so the
+// statistics count boats, not spellings. The raw values stay untouched in the sheet.
+function statType(raw) {
+  const t = String(raw || '').toLowerCase().trim();
+  if (!t) return '';
+  if (/catamaran|\bcat\b|trimaran/.test(t)) return 'Catamaran';
+  if (/chase|tender|\brib\b|dinghy/.test(t)) return 'Tender or chase boat';
+  if (/container|crate|pallet|cargo|provision/.test(t)) return 'Cargo';
+  if (/fishing/.test(t)) return 'Fishing vessel';
+  if (/sloop|schooner|ketch|sail|s\/y|imoca|race/.test(t)) return 'Sailing yacht';
+  if (/power|motor|m\/y|mono ?hull|expedition|open\b/.test(t)) return 'Motor yacht';
+  return 'Other';
+}
+function statFlag(raw) {
+  const t = String(raw || '').trim().replace(/\s+/g, ' ');
+  if (!t) return '';
+  return t.toLowerCase()
+    .replace(/\b[a-z]/g, c => c.toUpperCase())
+    .replace(/\b(And|The|Of)\b/g, m => m.toLowerCase());
+}
+
+let statsSeason = uiGet('statsseason', '');   // '' = this season, 'all' = every season
+function setStatsSeason(v) { statsSeason = v; uiSet('statsseason', v); vtRenderStats(); }
+
 function vtRenderStats() {
   const el = document.getElementById('vt-stats');
   if (!el) return;
   const today = antiguaToday();
-  const moves = unifiedMovements().filter(m => !m.expected && (m.type === 'Arrival' || m.type === 'Departure'));
-  if (!moves.length) { el.innerHTML = emptyState('No movements on file', 'Statistics appear once the Google Sheet has synced.'); return; }
+  const all = unifiedMovements().filter(m => !m.expected && (m.type === 'Arrival' || m.type === 'Departure'));
+  if (!all.length) { el.innerHTML = emptyState('No movements on file', 'Statistics appear once the Google Sheet has synced.'); return; }
 
-  const seasons = [...new Set(moves.map(m => seasonLabelFor(m.date)))].sort();
+  const seasons = [...new Set(all.map(m => seasonLabelFor(m.date)))].sort();
+  const thisSeason = seasonLabelFor(today);
+  if (statsSeason && statsSeason !== 'all' && !seasons.includes(statsSeason)) statsSeason = '';
+  const chosen = statsSeason === 'all' ? 'all' : (statsSeason || thisSeason);
+  const moves = chosen === 'all' ? all : all.filter(m => seasonLabelFor(m.date) === chosen);
+  const scopeLabel = chosen === 'all' ? 'all seasons' : chosen + (chosen === thisSeason ? ', this season' : '');
+
+  const tab = (v, label) => `<button type="button" class="${(statsSeason || thisSeason) === v || (v === 'all' && statsSeason === 'all') ? 'active' : ''}" onclick="setStatsSeason('${v}')">${esc(label)}</button>`;
+  const tabs = `<div class="ag-tabs vt-season-tabs">${seasons.map(x => tab(x, x + (x === thisSeason ? ' (now)' : ''))).join('')}${tab('all', 'Compare all')}</div>`;
+
+  // Month table: always every season side by side, because comparing them is the point of it.
   const monthOrder = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const cell = {};
-  moves.forEach(m => {
+  all.forEach(m => {
     const k = seasonLabelFor(m.date) + '|' + (+m.date.slice(5, 7)) + '|' + m.type;
     cell[k] = (cell[k] || 0) + 1;
   });
+  const num = v => v ? String(v) : '<span class="vt-zero">0</span>';
   let monthTable = '<table class="log-table vt-table no-card"><thead><tr><th rowspan="2">Month</th>' +
-    seasons.map(s => `<th colspan="2" style="text-align:center;">${esc(s)}</th>`).join('') + '</tr><tr>' +
+    seasons.map(x => `<th colspan="2" style="text-align:center;${x === thisSeason ? 'background:#1e3a5f;' : ''}">${esc(x)}</th>`).join('') + '</tr><tr>' +
     seasons.map(() => '<th title="Arrivals">In</th><th title="Departures">Out</th>').join('') + '</tr></thead><tbody>';
-  monthOrder.forEach(mo => {
-    monthTable += `<tr><td style="font-weight:600;">${monthNames[mo]}</td>` + seasons.map(s =>
-      `<td>${cell[s + '|' + mo + '|Arrival'] || 0}</td><td>${cell[s + '|' + mo + '|Departure'] || 0}</td>`).join('') + '</tr>';
+  monthOrder.forEach((mo, i) => {
+    monthTable += `<tr><td style="font-weight:600;" data-sort="${i + 1}">${monthNames[mo]}</td>` + seasons.map(x =>
+      `<td>${num(cell[x + '|' + mo + '|Arrival'] || 0)}</td><td>${num(cell[x + '|' + mo + '|Departure'] || 0)}</td>`).join('') + '</tr>';
   });
-  monthTable += '<tr style="font-weight:700;"><td>Total</td>' + seasons.map(s => {
-    const inS = moves.filter(m => seasonLabelFor(m.date) === s);
+  monthTable += '<tr class="vt-total"><td data-sort="99">Total</td>' + seasons.map(x => {
+    const inS = all.filter(m => seasonLabelFor(m.date) === x);
     return `<td>${inS.filter(m => m.type === 'Arrival').length}</td><td>${inS.filter(m => m.type === 'Departure').length}</td>`;
   }).join('') + '</tr></tbody></table>';
 
@@ -6616,15 +6685,16 @@ function vtRenderStats() {
     moves.forEach(m => { const k = f(m); if (k) c[k] = (c[k] || 0) + 1; });
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   };
-  const smallTable = (title, head, rows, link) => `<div class="vt-stat-card"><h3 class="vt-h3">${title}</h3><table class="log-table vt-table no-card"><thead><tr><th>${head}</th><th>Movements</th></tr></thead><tbody>${
-    rows.map(r => `<tr${link ? ` class="vt-click" onclick="showVesselDetail('${esc(vtKey(r[0]))}')"` : ''}><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('') || '<tr><td colspan="2" class="db-empty">None</td></tr>'}</tbody></table></div>`;
+  // Every row opens what is behind it: the boats in that group, and from a boat her crew.
+  const smallTable = (title, head, rows, kind) => `<div class="vt-stat-card"><h3 class="vt-h3">${title}</h3><table class="log-table vt-table no-card"><thead><tr><th>${head}</th><th>Movements</th></tr></thead><tbody>${
+    rows.map(r => `<tr class="vt-click" title="Show the vessels behind this" onclick="showStatGroup('${kind}','${esc(encodeURIComponent(r[0]))}')"><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('')
+    || '<tr><td colspan="2" class="db-empty">Nothing in ' + esc(scopeLabel) + '</td></tr>'}</tbody></table></div>`;
 
   // What past seasons did in the same 28 calendar days that are coming up.
   const upcoming = [];
-  const thisSeason = seasonLabelFor(today);
   for (let i = 0; i < 28; i++) {
     const md = addDays(today, i).slice(5);
-    moves.filter(m => m.date.slice(5) === md && seasonLabelFor(m.date) !== thisSeason && m.date < today).forEach(m => upcoming.push({ i, m }));
+    all.filter(m => m.date.slice(5) === md && seasonLabelFor(m.date) !== thisSeason && m.date < today).forEach(m => upcoming.push({ i, m }));
   }
   upcoming.sort((a, b) => a.i - b.i || b.m.date.localeCompare(a.m.date));
   const upcomingRows = upcoming.map(({ m }) => `<tr class="vt-click" onclick="showVesselDetail('${esc(m.key || vtKey(m.vessel))}')"><td>${esc(fmtDate(m.date))}</td><td>${esc(m.vessel)}</td><td>${esc(m.type)}</td><td>${esc(m.port || '')}</td></tr>`).join('');
@@ -6632,17 +6702,57 @@ function vtRenderStats() {
   const sourceNote = vtMovements.some(m => m.source_portal === 'eSeaClear' && m.movement_date < seasonStartFor(today))
     ? '' : '<p class="vt-note">Past seasons hold SailClear records only, so earlier seasons are partial.</p>';
 
+  const vessels = new Set(moves.map(m => m.key || vtKey(m.vessel)));
+  const arrivals = moves.filter(m => m.type === 'Arrival').length;
+
   el.innerHTML = `
+    ${tabs}
+    <div class="vt-scope">Showing <b>${esc(scopeLabel)}</b>: ${moves.length} movements, ${arrivals} arrivals, ${vessels.size} vessels.</div>
     ${sourceNote}
-    <div class="vt-stat-card"><h3 class="vt-h3">Arrivals and departures by month</h3><div class="log-table-wrap keep-scroll">${monthTable}</div></div>
+    <div class="vt-stat-card"><h3 class="vt-h3">Arrivals and departures by month <span class="vt-h3-note">every season, for comparison</span></h3><div class="log-table-wrap keep-scroll">${monthTable}</div></div>
     <div class="vt-stat-grid">
-      ${smallTable('Movements by flag', 'Flag', countBy(m => m.src === 'sheet' ? m.raw.flag : ''))}
-      ${smallTable('Movements by vessel type', 'Type', countBy(m => m.src === 'sheet' ? m.raw.vessel_type : ''))}
-      ${smallTable('Most frequent vessels', 'Vessel', countBy(m => m.vessel).slice(0, 12), true)}
+      ${smallTable('Movements by flag', 'Flag', countBy(m => m.src === 'sheet' ? statFlag(m.raw.flag) : ''), 'flag')}
+      ${smallTable('Movements by vessel type', 'Type', countBy(m => m.src === 'sheet' ? statType(m.raw.vessel_type) : ''), 'type')}
+      ${smallTable('Most frequent vessels', 'Vessel', countBy(m => m.vessel).slice(0, 12), 'vessel')}
     </div>
     <div class="vt-stat-card"><h3 class="vt-h3">Who came or went in the next 4 weeks in past seasons</h3>
       <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Date</th><th>Vessel</th><th>Movement</th><th>Port</th></tr></thead><tbody>${upcomingRows || '<tr><td colspan="4" class="db-empty">Nothing on file for these dates</td></tr>'}</tbody></table></div>
     </div>`;
+}
+
+// Behind any statistics row: the vessels that make it up, each opening her own record,
+// which carries her crew. A vessel row goes straight to that record.
+function showStatGroup(kind, encoded) {
+  const value = decodeURIComponent(encoded);
+  const today = antiguaToday();
+  const thisSeason = seasonLabelFor(today);
+  const chosen = statsSeason === 'all' ? 'all' : (statsSeason || thisSeason);
+  const all = unifiedMovements().filter(m => !m.expected && (m.type === 'Arrival' || m.type === 'Departure'));
+  const moves = chosen === 'all' ? all : all.filter(m => seasonLabelFor(m.date) === chosen);
+  if (kind === 'vessel') {
+    const one = moves.find(m => m.vessel === value);
+    return showVesselDetail(one ? (one.key || vtKey(one.vessel)) : vtKey(value));
+  }
+  const match = m => m.src === 'sheet' && (kind === 'flag' ? statFlag(m.raw.flag) : statType(m.raw.vessel_type)) === value;
+  const mine = moves.filter(match);
+  const byVessel = {};
+  mine.forEach(m => {
+    const k = m.key || vtKey(m.vessel);
+    (byVessel[k] = byVessel[k] || { key: k, vessel: m.vessel, n: 0, last: '', raw: [] });
+    byVessel[k].n++;
+    byVessel[k].raw.push(m.raw && m.raw.vessel_type ? m.raw.vessel_type : '');
+    if (m.date > byVessel[k].last) byVessel[k].last = m.date;
+  });
+  const list = Object.values(byVessel).sort((a, b) => b.n - a.n || String(a.vessel).localeCompare(String(b.vessel)));
+  const spellings = [...new Set(mine.map(m => (m.raw && (kind === 'flag' ? m.raw.flag : m.raw.vessel_type)) || '').filter(Boolean))];
+  document.getElementById('vesselDetailTitle').innerHTML = esc(value) + ` <span class="vt-chip vt-chip-expected">${list.length} vessel${list.length === 1 ? '' : 's'}</span>`;
+  document.getElementById('vesselDetailBody').innerHTML = `
+    <p class="vt-para">${mine.length} movement${mine.length === 1 ? '' : 's'} in ${esc(chosen === 'all' ? 'all seasons' : chosen)}. Open a vessel for her visits and her crew.</p>
+    <div class="log-table-wrap"><table class="log-table vt-table"><thead><tr><th>Vessel</th><th>Movements</th><th>Last seen</th></tr></thead><tbody>${
+      list.map(v => `<tr class="vt-click" onclick="showVesselDetail('${esc(v.key)}')"><td style="font-weight:600;">${esc(v.vessel)}</td><td>${v.n}</td><td>${esc(fmtDate(v.last))}</td></tr>`).join('')
+      || '<tr><td colspan="3" class="db-empty">None</td></tr>'}</tbody></table></div>
+    ${spellings.length > 1 ? `<p class="vt-note" style="margin-top:12px;">Counted together from these spellings in the sheet: ${esc(spellings.join(' · '))}.</p>` : ''}`;
+  document.getElementById('vesselDetailModal').classList.remove('hidden');
 }
 
 // ---------- Movements view: clearance log from the sheet ----------
